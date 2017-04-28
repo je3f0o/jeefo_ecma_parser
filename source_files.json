@@ -1,0 +1,5 @@
+[
+	"node_modules/jeefo_tokenizer/dist/jeefo_tokenizer.build.js",
+	"src/javascript_tokenizer.js",
+	"src/javascript_parser.js"
+]
