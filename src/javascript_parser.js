@@ -2199,7 +2199,8 @@ js.run("javascript.ES5_parser", function (parser) {
 	var fs                   = require("fs");
 	var path                 = require("path");
 	var JavascriptBeautifier = require("../../js_beautifier/javascript_beautify");
-	var filename             = path.join(__dirname, "javascript_parser.js");
+	//var filename             = path.join(__dirname, "javascript_parser.js");
+	var filename             = path.join(__dirname, "../build/compiler.js");
 	//var filename = "./node_modules/uglify-js/lib/ast.js";
 	var source   = fs.readFileSync(filename, "utf8");
 	

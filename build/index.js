@@ -55,12 +55,15 @@ var align = function (str, value) {
 
 	return `${ str }${ space } : ${ value }`;
 };
+var get_author = function () {
+	return align("Author", `${ _package.author.name }, <${ _package.author.email }>`);
+};
 
 var license = `The ${ _package.license } license`;
 
 var header = `/**
  * ${ align(_package.name, 'v' + _package.version) }
- * ${ align("Author", _package.author) }
+ * ${ get_author() }
  * ${ align("Homepage", _package.homepage) }
  * ${ align("License", license) }
  * ${ align("Copyright", _package.copyright) }

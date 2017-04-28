@@ -3,7 +3,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-04-28
+* Updated at  : 2017-04-29
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -121,8 +121,8 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 				chars : [
 					'-', '_', '+', '*', '%', // operator
 					'&', '|', '$', '?', '`',
-					'=', // Assignment
-					'!', ':', '.', ',', ';', // delimiters
+					'=', '!', '<', '>',
+					':', '.', ',', ';', // delimiters
 				]
 			},
 		]
