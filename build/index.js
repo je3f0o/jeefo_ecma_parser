@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2017-04-29
-* Updated at  : 2017-04-29
+* Updated at  : 2017-05-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -31,7 +31,7 @@ var source = source_files.map(function (file) {
 	var code = fse.readFileSync(`./${ file }`, "utf8");
 
 	if (file.startsWith("node_modules")) {
-		code = `${ code.replace(/^[^\(]+/, '!function') }(jeefo);`;
+		code = `${ code.replace(/function [^\(]+/, '!function') }(jeefo);`;
 	} else {
 		code = preprocessor(file, code).trim();
 	}

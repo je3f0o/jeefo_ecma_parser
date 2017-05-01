@@ -1,14 +1,20 @@
-!function(e){!function(e){var n=e.module("jeefo_core",[]),t=function(e){return function(n,t,r,i){return"function"===typeof t?(i=r,r=t,t=[]):"string"===typeof t&&(t=[t]),void 0===i&&(i=!0),e.call(this,n,{fn:r,dependencies:t,resolve_once:i})}},r=function(e){var n=function(n,t){return(t?e:"")+n.toLowerCase()};return function(){return this.replace(/[A-Z]/g,n)}};String.prototype.dash_case=r("-"),String.prototype.snake_case=r("_"),n.extend("curry",["$injector"],function(e){return t(function(n,t){e.register((n+"Curry").snake_case(),t)})}),n.curry("makeInjectable",function(){return t}),n.extend("run",["$injector"],function(e){var n=Array;return function(t,r){var i,s,o=0;if("function"===typeof t)r=t,s=[];else if("string"===typeof t)s=[e.resolve_sync(t)];else for(o=0,i=t.length,s=new n(i);o<i;++o)s[o]=e.resolve_sync(t[o]);return r.apply(this,s)}}),n.extend("namespace",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){for(var r,i,s=n.split("."),o=s.pop(),c=0,a=s.length,h="";c<a;++c)r=s[c],h&&(i=e.resolve_sync(h)),h=h?h+"."+r:r,e.has(h)||(e.register(h,{dependencies:[],resolve_once:!0,fn:function(){return{}}}),i&&(i[r]=e.resolve_sync(h)));e.register(n,t),h&&(i=e.resolve_sync(h),i[o]=e.resolve_sync(n))})}),n.extend("factory",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){e.register((n+"Factory").snake_case(),t)})}),n.extend("service",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){t.is_constructor=!0,e.register((n+"Service").snake_case(),t)})})}(e);var n=function(e){for(var n in e)this[n]=e[n]},t=n.prototype;t.error=function(e){var n=new SyntaxError(e);throw n.token=this.value,n.lineNumber=this.start.line,n.columnNumber=this.start.column,n},t.error_unexpected_type=function(){this.error("Unexpected "+this.type)},t.error_unexpected_token=function(){this.error("Unexpected token")};var r=function(e,n,t,r,i,s,o){this.type=e,this.name=n,this.start=t,this.end=r,this.skip=i||null,this.contains=s||null,this.ignore=o||null,s&&(this.contains_chars=this.find_special_characters(s)),o&&(this.ignore_chars=this.find_special_characters(o))};r.prototype.find_special_characters=function(e){for(var n=0,t=e.length;n<t;++n)if("SpecialCharacter"===e[n].type)return e[n].chars.join("")};var i=function(e){this.language=e,this.container=[]};t=i.prototype,t.register=function(e){this.container.push(new r(e.type,e.name,e.start,e.end,e.skip,e.contains,e.ignore))},t.find=function(e){for(var n,t,i,s,o=this.container,c=0,a=o.length,h=e.current_index;c<a;++c){for(t=o[c].start,n=!0,i=0,s=t.length;i<s;++i)if(e.peek(h+i)!==t[i]){n=!1;break}if(n)return new r(o[c].type,o[c].name,o[c].start,o[c].end,o[c].skip,o[c].contains,o[c].ignore)}return null};var s=function(e){this.string=e,this.current_index=0};t=s.prototype,t.peek=function(e){return this.string.charAt(e)},t.seek=function(e,n){return this.string.substring(e,e+n)},t.next=function(){return this.peek(this.current_index+=1)},t.current=function(){return this.peek(this.current_index)};var o=function(e,n){this.lines=[{number:1,index:0}],this.start={line:1,column:1},this.tokens=[],this.regions=n,this.language=e};t=o.prototype,t.parse=function(e){for(var n,t=this.streamer=new s(e),r=t.current();r;)r<=" "?this.handle_new_line(r):(n=this.regions.find(t),n?this.parse_region(n):r>="0"&&r<="9"?this.parse_number():-1===this.SPECIAL_CHARACTERS.indexOf(r)?this.parse_identifier():this.parse_special_character()),r=t.next();return this.tokens},t.IS_FINITE=isFinite,t.NUMBER_VALIDATION=[",",";","}","]",")","*","/","+","-","%"," ","\t","\r","\n","<",">","?",":","^","&","|","/"].join(""),t.parse_number=function(){var e,n=this.streamer;for(this.prepare_new_token(n.current_index),e=n.next();e>="0"&&e<="9";e=n.next());this.add_token(this.make_token("Number")),this.streamer.current_index-=1},t.SPECIAL_CHARACTERS=[",",".",";",":","<",">","~","`","!","@","#","|","%","^","&","*","(",")","-","+","=","[","]","/","?",'"',"{","}","\\","'","_"].join(""),t.parse_identifier=function(){var e,n=this.streamer;for(this.prepare_new_token(n.current_index),e=n.next();e>" "&&-1===this.SPECIAL_CHARACTERS.indexOf(e);e=n.next());this.add_token(this.make_token("Identifier")),n.current_index-=1},t.parse_region=function(e){var n,t,r,i,s=e.skip,o=e.end,c=this.streamer,a=o.length;if(this.prepare_new_token(c.current_index),c.current_index+=e.start.length,e.contains)return i=this.make_token(e.type),i.children=[],this.current_token?(e.parent=this.current_region,i.parent=this.current_token,this.current_token.children.push(i)):this.tokens.push(i),this.current_token=i,this.current_region=e,void(c.current_index-=1);for(r=c.current();r;){if(this.handle_new_line(r),s&&r===s[0]){for(t=!0,n=1;n<a;++n)if(c.peek(c.current_index+n)!==s[n]){t=!1;break}if(t){c.current_index+=s.length,r=c.peek(c.current_index);continue}}if(this.check_end_token(c.current_index,o))return c.current_index+=e.end.length,this.add_token(this.make_token(e.type,this.start.index+e.start.length,c.current_index-this.start.index-e.start.length-o.length)),void(c.current_index-=1);r=c.next()}},t.parse_special_character=function(){var e=this.streamer.current_index;if(this.current_token){var n=this.current_region.ignore_chars,t=this.current_region.contains_chars,r=this.streamer.current();if(this.check_end_token(e,this.current_region.end))return this.streamer.current_index+=this.current_region.end.length,this.set_end(this.current_token),this.set_value(this.current_token),this.current_token=this.current_token.parent,this.current_region=this.current_region.parent,void(this.streamer.current_index-=1);if(n&&n.indexOf(r)>=0)return;t&&-1!==t.indexOf(r)||(this.prepare_new_token(e),this.streamer.current_index+=1,this.make_token("SpecialCharacter").error_unexpected_token())}this.prepare_new_token(e),this.streamer.current_index+=1,this.add_token(this.make_token("SpecialCharacter")),this.streamer.current_index-=1},t.check_end_token=function(e,n){var t,r=this.streamer,i=1,s=n.length;if(r.peek(e)===n[0])for(t=!0;i<s;++i)if(r.peek(e+i)!==n[i]){t=!1;break}return t},t.handle_new_line=function(e){"\r"!==e&&"\n"!==e||this.new_line()},t.new_line=function(){this.lines.push({number:this.lines.length+1,index:this.streamer.current_index+1})},t.set_value=function(e){e.value=this.streamer.seek(e.start.index,e.end.index-e.start.index)},t.set_end=function(e){e.end={line:this.lines.length,column:this.streamer.current_index-this.lines[this.lines.length-1].index+1,index:this.streamer.current_index}},t.prepare_new_token=function(e){this.start={line:this.lines.length,column:e-this.lines[this.lines.length-1].index+1,index:e}},t.add_token=function(e){var n=this.current_token;n?(this.set_end(n),this.set_value(n),n.children.push(e)):this.tokens.push(e)},t.make_token=function(e,t,r){return void 0===t&&(t=this.start.index,r=this.streamer.current_index-this.start.index),new n({type:e,value:this.streamer.seek(t,r),start:this.start,end:{line:this.lines.length,column:this.streamer.current_index-this.lines[this.lines.length-1].index+1,index:this.streamer.current_index}})};var c=e.module("jeefo_tokenizer",["jeefo_core"]);c.namespace("tokenizer.Token",function(){return n}),c.namespace("tokenizer.Region",function(){return i}),c.namespace("tokenizer.TokenParser",function(){return o})}(jeefo);
+/**
+ * jeefo_tokenizer : v0.0.14
+ * Author          : undefined, <undefined>
+ * Homepage        : https://github.com/je3f0o/jeefo_tokenizer
+ * License         : The MIT license
+ * Copyright       : 2017
+ **/
+!function(e){!function(e){var n=e.module("jeefo_core",[]),t=function(e){return function(n,t,r,i){return"function"===typeof t?(i=r,r=t,t=[]):"string"===typeof t&&(t=[t]),void 0===i&&(i=!0),e.call(this,n,{fn:r,dependencies:t,resolve_once:i})}},r=function(e){var n=function(n,t){return(t?e:"")+n.toLowerCase()};return function(){return this.replace(/[A-Z]/g,n)}};String.prototype.dash_case=r("-"),String.prototype.snake_case=r("_"),n.extend("curry",["$injector"],function(e){return t(function(n,t){e.register((n+"Curry").snake_case(),t)})}),n.curry("makeInjectable",function(){return t}),n.extend("run",["$injector"],function(e){var n=Array;return function(t,r){var i,s,o=0;if("function"===typeof t)r=t,s=[];else if("string"===typeof t)s=[e.resolve_sync(t)];else for(o=0,i=t.length,s=new n(i);o<i;++o)s[o]=e.resolve_sync(t[o]);return r.apply(this,s)}}),n.extend("namespace",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){for(var r,i,s=n.split("."),o=s.pop(),c=0,a=s.length,h="";c<a;++c)r=s[c],h&&(i=e.resolve_sync(h)),h=h?h+"."+r:r,e.has(h)||(e.register(h,{dependencies:[],resolve_once:!0,fn:function(){return{}}}),i&&(i[r]=e.resolve_sync(h)));e.register(n,t),h&&(i=e.resolve_sync(h),i[o]=e.resolve_sync(n))})}),n.extend("factory",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){e.register((n+"Factory").snake_case(),t)})}),n.extend("service",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){t.is_constructor=!0,e.register((n+"Service").snake_case(),t)})})}(e);var n=function(e){for(var n in e)this[n]=e[n]},t=n.prototype;t.error=function(e){var n=new SyntaxError(e);throw n.token=this.value,n.lineNumber=this.start.line,n.columnNumber=this.start.column,n},t.error_unexpected_type=function(){this.error("Unexpected "+this.type)},t.error_unexpected_token=function(){this.error("Unexpected token")};var r=function(e){this.type=e.type,this.name=e.name||e.type,this.start=e.start,this.end=e.end,e.skip&&(this.skip=e.skip),e.until&&(this.until=e.until),e.keepend&&(this.keepend=e.keepend),e.contains&&(this.contains=e.contains),e.contained&&(this.contained=e.contained),e.escape_char&&(this.escape_char=e.escape_char),e.contains&&(this.contains_chars=this.find_special_characters(e.contains))};t=r.prototype,t.RegionDefinition=r,t.copy=function(){return new this.RegionDefinition(this)},t.find_special_characters=function(e){for(var n=0;n<e.length;++n)if("SpecialCharacter"===e[n].type)return e[n].chars.join("")};var i=function(e){this.hash={},this.language=e,this.global_null_regions=[],this.contained_null_regions=[]};t=i.prototype,t.sort_function=function(e,n){return e.start.length-n.start.length},t.register=function(e){if(e=new r(e),e.start)this.hash[e.start[0]]?(this.hash[e.start[0]].push(e),this.hash[e.start[0]].sort(this.sort_function)):this.hash[e.start[0]]=[e];else if(e.contained)this.contained_null_regions.push(e);else{if(this.global_null_region)throw Error("Overwritten global null region.");this.global_null_region=e}},t.find=function(e,n){var t,r,i,s=0,o=this.hash[n.current()];if(e&&e.contains){if(o)e:for(s=o.length-1;s>=0;--s)for(r=e.contains.length-1;r>=0;--r)if(o[s].type===e.contains[r].type){for(i=1,t=o[s].start;i<t.length;++i)if(n.peek(n.current_index+i)!==t[i])continue e;return o[s].copy()}for(s=e.contains.length-1;s>=0;--s)for(r=this.contained_null_regions.length-1;r>=0;--r)if(this.contained_null_regions[r].type===e.contains[s].type)return this.contained_null_regions[r].copy()}else{if(o)e:for(s=o.length-1;s>=0;--s)if(!o[s].contained){for(i=1,t=o[s].start;i<t.length;++i)if(n.peek(n.current_index+i)!==t[i])continue e;return o[s].copy()}if(this.global_null_region)return this.global_null_region.copy()}};var s=function(e){this.string=e,this.current_index=0};t=s.prototype,t.peek=function(e){return this.string.charAt(e)},t.seek=function(e,n){return this.string.substring(e,e+n)},t.next=function(){return this.peek(this.current_index+=1)},t.current=function(){return this.peek(this.current_index)};var o=function(e,n){this.lines=[{number:1,index:0}],this.start={line:1,column:1},this.tokens=[],this.stack=[],this.regions=n,this.language=e};t=o.prototype,t.is_array=Array.isArray,t.parse=function(e){for(var n,t=this.streamer=new s(e),r=t.current();r;){if(this.current_region){if(this.current_region.ignore_chars&&-1!==this.current_region.ignore_chars.indexOf(r)){r=t.next();continue}if(this.region_end(this.current_region)){this.current_token=this.current_token.parent,this.current_region=this.current_region.parent,r=t.next();continue}}n=this.regions.find(this.current_region,t),n?(this.parse_region(n),n.keepend&&this.stack.push({token:this.current_token,region:n})):r<=" "?this.handle_new_line(r):r>="0"&&r<="9"?this.parse_number():-1===this.SPECIAL_CHARACTERS.indexOf(r)?this.parse_identifier():this.parse_special_character(),r=t.next()}return this.tokens},t.parse_number=function(){var e,n=this.streamer;for(this.prepare_new_token(n.current_index),e=n.next();e>="0"&&e<="9";e=n.next());this.add_token(this.make_token("Number")),this.streamer.current_index-=1},t.SPECIAL_CHARACTERS=[",",".",";",":","<",">","~","`","!","@","#","|","%","^","&","*","(",")","-","+","=","[","]","/","?",'"',"{","}","_","'","\\"].join(""),t.parse_identifier=function(){var e,n=this.streamer;for(this.prepare_new_token(n.current_index),e=n.next();e>" "&&-1===this.SPECIAL_CHARACTERS.indexOf(e);e=n.next());this.add_token(this.make_token("Identifier")),n.current_index-=1},t.parse_region=function(e){var n,t,r,i,s=this.streamer;if(this.prepare_new_token(s.current_index),e.start&&(s.current_index+=e.start.length),e.contains)return i=this.make_token(e.type,e.name),i.children=[],this.current_token?(e.parent=this.current_region,i.parent=this.current_token,this.current_token.children.push(i)):this.tokens.push(i),this.current_token=i,this.current_region=e,void(e.start&&(s.current_index-=1));for(r=s.current();r;)if(this.handle_new_line(r),r!==e.escape_char){if(e.skip&&r===e.skip[0]){for(n=1,t=!0;n<e.skip.length;++n)if(s.peek(s.current_index+n)!==e.skip[n]){t=!1;break}if(t){s.current_index+=e.skip.length,r=s.current();continue}}if(this.region_end(e,!0))return;r=s.next()}else s.current_index+=2,r=s.current()},t.parse_special_character=function(){!this.current_region||this.current_region.contains_chars&&-1!==this.current_region.contains_chars.indexOf(this.streamer.current())||(this.prepare_new_token(this.streamer.current_index),this.streamer.current_index+=1,this.make_token("SpecialCharacter").error_unexpected_token()),this.prepare_new_token(this.streamer.current_index),this.streamer.current_index+=1,this.add_token(this.make_token("SpecialCharacter")),this.streamer.current_index-=1},t.region_end=function(e,n){var t=0;if(this.is_array(e.end))for(;t<e.end.length;++t)if(this.check_end_token(e,e.end[t],n))return this.finallzie_region(e),!0;return this.check_end_token(e,e.end,n)?(this.finallzie_region(e),!0):!!this.region_end_stack(e,n)||void 0},t.finallzie_region=function(e){for(var n=0;n<this.stack.length;++n)this.stack[n].region===e&&(this.current_token=this.stack[n].token,this.current_region=this.stack[n].region,this.stack.splice(n,this.stack.length))},t.region_end_stack=function(e,n){for(var t,r=this.stack.length-1;r>=0;--r)if(this.is_array(this.stack[r].region.end)){for(t=0;t<this.stack[r].region.end.length;++t)if(this.check_end_token(e,this.stack[r].region.end[t],n))return this.finallzie_region(this.stack[r].region),!0}else if(this.check_end_token(e,this.stack[r].region.end,n))return this.finallzie_region(this.stack[r].region),!0},t.check_end_token=function(e,n,t){var r=1,i=this.streamer;if(i.current()===n[0]){for(;r<n.length;++r)if(i.peek(i.current_index+r)!==n[r])return!1;if(e.until||(i.current_index+=n.length),t){var s=this.make_token(e.type,e.name);this.set_value(s,e.start?e.start.length:0,e.until?0:n.length),this.add_token(s)}else this.set_end(this.current_token),this.set_value(this.current_token,e.start?e.start.length:0,e.until?0:n.length);return i.current_index-=1,!0}},t.handle_new_line=function(e){"\r"!==e&&"\n"!==e||this.new_line()},t.new_line=function(){this.lines.push({number:this.lines.length+1,index:this.streamer.current_index+1})},t.set_value=function(e,n,t){e.value=this.streamer.seek(e.start.index+n,e.end.index-e.start.index-n-t)},t.set_end=function(e){e.end.line=this.lines.length,e.end.column=this.streamer.current_index-this.lines[this.lines.length-1].index,e.end.index=this.streamer.current_index},t.prepare_new_token=function(e){this.start={line:this.lines.length,column:e-this.lines[this.lines.length-1].index+1,index:e}},t.add_token=function(e){this.current_token?this.current_token.children.push(e):this.tokens.push(e)},t.make_token=function(e,t){var r=this.start.index,i=this.streamer.current_index-this.start.index;return new n({type:e,name:t||e,value:this.streamer.seek(r,i),start:this.start,end:{line:this.lines.length,column:this.streamer.current_index-this.lines[this.lines.length-1].index+1,virtual_column:this.lines.column,index:this.streamer.current_index}})};var c=e.module("jeefo_tokenizer",["jeefo_core"]);c.namespace("tokenizer.Token",function(){return n}),c.namespace("tokenizer.Region",function(){return i}),c.namespace("tokenizer.TokenParser",function(){return o})}(jeefo);
 
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-04-29
+* Updated at  : 2017-05-02
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
-
 var js       = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
 	LANGUAGE = "javascript";
 
@@ -32,25 +38,58 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 
 	// String {{{2
 	javascript_regions.register({
-		type  : "String",
-		name  : "Double quote string",
-		start : '"',
-		skip  : '\\"',
-		end   : '"',
+		type        : "String",
+		name        : "Double quote string",
+		start       : '"',
+		escape_char : '\\',
+		end         : '"',
 	});
 	javascript_regions.register({
-		type  : "String",
-		name  : "Single quote string",
-		start : "'",
-		skip  : "\\'",
-		end   : "'",
+		type        : "String",
+		name        : "Single quote string",
+		start       : "'",
+		escape_char : '\\',
+		end         : "'",
 	});
 	javascript_regions.register({
-		type  : "String",
-		name  : "Single quote string",
-		start : "`",
-		skip  : "\\`",
-		end   : "`",
+		type      : "TemplateLiteral quasi string",
+		start     : null,
+		end       : '${',
+		until     : true,
+		contained : true,
+	});
+	javascript_regions.register({
+		type  : "TemplateLiteral expression",
+		start : "${",
+		end   : '}',
+		contains : [
+			{ type : "Block"       } ,
+			{ type : "Array"       } ,
+			{ type : "String"      } ,
+			{ type : "RegExp"      } ,
+			{ type : "Comment"     } ,
+			{ type : "Parenthesis" } ,
+			{
+				type  : "SpecialCharacter",
+				chars : [
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
+					':', '.', ',', ';', // delimiters
+				]
+			},
+		]
+	});
+	javascript_regions.register({
+		type        : "TemplateLiteral",
+		start       : '`',
+		escape_char : '\\',
+		end         : '`',
+		contains : [
+			{ type : "TemplateLiteral quasi string" } ,
+			{ type : "TemplateLiteral expression"   } ,
+		],
+		keepend : true
 	});
 
 	// Parenthesis {{{2
@@ -60,18 +99,19 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 		start : '(',
 		end   : ')',
 		contains : [
-			{ type : "Block"       },
-			{ type : "Array"       },
-			{ type : "String"      },
-			{ type : "Number"      },
-			{ type : "Comment"     },
-			{ type : "Parenthesis" },
+			{ type : "Block"           } ,
+			{ type : "Array"           } ,
+			{ type : "String"          } ,
+			{ type : "RegExp"          } ,
+			{ type : "Comment"         } ,
+			{ type : "Parenthesis"     } ,
+			{ type : "TemplateLiteral" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
-					'-', '_', '+', '*', '%',
-					'&', '|', '$', '?', '!', '<', '>', '`',
-					'=', // Assignment
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
 					':', '.', ',', ';', // delimiters
 				]
 			},
@@ -88,15 +128,14 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 			{ type : "Block"       },
 			{ type : "Array"       },
 			{ type : "String"      },
-			{ type : "Number"      },
 			{ type : "Comment"     },
 			{ type : "Parenthesis" },
 			{
 				type  : "SpecialCharacter",
 				chars : [
 					'-', '_', '+', '*', '%', // operator
-					'&', '$',
-					'=', // Assignment
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>',
 					':', '.', ',', ';', // delimiters
 				]
 			},
@@ -110,18 +149,19 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 		start : '{',
 		end   : '}',
 		contains : [
-			{ type : "Block"       },
-			{ type : "Array"       },
-			{ type : "String"      },
-			{ type : "Number"      },
-			{ type : "Comment"     },
-			{ type : "Parenthesis" },
+			{ type : "Block"           } ,
+			{ type : "Array"           } ,
+			{ type : "String"          } ,
+			{ type : "RegExp"          } ,
+			{ type : "Comment"         } ,
+			{ type : "Parenthesis"     } ,
+			{ type : "TemplateLiteral" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
 					'-', '_', '+', '*', '%', // operator
 					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>',
+					'=', '!', '<', '>', '\\',
 					':', '.', ',', ';', // delimiters
 				]
 			},
@@ -155,12 +195,11 @@ js.namespace("javascript.tokenizer", [
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_parser.js
 * Created at  : 2017-04-14
-* Updated at  : 2017-04-29
+* Updated at  : 2017-05-02
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
-
 // Javascript Parser {{{1
 js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
 
@@ -176,9 +215,10 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		"with", "delete", "void",
 	];
 
-	var JavascriptParser = function (middlewares) {
-		this.reserved    = keywords;
-		this.middlewares = middlewares;
+	var JavascriptParser = function (statement_middlewares, expression_middlewares) {
+		this.reserved               = keywords;
+		if (statement_middlewares)  { this.statement_middlewares  = statement_middlewares;  }
+		if (expression_middlewares) { this.expression_middlewares = expression_middlewares; }
 	},
 	p = JavascriptParser.prototype;
 
@@ -477,6 +517,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	// Parse {{{2
 	p.parse = function (filename, source_code) {
 		this.raw_tokens = tokenizer(source_code);
+		//console.log(888, this.raw_tokens);
 
 		var body    = this.parse_block_statement(this.raw_tokens);
 		return new this.File(filename, source_code, new this.Program(body));
@@ -561,7 +602,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		if (tokens[i]) {
 			if (tokens[i].type === "Parenthesis") {
 				test = this.parse_test(temp, tokens[i].children);
-				i = i + 1;
+				++i;
 			} else {
 				tokens[i].error_unexpected_token();
 			}
@@ -580,7 +621,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			next_token.error_unexpected_token();
 		}
 
-		if (tokens[i + 1] && tokens[i + 1].value === "else") {
+		if (tokens[i + 1] && tokens[i + 1].type === "Identifier" && tokens[i + 1].value === "else") {
 			if (tokens[i + 2]) {
 				i = this.parse_statement(temp, tokens, i + 2);
 				alternate = temp.statement;
@@ -726,7 +767,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		label = temp.identifier;
 
 		if (tokens[i + 1]) {
-			if (tokens[i + 1].value === ':') {
+			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
 				i = this.parse_statement(temp, tokens, i + 2, true);
 
 				temp.statement = new this.LabeledStatement(tokens[index].start, temp.statement.end, label, temp.statement);
@@ -747,7 +788,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		if (tokens[i]) {
 			if (tokens[i].type === "Block") {
 				block = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
-				i = i + 1;
+				++i;
 			} else {
 				tokens[i].error_unexpected_token();
 			}
@@ -756,8 +797,8 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		}
 
 		if (tokens[i]) {
-			if (tokens[i].value === "catch") {
-				i = i + 1;
+			if (tokens[i].type === "Identifier" && tokens[i].value === "catch") {
+				++i;
 
 				if (tokens[i]) {
 					if (tokens[i].type === "Parenthesis") {
@@ -794,8 +835,8 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		}
 
 		if (tokens[i + 1]) {
-			if (tokens[i + 1].value === "finally") {
-				i = i + 2;
+			if (tokens[i + 1].type === "Identifier" && tokens[i + 1].value === "finally") {
+				i += 2;
 
 				if (tokens[i]) {
 					if (tokens[i].type === "Block") {
@@ -822,7 +863,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	p.parse_block_statement = function (tokens) {
 		var temp = new this.Temp(), i = 0, statements = [];
 
-		if (this.middlewares.length) {
+		if (this.statement_middlewares) {
 			return this.parse_block_statement_with_middlewares(temp, tokens, statements);
 		} else {
 			for (; i < tokens.length; ++i) {
@@ -836,24 +877,22 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 	// Parse Block statement with middlewares {{{2
 	p.parse_block_statement_with_middlewares = function (temp, tokens, statements) {
-		var i = 0, middlewares = this.middlewares, return_index = 0, j;
+		var i = 0, j, return_index;
 
+		LOOP:
 		for (; i < tokens.length; ++i) {
-			for (j = 0; j < middlewares.length; ++j) {
-				return_index = this.parse_statement(temp, tokens, i);
+			for (j = 0; j < this.statement_middlewares.length; ++j) {
+				return_index = this.statement_middlewares[i](this, temp, tokens, i);
 
 				if (return_index > i) {
-					break;
+					i = return_index;
+					statements.push(temp.statement);
+					continue LOOP;
 				}
 			}
 
-			if (return_index > i) {
-				i = return_index;
-				statements.push(temp.statement);
-			} else {
-				i = this.parse_statement(temp, tokens, i);
-				statements.push(temp.statement);
-			}
+			i = this.parse_statement(temp, tokens, i);
+			statements.push(temp.statement);
 		}
 
 		return statements;
@@ -879,7 +918,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		}
 
 		if (tokens[i + 1]) {
-			if (tokens[i + 1].value === ';') {
+			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ';') {
 				++i;
 			}
 		}
@@ -901,7 +940,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		}
 
 		if (tokens[i + 1]) {
-			if (tokens[i + 1].value === ';') {
+			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ';') {
 				++i;
 			}
 		}
@@ -928,6 +967,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	p.parse_variable_declaration = function (temp, tokens, index, end_index) {
 		var i = index + 1, vars = [], expect_identifer = true, declarator;
 
+		
 		for (; i < end_index; ++i) {
 			switch (tokens[i].type) {
 				// Number {{{3
@@ -941,7 +981,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 					}
 					i = this.parse_identifier(temp, tokens, i);
 					declarator = new this.VariableDeclarator(temp.identifier);
-					expect_identifer = false;
+					expect_identifer = false;;
 					break;
 				// Special characters {{{3
 				case "SpecialCharacter":
@@ -969,7 +1009,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 							}
 							i = this.parse_identifier(temp, tokens, i);
 							declarator = new this.VariableDeclarator(temp.identifier);
-							expect_identifer = false;
+							expect_identifer = false;;
 							break;
 						case ',':
 							if (declarator) {
@@ -1106,6 +1146,17 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	// Parse expression pieces {{{2
 	p.parse_expression_piece = function (temp, tokens, i) {
 		temp.piece = new this.Piece(tokens[i]);
+
+		if (this.expression_middlewares) {
+			for (var j = 0; j < this.expression_middlewares.length; ++j) {
+				i = this.expression_middlewares[j](this, temp.piece, tokens, i);
+
+				if (temp.piece.parsed_token) {
+					temp.piece.end_token = tokens[i];
+					return i;
+				}
+			}
+		}
 
 		switch (tokens[i].type) {
 			// Number literal {{{3
@@ -1425,6 +1476,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	p.parse_sequence_expression = function (temp, tokens, i, end_index, is_raw, delimiter) {
 		var expressions = [];
 
+		LOOP:
 		for (; i < end_index; ++i) {
 			temp.expression = null;
 			i = this.parse_expression(temp, tokens, i, end_index, delimiter);
@@ -1434,11 +1486,18 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			}
 
 			if (tokens[i + 1]) {
-				if (tokens[i + 1].value === ';' || tokens[i + 1].value === delimiter) {
-					i = i + 2;
-					break;
-				} else if (tokens[i + 1].value === ',') {
-					i = i + 1;
+				if (tokens[i + 1].type === "SpecialCharacter") {
+					switch (tokens[i + 1].value) {
+						case ';':
+						case delimiter :
+							i += 2;
+							break LOOP;
+						case ',':
+							++i;
+							break;
+						default:
+							tokens[i + 1].error_unexpected_token();
+					}
 				} else {
 					tokens[i + 1].error_unexpected_token();
 				}
@@ -1602,10 +1661,19 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			switch (tokens[i].value) {
 				case "case" :
 					index = i;
-					i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length, false, ':');
+
+					if (tokens[i + 1]) {
+						if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
+							tokens[i + 1].error_unexpected_token();
+						} else {
+							i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length, false, ':');
+						}
+					} else {
+						throw new Error("Fallback error");
+					}
 
 					if (tokens[i]) {
-						if (tokens[i].value === ':') {
+						if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ':') {
 							test       = temp.expression;
 							statements = [];
 
@@ -1637,13 +1705,11 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 								i = this.parse_statement(temp, tokens, i);
 								statements.push(temp.statement);
 
-								if (tokens[i + 1]) {
-									if (tokens[i + 1].type === "Identifier") {
-										switch (tokens[i + 1].value) {
-											case "case" :
-											case "default" :
-												break CASE_LOOP;
-										}
+								if (tokens[i + 1] && tokens[i + 1].type === "Identifier") {
+									switch (tokens[i + 1].value) {
+										case "case" :
+										case "default" :
+											break CASE_LOOP;
 									}
 								} else {
 									break;
@@ -1662,16 +1728,17 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 					index = i;
 
 					if (tokens[i + 1]) {
-						if (tokens[i + 1].value === ':') {
+						if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
+							++i;
 							statements = [];
 
 							if (i + 1 === tokens.length) {
-								body.push(new this.DefaultCase(tokens[index].start, tokens[i + 1].end, statements));
+								body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
 								break;
 							}
 
 							DEFAULT_SEARCH_NEXT_LOOP:
-							for (j = i + 2; j < tokens.length; ++j) {
+							for (j = i + 1; j < tokens.length; ++j) {
 								switch (tokens[j].type) {
 									case "Comment":
 										break;
@@ -1679,8 +1746,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 										switch (tokens[j].value) {
 											case "case":
 											case "default":
-												i = i + 1;
-												body.push(new this.DefaultCase(tokens[index].start, tokens[i + 1].end, statements));
+												body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
 												break SWITCH;
 										}
 										break DEFAULT_SEARCH_NEXT_LOOP;
@@ -1690,17 +1756,15 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 							}
 
 							DEFAULT_LOOP:
-							for (i = i + 2; i < tokens.length; ++i) {
+							for (++i; i < tokens.length; ++i) {
 								i = this.parse_statement(temp, tokens, i);
 								statements.push(temp.statement);
 
-								if (tokens[i + 1]) {
-									if (tokens[i + 1].type === "Identifier") {
-										switch (tokens[i + 1].value) {
-											case "case" :
-											case "default" :
-												break DEFAULT_LOOP;
-										}
+								if (tokens[i + 1] && tokens[i + 1].type === "Identifier") {
+									switch (tokens[i + 1].value) {
+										case "case" :
+										case "default" :
+											break DEFAULT_LOOP;
 									}
 								} else {
 									break;
@@ -1725,58 +1789,55 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 	// Parse Operators {{{2
 	p.parse_operators = function (temp, tokens, i) {
-		var EXPECT = function (symbol, num) {
-			return tokens[i + 1].value === symbol && tokens[i + num].start.index === tokens[i + (num - 1)].end.index;
-		};
-
+		
 		switch (tokens[i].value) {
 			case '.':
 				temp.parsed_token = new this.Operator('.');
 				return i;
 			case '-':
-				if (EXPECT('-', 1)) {
+				if (tokens[i + 1].value === '-' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("--");
 					return i + 1;
-				} else if (EXPECT('=', 1)) {
+				} else if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("-=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('-');
 				return i;
 			case '+':
-				if (EXPECT('+', 1)) {
+				if (tokens[i + 1].value === '+' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("++");
 					return i + 1;
-				} else if (EXPECT('=', 1)) {
+				} else if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("+=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('+');
 				return i;
 			case '/':
-				if (EXPECT('=', 1)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("/=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('/');
 				return i;
 			case '*':
-				if (EXPECT('=', 1)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("*=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('*');
 				return i;
 			case '%':
-				if (EXPECT('=', 1)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("%=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('%');
 				return i;
 			case '=':
-				if (EXPECT('=', 1)) {
-					if (EXPECT('=', 2)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					if (tokens[i + 2].value === '=' && tokens[i + 2].start.index === tokens[i + 1].end.index) {
 						temp.parsed_token = new this.Operator("===");
 						return i + 2;
 					}
@@ -1788,36 +1849,36 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 				temp.parsed_token = new this.Operator('=');
 				return i;
 			case '&':
-				if (EXPECT('&', 1)) {
+				if (tokens[i + 1].value === '&' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("&&");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('&');
 				return i;
 			case '|':
-				if (EXPECT('|', 1)) {
+				if (tokens[i + 1].value === '|' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("||");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('|');
 				return i;
 			case '>':
-				if (EXPECT('=', 1)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator(">=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('>');
 				return i;
 			case '<':
-				if (EXPECT('=', 1)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
 					temp.parsed_token = new this.Operator("<=");
 					return i + 1;
 				}
 				temp.parsed_token = new this.Operator('<');
 				return i;
 			case '!':
-				if (EXPECT('=', 1)) {
-					if (EXPECT('=', 2)) {
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					if (tokens[i + 2].value === '=' && tokens[i + 2].start.index === tokens[i + 1].end.index) {
 						temp.parsed_token = new this.Operator("!==");
 						return i + 2;
 					}
@@ -1925,7 +1986,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			value     = tokens[next_index].value;
 			has_flags = true;
 
-			for (; i < value.length; ++i) {
+			for (i = value.length - 1; i >= 0; --i) {
 				if (this.REGEX_FLAGS.indexOf(value.charAt(i)) !== -1 && flags.indexOf(value.charAt(i)) === -1) {
 					flags = flags + value.charAt(i);
 				} else {
@@ -1955,7 +2016,8 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 	// Parse For arguments {{{2
 	p.parse_for_arguments = function (temp, tokens) {
-		var i = (tokens[0] && tokens[0].value === "var") ? 1 : 0;
+		var is_var = (tokens[0] && tokens[0].type === "Identifier" && tokens[0].value === "var"),
+			i = is_var ? 1 : 0;
 
 		if (tokens[i]) {
 			temp.identifier = null;
@@ -1963,6 +2025,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			if (this.is_identifier(tokens[i])) {
 				i = this.parse_identifier(temp, tokens, i);
 
+				// TODO: replace binary 'in' operator
 				temp.type = (tokens[i + 1] && tokens[i + 1].value === "in") ? "in" : "loop";
 			} else {
 				temp.type = "loop";
@@ -1970,7 +2033,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 			switch (temp.type) {
 				case "in":
-					if (tokens[0].value === "var") {
+					if (is_var) {
 						temp.left = new this.VariableDeclaration(tokens[0].start, temp.identifier.end, [
 							new this.VariableDeclarator(temp.identifier)
 						]);
@@ -1986,7 +2049,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 					}
 					break;
 				case "loop":
-					if (tokens[0].value === "var") {
+					if (is_var) {
 						i = this.parse_variable_declaration(temp, tokens, 0, tokens.length);
 						temp.init = temp.statement;
 					} else {
@@ -1994,14 +2057,14 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 						temp.init = temp.expression;
 					}
 
-					if (tokens[i].value === ';') {
+					if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';') {
 						i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length);
 						temp.test = temp.expression;
 					} else {
 						throw Error("ERROR");
 					}
 
-					if (tokens[i].value === ';') {
+					if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';') {
 						i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length);
 						temp.update = temp.expression;
 					} else {
@@ -2023,7 +2086,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 				i = this.parse_identifier(temp, tokens, i);
 
 				if (tokens[i + 1]) {
-					if (tokens[i + 1].value === ',') {
+					if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ',') {
 						++i;
 					} else {
 						tokens[i + 1].error_unexpected_token();
@@ -2280,26 +2343,42 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	// }}}2
 
 	var JavascriptParserWrapper = function () {
-		this.middlewares = [];
+		this.statement_middlewares  = [];
+		this.expression_middlewares = [];
 	};
 	p = JavascriptParserWrapper.prototype;
 
 	p.JavascriptParser = JavascriptParser;
-	p.middleware = function (middleware) {
-		this.middlewares.push(middleware);
-	};
-	p.clone_middlewares = function () {
-		var i = 0, clone = new Array(this.middlewares.length);
+	p.clone_middlewares = function (middlewares) {
+		var i = 0, clone = new Array(middlewares.length);
 
 		for (; i < clone.length; ++i) {
-			clone[i] = this.middlewares[i];
+			clone[i] = middlewares[i];
 		}
 
 		return clone;
 	};
 
+	p.statement = function (middleware) {
+		if (this.statement_middlewares) {
+			this.statement_middlewares.push(middleware);
+		} else {
+			this.statement_middlewares = [middleware];
+		}
+	};
+	p.expression = function (middleware) {
+		if (this.expression_middlewares) {
+			this.expression_middlewares.push(middleware);
+		} else {
+			this.expression_middlewares = [middleware];
+		}
+	};
+
 	p.parse = function (filename, source_code) {
-		var parser = new this.JavascriptParser(this.clone_middlewares());
+		var parser = new this.JavascriptParser(
+			this.statement_middlewares  && this.clone_middlewares(this.statement_middlewares),
+			this.expression_middlewares && this.clone_middlewares(this.expression_middlewares)
+		);
 		return parser.parse(filename, source_code);
 	};
 
@@ -2309,6 +2388,64 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 js.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Parser"], function (tokenizer, JavascriptParser) {
 	var parser = new JavascriptParser();
+
+	var ECMA6String = function () {};
+	var p = ECMA6String.prototype;
+
+	p.TemplateLiteral = function (token, body) {
+		this.type  = "TemplateLiteral";
+		this.body  = body;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.TemplateLiteralString = function (token) {
+		this.type  = "TemplateLiteralString";
+		this.value = token.value;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.TemplateLiteralExpression = function (token, expression) {
+		this.type       = "TemplateLiteralExpression";
+		this.expression = expression;
+		this.start      = token.start;
+		this.end        = token.end;
+	};
+
+	p.parse = function (parser, temp, tokens, i) {
+		if (tokens[i].type === "TemplateLiteral") {
+			var body = [], j = 0;
+
+			for (; j < tokens[i].children.length; ++j) {
+				switch (tokens[i].children[j].type) {
+					case "TemplateLiteral quasi string" :
+						body.push(new this.TemplateLiteralString(tokens[i].children[j]));
+						break;
+					case "TemplateLiteral expression" :
+						parser.parse_sequence_expression(
+							temp, tokens[i].children[j].children,
+							0, tokens[i].children[j].children.length
+						);
+						body.push(new this.TemplateLiteralExpression(
+							tokens[i].children[j],
+							temp.expression
+						));
+						break;
+					default:
+						tokens[i].error_unexpected_token();
+				}
+			}
+
+			temp.parsed_token = new this.TemplateLiteral(tokens[i], body);
+		}
+
+		return i;
+	};
+
+	var es6 = new ECMA6String();
+
+	parser.expression(function (p, temp, tokens, i) {
+		return es6.parse(p, temp, tokens, i);
+	});
 
 	return function (filename, source_code) {
 		try {

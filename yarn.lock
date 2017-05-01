@@ -244,9 +244,9 @@ jeefo_core@^0.0.4:
   dependencies:
     jeefo "0.0.8"
 
-jeefo_tokenizer@^0.0.12:
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/jeefo_tokenizer/-/jeefo_tokenizer-0.0.12.tgz#7c8d3afc2b7e9b77a736cd8ac1805a7c56791847"
+jeefo_tokenizer@^0.0.15:
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/jeefo_tokenizer/-/jeefo_tokenizer-0.0.15.tgz#55f2f73dd2e1f60828d69391a138402b406b66e0"
   dependencies:
     jeefo "^0.0.8"
     jeefo_core "^0.0.4"

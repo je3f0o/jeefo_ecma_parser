@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-04-29
+* Updated at  : 2017-05-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,7 +16,6 @@ var jeefo = require("jeefo_tokenizer");
 /* exported */
 
 //ignore:end
-
 var js       = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
 	LANGUAGE = "javascript";
 
@@ -40,25 +39,58 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 
 	// String {{{2
 	javascript_regions.register({
-		type  : "String",
-		name  : "Double quote string",
-		start : '"',
-		skip  : '\\"',
-		end   : '"',
+		type        : "String",
+		name        : "Double quote string",
+		start       : '"',
+		escape_char : '\\',
+		end         : '"',
 	});
 	javascript_regions.register({
-		type  : "String",
-		name  : "Single quote string",
-		start : "'",
-		skip  : "\\'",
-		end   : "'",
+		type        : "String",
+		name        : "Single quote string",
+		start       : "'",
+		escape_char : '\\',
+		end         : "'",
 	});
 	javascript_regions.register({
-		type  : "String",
-		name  : "Single quote string",
-		start : "`",
-		skip  : "\\`",
-		end   : "`",
+		type      : "TemplateLiteral quasi string",
+		start     : null,
+		end       : '${',
+		until     : true,
+		contained : true,
+	});
+	javascript_regions.register({
+		type  : "TemplateLiteral expression",
+		start : "${",
+		end   : '}',
+		contains : [
+			{ type : "Block"       } ,
+			{ type : "Array"       } ,
+			{ type : "String"      } ,
+			{ type : "RegExp"      } ,
+			{ type : "Comment"     } ,
+			{ type : "Parenthesis" } ,
+			{
+				type  : "SpecialCharacter",
+				chars : [
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
+					':', '.', ',', ';', // delimiters
+				]
+			},
+		]
+	});
+	javascript_regions.register({
+		type        : "TemplateLiteral",
+		start       : '`',
+		escape_char : '\\',
+		end         : '`',
+		contains : [
+			{ type : "TemplateLiteral quasi string" } ,
+			{ type : "TemplateLiteral expression"   } ,
+		],
+		keepend : true
 	});
 
 	// Parenthesis {{{2
@@ -68,18 +100,19 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 		start : '(',
 		end   : ')',
 		contains : [
-			{ type : "Block"       },
-			{ type : "Array"       },
-			{ type : "String"      },
-			{ type : "Number"      },
-			{ type : "Comment"     },
-			{ type : "Parenthesis" },
+			{ type : "Block"           } ,
+			{ type : "Array"           } ,
+			{ type : "String"          } ,
+			{ type : "RegExp"          } ,
+			{ type : "Comment"         } ,
+			{ type : "Parenthesis"     } ,
+			{ type : "TemplateLiteral" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
-					'-', '_', '+', '*', '%',
-					'&', '|', '$', '?', '!', '<', '>', '`',
-					'=', // Assignment
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
 					':', '.', ',', ';', // delimiters
 				]
 			},
@@ -96,15 +129,14 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 			{ type : "Block"       },
 			{ type : "Array"       },
 			{ type : "String"      },
-			{ type : "Number"      },
 			{ type : "Comment"     },
 			{ type : "Parenthesis" },
 			{
 				type  : "SpecialCharacter",
 				chars : [
 					'-', '_', '+', '*', '%', // operator
-					'&', '$',
-					'=', // Assignment
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>',
 					':', '.', ',', ';', // delimiters
 				]
 			},
@@ -118,18 +150,19 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 		start : '{',
 		end   : '}',
 		contains : [
-			{ type : "Block"       },
-			{ type : "Array"       },
-			{ type : "String"      },
-			{ type : "Number"      },
-			{ type : "Comment"     },
-			{ type : "Parenthesis" },
+			{ type : "Block"           } ,
+			{ type : "Array"           } ,
+			{ type : "String"          } ,
+			{ type : "RegExp"          } ,
+			{ type : "Comment"         } ,
+			{ type : "Parenthesis"     } ,
+			{ type : "TemplateLiteral" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
 					'-', '_', '+', '*', '%', // operator
 					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>',
+					'=', '!', '<', '>', '\\',
 					':', '.', ',', ';', // delimiters
 				]
 			},
