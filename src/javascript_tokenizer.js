@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-03
+* Updated at  : 2017-05-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,9 +9,10 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo = require("jeefo");
-require("jeefo_tokenizer")(jeefo);
-console.log("ZZZZZZZZZZ");
+var jeefo = require("jeefo").create();
+jeefo.use(
+	require("jeefo_tokenizer")
+);
 
 /* global */
 /* exported */
@@ -55,11 +56,12 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 		end         : "'",
 	});
 	javascript_regions.register({
-		type      : "TemplateLiteral quasi string",
-		start     : null,
-		end       : '${',
-		until     : true,
-		contained : true,
+		type        : "TemplateLiteral quasi string",
+		start       : null,
+		escape_char : '\\',
+		end         : '${',
+		until       : true,
+		contained   : true,
 	});
 	javascript_regions.register({
 		type  : "TemplateLiteral expression",
@@ -84,10 +86,9 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 		]
 	});
 	javascript_regions.register({
-		type        : "TemplateLiteral",
-		start       : '`',
-		escape_char : '\\',
-		end         : '`',
+		type  : "TemplateLiteral",
+		start : '`',
+		end   : '`',
 		contains : [
 			{ type : "TemplateLiteral quasi string" } ,
 			{ type : "TemplateLiteral expression"   } ,

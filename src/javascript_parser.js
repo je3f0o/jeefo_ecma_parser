@@ -2332,7 +2332,6 @@ app.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Pars
 //ignore:start
 
 if (require.main === module) {
-	return;
 var stack_trace = require("vim_qf_stack_trace");
 var JavascriptBeautifier;
 /*
@@ -2397,6 +2396,7 @@ case':':
 	});
 `;
 	source   = fs.readFileSync(filename, "utf8");
+	source   = "z = `abc${ zz }\nff`;";
 
 	/*
 	*/
@@ -2417,8 +2417,8 @@ case':':
 		var end = Date.now();
 
 		var statements = result.program.body;
+		print(statements[0].expression.right.body[2]);
 		/*
-		print(statements[0].expression.callee.object);
 		print(statements[0].expression.body[0]);
 		print(statements[0].expression.body[1]);
 		print(statements[0].expression.body[2]);

@@ -1,11 +1,11 @@
 /**
- * jeefo_core : v0.0.7
+ * jeefo_core : v0.0.9
  * Author     : je3f0o, <je3f0o@gmail.com>
  * Homepage   : https://github.com/je3f0o/jeefo_core
  * License    : The MIT License
  * Copyright  : 2017
  **/
-jeefo.use(function () {
+jeefo.use(function (jeefo) {
 
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : core.js
@@ -224,13 +224,13 @@ run("$injector", function ($injector) {
 });
 
 /**
- * jeefo_tokenizer : v0.0.18
+ * jeefo_tokenizer : v0.0.20
  * Author          : je3f0o, <je3f0o@gmail.com>
  * Homepage        : https://github.com/je3f0o/jeefo_tokenizer
  * License         : The MIT License
  * Copyright       : 2017
  **/
-jeefo.use(function () {
+jeefo.use(function (jeefo) {
 
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : token.js
@@ -794,18 +794,18 @@ namespace("tokenizer.TokenParser", function () {
 });
 
 /**
- * jeefo_javascript_parser : v0.0.3
+ * jeefo_javascript_parser : v0.0.5
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
  * Copyright               : 2017
  **/
-jeefo.use(function () {
+jeefo.use(function (jeefo) {
 
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-03
+* Updated at  : 2017-05-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -847,11 +847,12 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 		end         : "'",
 	});
 	javascript_regions.register({
-		type      : "TemplateLiteral quasi string",
-		start     : null,
-		end       : '${',
-		until     : true,
-		contained : true,
+		type        : "TemplateLiteral quasi string",
+		start       : null,
+		escape_char : '\\',
+		end         : '${',
+		until       : true,
+		contained   : true,
 	});
 	javascript_regions.register({
 		type  : "TemplateLiteral expression",
@@ -876,10 +877,9 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 		]
 	});
 	javascript_regions.register({
-		type        : "TemplateLiteral",
-		start       : '`',
-		escape_char : '\\',
-		end         : '`',
+		type  : "TemplateLiteral",
+		start : '`',
+		end   : '`',
 		contains : [
 			{ type : "TemplateLiteral quasi string" } ,
 			{ type : "TemplateLiteral expression"   } ,
