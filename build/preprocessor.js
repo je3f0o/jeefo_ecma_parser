@@ -11,6 +11,9 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 var jeefo = require("jeefo").create();
 
+jeefo.use(require("jeefo_core"));
+jeefo.use(require("jeefo_tokenizer"));
+jeefo.use(require("../index"));
 jeefo.use(require("jeefo_javascript_beautifier"));
 
 var pp = jeefo.module("jeefo.preprocessor", ["jeefo_javascript_beautifier"]);

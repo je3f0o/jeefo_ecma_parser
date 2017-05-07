@@ -234,22 +234,22 @@ is-symbol@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/is-symbol/-/is-symbol-1.0.1.tgz#3cc59f00025194b6ab2e38dbae6689256b660572"
 
-jeefo@^0.0.12:
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/jeefo/-/jeefo-0.0.12.tgz#61299e69c7f6c1a4a74ac5dc53bdecd7f0c69b01"
+jeefo@^0.0.13:
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/jeefo/-/jeefo-0.0.13.tgz#6174a3e47a3f90175969950c49f0eb48503caa41"
 
-jeefo_core@^0.0.9:
-  version "0.0.9"
-  resolved "https://registry.yarnpkg.com/jeefo_core/-/jeefo_core-0.0.9.tgz#afd8fb7d40ce62216dde7c8dccf47cfe177c78f2"
+jeefo_core@^0.0.10:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/jeefo_core/-/jeefo_core-0.0.10.tgz#ece31c290ed47b266ffe78d5f6fc930c6df62178"
   dependencies:
-    jeefo "^0.0.12"
+    jeefo "^0.0.13"
 
-jeefo_tokenizer@^0.0.20:
-  version "0.0.20"
-  resolved "https://registry.yarnpkg.com/jeefo_tokenizer/-/jeefo_tokenizer-0.0.20.tgz#5f467cf97120c2b75a505ac9d0a976771dd5799a"
+jeefo_tokenizer@^0.0.21:
+  version "0.0.21"
+  resolved "https://registry.yarnpkg.com/jeefo_tokenizer/-/jeefo_tokenizer-0.0.21.tgz#a5079b59185a61ea88296a0214027137f80de9f3"
   dependencies:
-    jeefo "^0.0.12"
-    jeefo_core "^0.0.9"
+    jeefo "^0.0.13"
+    jeefo_core "^0.0.10"
 
 json3@3.3.2:
   version "3.3.2"
