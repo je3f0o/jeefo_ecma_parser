@@ -1,6 +1,6 @@
 {
   "name": "jeefo_javascript_parser",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "jeefo javascript parser",
   "author": {
     "name": "je3f0o",
@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "jeefo": "^0.0.9",
-    "jeefo_tokenizer": "^0.0.17"
+    "jeefo_tokenizer": "^0.0.18"
   },
   "uglify_config": {
     "mangle": {

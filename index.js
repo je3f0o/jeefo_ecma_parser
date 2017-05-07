@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2017-04-26
-* Updated at  : 2017-05-03
+* Updated at  : 2017-05-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,4 +17,4 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 var _package = require("./package");
 
-module.exports = require(`./dist/${ _package.name }.node.min`);
+module.exports = require(`./dist/${ _package.name }.node`);
