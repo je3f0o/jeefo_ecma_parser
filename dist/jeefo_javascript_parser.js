@@ -1,25 +1,816 @@
 /**
- * jeefo_tokenizer : v0.0.14
- * Author          : undefined, <undefined>
- * Homepage        : https://github.com/je3f0o/jeefo_tokenizer
- * License         : The MIT license
- * Copyright       : 2017
+ * jeefo_core : v0.0.7
+ * Author     : je3f0o, <je3f0o@gmail.com>
+ * Homepage   : https://github.com/je3f0o/jeefo_core
+ * License    : The MIT License
+ * Copyright  : 2017
  **/
-!function(e){!function(e){var n=e.module("jeefo_core",[]),t=function(e){return function(n,t,r,i){return"function"===typeof t?(i=r,r=t,t=[]):"string"===typeof t&&(t=[t]),void 0===i&&(i=!0),e.call(this,n,{fn:r,dependencies:t,resolve_once:i})}},r=function(e){var n=function(n,t){return(t?e:"")+n.toLowerCase()};return function(){return this.replace(/[A-Z]/g,n)}};String.prototype.dash_case=r("-"),String.prototype.snake_case=r("_"),n.extend("curry",["$injector"],function(e){return t(function(n,t){e.register((n+"Curry").snake_case(),t)})}),n.curry("makeInjectable",function(){return t}),n.extend("run",["$injector"],function(e){var n=Array;return function(t,r){var i,s,o=0;if("function"===typeof t)r=t,s=[];else if("string"===typeof t)s=[e.resolve_sync(t)];else for(o=0,i=t.length,s=new n(i);o<i;++o)s[o]=e.resolve_sync(t[o]);return r.apply(this,s)}}),n.extend("namespace",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){for(var r,i,s=n.split("."),o=s.pop(),c=0,a=s.length,h="";c<a;++c)r=s[c],h&&(i=e.resolve_sync(h)),h=h?h+"."+r:r,e.has(h)||(e.register(h,{dependencies:[],resolve_once:!0,fn:function(){return{}}}),i&&(i[r]=e.resolve_sync(h)));e.register(n,t),h&&(i=e.resolve_sync(h),i[o]=e.resolve_sync(n))})}),n.extend("factory",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){e.register((n+"Factory").snake_case(),t)})}),n.extend("service",["$injector","make_injectable_curry"],function(e,n){return n(function(n,t){t.is_constructor=!0,e.register((n+"Service").snake_case(),t)})})}(e);var n=function(e){for(var n in e)this[n]=e[n]},t=n.prototype;t.error=function(e){var n=new SyntaxError(e);throw n.token=this.value,n.lineNumber=this.start.line,n.columnNumber=this.start.column,n},t.error_unexpected_type=function(){this.error("Unexpected "+this.type)},t.error_unexpected_token=function(){this.error("Unexpected token")};var r=function(e){this.type=e.type,this.name=e.name||e.type,this.start=e.start,this.end=e.end,e.skip&&(this.skip=e.skip),e.until&&(this.until=e.until),e.keepend&&(this.keepend=e.keepend),e.contains&&(this.contains=e.contains),e.contained&&(this.contained=e.contained),e.escape_char&&(this.escape_char=e.escape_char),e.contains&&(this.contains_chars=this.find_special_characters(e.contains))};t=r.prototype,t.RegionDefinition=r,t.copy=function(){return new this.RegionDefinition(this)},t.find_special_characters=function(e){for(var n=0;n<e.length;++n)if("SpecialCharacter"===e[n].type)return e[n].chars.join("")};var i=function(e){this.hash={},this.language=e,this.global_null_regions=[],this.contained_null_regions=[]};t=i.prototype,t.sort_function=function(e,n){return e.start.length-n.start.length},t.register=function(e){if(e=new r(e),e.start)this.hash[e.start[0]]?(this.hash[e.start[0]].push(e),this.hash[e.start[0]].sort(this.sort_function)):this.hash[e.start[0]]=[e];else if(e.contained)this.contained_null_regions.push(e);else{if(this.global_null_region)throw Error("Overwritten global null region.");this.global_null_region=e}},t.find=function(e,n){var t,r,i,s=0,o=this.hash[n.current()];if(e&&e.contains){if(o)e:for(s=o.length-1;s>=0;--s)for(r=e.contains.length-1;r>=0;--r)if(o[s].type===e.contains[r].type){for(i=1,t=o[s].start;i<t.length;++i)if(n.peek(n.current_index+i)!==t[i])continue e;return o[s].copy()}for(s=e.contains.length-1;s>=0;--s)for(r=this.contained_null_regions.length-1;r>=0;--r)if(this.contained_null_regions[r].type===e.contains[s].type)return this.contained_null_regions[r].copy()}else{if(o)e:for(s=o.length-1;s>=0;--s)if(!o[s].contained){for(i=1,t=o[s].start;i<t.length;++i)if(n.peek(n.current_index+i)!==t[i])continue e;return o[s].copy()}if(this.global_null_region)return this.global_null_region.copy()}};var s=function(e){this.string=e,this.current_index=0};t=s.prototype,t.peek=function(e){return this.string.charAt(e)},t.seek=function(e,n){return this.string.substring(e,e+n)},t.next=function(){return this.peek(this.current_index+=1)},t.current=function(){return this.peek(this.current_index)};var o=function(e,n){this.lines=[{number:1,index:0}],this.start={line:1,column:1},this.tokens=[],this.stack=[],this.regions=n,this.language=e};t=o.prototype,t.is_array=Array.isArray,t.parse=function(e){for(var n,t=this.streamer=new s(e),r=t.current();r;){if(this.current_region){if(this.current_region.ignore_chars&&-1!==this.current_region.ignore_chars.indexOf(r)){r=t.next();continue}if(this.region_end(this.current_region)){this.current_token=this.current_token.parent,this.current_region=this.current_region.parent,r=t.next();continue}}n=this.regions.find(this.current_region,t),n?(this.parse_region(n),n.keepend&&this.stack.push({token:this.current_token,region:n})):r<=" "?this.handle_new_line(r):r>="0"&&r<="9"?this.parse_number():-1===this.SPECIAL_CHARACTERS.indexOf(r)?this.parse_identifier():this.parse_special_character(),r=t.next()}return this.tokens},t.parse_number=function(){var e,n=this.streamer;for(this.prepare_new_token(n.current_index),e=n.next();e>="0"&&e<="9";e=n.next());this.add_token(this.make_token("Number")),this.streamer.current_index-=1},t.SPECIAL_CHARACTERS=[",",".",";",":","<",">","~","`","!","@","#","|","%","^","&","*","(",")","-","+","=","[","]","/","?",'"',"{","}","_","'","\\"].join(""),t.parse_identifier=function(){var e,n=this.streamer;for(this.prepare_new_token(n.current_index),e=n.next();e>" "&&-1===this.SPECIAL_CHARACTERS.indexOf(e);e=n.next());this.add_token(this.make_token("Identifier")),n.current_index-=1},t.parse_region=function(e){var n,t,r,i,s=this.streamer;if(this.prepare_new_token(s.current_index),e.start&&(s.current_index+=e.start.length),e.contains)return i=this.make_token(e.type,e.name),i.children=[],this.current_token?(e.parent=this.current_region,i.parent=this.current_token,this.current_token.children.push(i)):this.tokens.push(i),this.current_token=i,this.current_region=e,void(e.start&&(s.current_index-=1));for(r=s.current();r;)if(this.handle_new_line(r),r!==e.escape_char){if(e.skip&&r===e.skip[0]){for(n=1,t=!0;n<e.skip.length;++n)if(s.peek(s.current_index+n)!==e.skip[n]){t=!1;break}if(t){s.current_index+=e.skip.length,r=s.current();continue}}if(this.region_end(e,!0))return;r=s.next()}else s.current_index+=2,r=s.current()},t.parse_special_character=function(){!this.current_region||this.current_region.contains_chars&&-1!==this.current_region.contains_chars.indexOf(this.streamer.current())||(this.prepare_new_token(this.streamer.current_index),this.streamer.current_index+=1,this.make_token("SpecialCharacter").error_unexpected_token()),this.prepare_new_token(this.streamer.current_index),this.streamer.current_index+=1,this.add_token(this.make_token("SpecialCharacter")),this.streamer.current_index-=1},t.region_end=function(e,n){var t=0;if(this.is_array(e.end))for(;t<e.end.length;++t)if(this.check_end_token(e,e.end[t],n))return this.finallzie_region(e),!0;return this.check_end_token(e,e.end,n)?(this.finallzie_region(e),!0):!!this.region_end_stack(e,n)||void 0},t.finallzie_region=function(e){for(var n=0;n<this.stack.length;++n)this.stack[n].region===e&&(this.current_token=this.stack[n].token,this.current_region=this.stack[n].region,this.stack.splice(n,this.stack.length))},t.region_end_stack=function(e,n){for(var t,r=this.stack.length-1;r>=0;--r)if(this.is_array(this.stack[r].region.end)){for(t=0;t<this.stack[r].region.end.length;++t)if(this.check_end_token(e,this.stack[r].region.end[t],n))return this.finallzie_region(this.stack[r].region),!0}else if(this.check_end_token(e,this.stack[r].region.end,n))return this.finallzie_region(this.stack[r].region),!0},t.check_end_token=function(e,n,t){var r=1,i=this.streamer;if(i.current()===n[0]){for(;r<n.length;++r)if(i.peek(i.current_index+r)!==n[r])return!1;if(e.until||(i.current_index+=n.length),t){var s=this.make_token(e.type,e.name);this.set_value(s,e.start?e.start.length:0,e.until?0:n.length),this.add_token(s)}else this.set_end(this.current_token),this.set_value(this.current_token,e.start?e.start.length:0,e.until?0:n.length);return i.current_index-=1,!0}},t.handle_new_line=function(e){"\r"!==e&&"\n"!==e||this.new_line()},t.new_line=function(){this.lines.push({number:this.lines.length+1,index:this.streamer.current_index+1})},t.set_value=function(e,n,t){e.value=this.streamer.seek(e.start.index+n,e.end.index-e.start.index-n-t)},t.set_end=function(e){e.end.line=this.lines.length,e.end.column=this.streamer.current_index-this.lines[this.lines.length-1].index,e.end.index=this.streamer.current_index},t.prepare_new_token=function(e){this.start={line:this.lines.length,column:e-this.lines[this.lines.length-1].index+1,index:e}},t.add_token=function(e){this.current_token?this.current_token.children.push(e):this.tokens.push(e)},t.make_token=function(e,t){var r=this.start.index,i=this.streamer.current_index-this.start.index;return new n({type:e,name:t||e,value:this.streamer.seek(r,i),start:this.start,end:{line:this.lines.length,column:this.streamer.current_index-this.lines[this.lines.length-1].index+1,virtual_column:this.lines.column,index:this.streamer.current_index}})};var c=e.module("jeefo_tokenizer",["jeefo_core"]);c.namespace("tokenizer.Token",function(){return n}),c.namespace("tokenizer.Region",function(){return i}),c.namespace("tokenizer.TokenParser",function(){return o})}(jeefo);
+jeefo.use(function () {
 
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : javascript_tokenizer.js
+* File Name   : core.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-02
+* Updated at  : 2017-05-07
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
-var js       = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
+
+var core_module = jeefo.module("jeefo_core", []),
+
+CAMEL_CASE_REGEXP = /[A-Z]/g,
+dash_case = function (str) {
+	return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+		return (pos ? '-' : '') + letter.toLowerCase();
+	});
+},
+snake_case = function (str) {
+	return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+		return (pos ? '_' : '') + letter.toLowerCase();
+	});
+},
+
+to_string          = Object.prototype.toString,
+function_to_string = Function.toString,
+
+IS_DIGITS_SIGNED_INT      = /^\-?\d+$/,
+IS_DIGITS_UNSIGNED_INT    = /^\d+$/,
+IS_DIGITS_SIGNED_NUMBER   = /^\-?\d+(?:.\d+)?$/,
+IS_DIGITS_UNSIGNED_NUMNER = /^\d+(?:.\d+)?$/,
+
+// Used to detect host constructors (Safari > 4; really typed array specific)
+HOST_CONSTRUCTOR_REGEX = /^\[object .+?Constructor\]$/,
+/*
+// Compile a regexp using a common native method as a template.
+// We chose `Object#toString` because there's a good chance it is not being mucked with.
+new RegExp('^' +
+	// Coerce `Object#toString` to a string
+	String(to_string).
+		// Escape any special regexp characters
+		replace(/[.*+?^${}()|[\]\/\\]/g, "\\$&").
+		// Replace mentions of `toString` with `.*?` to keep the template generic.
+		// Replace thing like `for ...` to support environments like Rhino which add extra info
+		// such as method arity.
+		replace(/toString|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + '$'
+)
+*/
+NATIVE_REGEX = /^function.*?\(\) \{ \[native code\] \}$/,
+
+is_date = function (value) {
+	return to_string.call(value) === "[object Date]";
+},
+
+is_regex = function (value) {
+	return to_string.call(value) === "[object RegExp]";
+},
+
+is_digits = function (value, is_unsigned) {
+	return (is_unsigned ? IS_DIGITS_UNSIGNED_NUMNER : IS_DIGITS_SIGNED_NUMBER).test(value);
+},
+
+is_digits_int = function (value, is_unsigned) {
+	return (is_unsigned ? IS_DIGITS_UNSIGNED_INT : IS_DIGITS_SIGNED_INT).test(value);
+},
+
+is_native = function (value) {
+	var type = typeof value;
+	return type === "function" ?
+		// Use `Function#toString` to bypass the value's own `toString` method
+		// and avoid being faked out.
+		NATIVE_REGEX.test(function_to_string.call(value)) :
+		// Fallback to a host object check because some environments will represent
+		// things like typed arrays as DOM methods which may not conform to the
+		// normal native pattern.
+		(value && type === "object" && HOST_CONSTRUCTOR_REGEX.test(to_string.call(value))) || false;	
+},
+
+json_parse = function (value) {
+	try {
+		return JSON.parse(value);
+	} catch (e) {}
+};
+
+core_module.extend("namespace", ["$injector", "make_injectable"], function (injector, make_injectable) {
+	return function (full_name) {
+		var namespaces = full_name.split('.'),
+			name = namespaces.pop(),
+			i = 0, namespace = '', part, container;
+
+		for (; i < namespaces.length; ++i) {
+			part = namespaces[i];
+
+			if (namespace) {
+				container = injector.resolve_sync(namespace);
+			}
+
+			namespace = namespace ? namespace + '.' + part : part;
+
+			if (! injector.has(namespace)) {
+				injector.register(namespace, {
+					fn : function () { return {}; }
+				});
+
+				if (container) {
+					container[part] = injector.resolve_sync(namespace);
+				}
+			}
+		}
+
+		injector.register(full_name, make_injectable.apply(null, arguments));
+
+		if (namespace) {
+			container       = injector.resolve_sync(namespace);
+			container[name] = injector.resolve_sync(full_name);
+		}
+
+		return this;
+	};
+}).
+
+namespace("transform.dash_case", function () {
+	return dash_case;
+}).
+
+namespace("transform.snake_case", function () {
+	return snake_case;
+}).
+
+extend("curry", [
+	"$injector",
+	"make_injectable",
+	"transform.snake_case",
+], function ($injector, make_injectable, snake_case) {
+	return function (name) {
+		$injector.register(snake_case(name + "Curry"), make_injectable.apply(null, arguments));
+		return this;
+	};
+}).
+
+extend("run", ["$injector", "$q", "Array"], function ($injector, $q, Arr) {
+	var instance = this;
+
+	return function (dependencies, fn) {
+		if (typeof dependencies === "function") {
+			dependencies.call(this);
+		} else if (typeof dependencies === "string") {
+			$injector.resolve(dependencies).then(function (value) {
+				fn.call(instance, value);
+			});
+		} else {
+			var	args = new Arr(dependencies.length);
+
+			$q.for_each_async(dependencies, function (dependency, index, next) {
+				$injector.resolve(dependency).then(function (value) {
+					args[index] = value;
+					next();
+				});
+			}).then(function () {
+				fn.apply(instance, args);
+			});
+		}
+
+		return this;
+	};
+}).
+
+extend("factory", [
+	"$injector",
+	"make_injectable",
+	"transform.snake_case",
+], function ($injector, make_injectable, snake_case) {
+	return function (name) {
+		$injector.register(snake_case(name + "Factory"), make_injectable.apply(null, arguments));
+		return this;
+	};
+}).
+
+extend("service", [
+	"$injector",
+	"make_injectable",
+	"transform.snake_case",
+], function ($injector, make_injectable, snake_case) {
+	return function (name) {
+		var injectable = make_injectable.apply(null, arguments);
+		injectable.is_constructor = true;
+
+		$injector.register(snake_case(name + "Service"), injectable);
+		return this;
+	};
+}).
+
+run("$injector", function ($injector) {
+
+	$injector.register("is_date", {
+		fn : function () { return is_date; }
+	}).
+	register("is_regex", {
+		fn : function () { return is_regex; }
+	}).
+	register("is_digit", {
+		fn : function () { return is_digits; }
+	}).
+	register("is_digit_int", {
+		fn : function () { return is_digits_int; }
+	}).
+	register("is_native", {
+		fn : function () { return is_native; }
+	}).
+	register("json_parse", {
+		fn : function () { return json_parse; }
+	});
+
+});
+
+});
+
+/**
+ * jeefo_tokenizer : v0.0.17
+ * Author          : je3f0o, <je3f0o@gmail.com>
+ * Homepage        : https://github.com/je3f0o/jeefo_tokenizer
+ * License         : The MIT License
+ * Copyright       : 2017
+ **/
+jeefo.use(function () {
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : token.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-06
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var Token = function () {};
+Token.prototype = {
+	error : function (message) {
+		var error = new SyntaxError(message);
+		error.value        = this.value;
+		error.lineNumber   = this.start.line;
+		error.columnNumber = this.start.column;
+		throw error;
+	},
+	error_unexpected_type : function () {
+		this.error("Unexpected " + this.type);
+	},
+	error_unexpected_token : function () {
+		this.error("Unexpected token");
+	},
+};
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : region.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-07
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var RegionDefinition = function (definition) {
+	this.type  = definition.type;
+	this.name  = definition.name || definition.type;
+	this.start = definition.start;
+	this.end   = definition.end;
+
+	if (definition.skip)        { this.skip        = definition.skip;        }
+	if (definition.until)       { this.until       = definition.until;       }
+	if (definition.keepend)     { this.keepend     = definition.keepend;     }
+	if (definition.contains)    { this.contains    = definition.contains;    }
+	if (definition.contained)   { this.contained   = definition.contained;   }
+	if (definition.escape_char) { this.escape_char = definition.escape_char; }
+
+	if (definition.contains) { this.contains_chars = this.find_special_characters(definition.contains); }
+};
+RegionDefinition.prototype = {
+	copy : function () {
+		return new this.constructor(this);
+	},
+
+	find_special_characters : function (container) {
+		for (var i = container.length - 1; i >= 0; --i) {
+			if (container[i].type === "SpecialCharacter") {
+				return container[i].chars.join('');
+			}
+		}
+	},
+};
+
+var Region = function (language) {
+	this.hash                   = {};
+	this.language               = language;
+	this.global_null_regions    = [];
+	this.contained_null_regions = [];
+};
+Region.prototype = {
+	RegionDefinition : RegionDefinition,
+
+	sort_function : function (a, b) { return a.start.length - b.start.length; },
+
+	register : function (region) {
+		region = new this.RegionDefinition(region);
+
+		if (region.start) {
+			if (this.hash[region.start[0]]) {
+				this.hash[region.start[0]].push(region);
+
+				this.hash[region.start[0]].sort(this.sort_function);
+			} else {
+				this.hash[region.start[0]] = [region];
+			}
+		} else if (region.contained) {
+			this.contained_null_regions.push(region);
+		} else {
+			if (this.global_null_region) {
+				throw Error("Overwritten global null region.");
+			}
+			this.global_null_region = region;
+		}
+	},
+
+	// Find {{{1
+	find : function (parent, streamer) {
+		var i         = 0,
+			container = this.hash[streamer.current()],
+			start, j, k;
+		
+		// Has parent {{{2
+		if (parent && parent.contains) {
+
+			// Search for contained regions {{{3
+			if (container) {
+				CONTAINER:
+				for (i = container.length - 1; i >= 0; --i) {
+					for (j = parent.contains.length - 1; j >= 0; --j) {
+						if (container[i].type !== parent.contains[j].type) {
+							continue;
+						}
+
+						for (start = container[i].start, k = start.length - 1; k >= 1; --k) {
+							if (streamer.peek(streamer.current_index + k) !== start.charAt(k)) {
+								continue CONTAINER;
+							}
+						}
+
+						return container[i].copy();
+					}
+				}
+			}
+
+			// Looking for null regions {{{3
+			for (i = parent.contains.length - 1; i >= 0; --i) {
+				for (j = this.contained_null_regions.length - 1; j >= 0; --j) {
+					if (this.contained_null_regions[j].type === parent.contains[i].type) {
+						return this.contained_null_regions[j].copy();
+					}
+				}
+			}
+			// }}}3
+
+		// No parent {{{2
+		// It means lookup for only global regions
+		} else {
+
+			// Has container {{{3
+			if (container) {
+
+				NO_PARENT_CONTAINER:
+				for (i = container.length - 1; i >= 0; --i) {
+					if (container[i].contained) {
+						continue;
+					}
+
+					for (start = container[i].start, k = start.length - 1; k >= 1; --k) {
+						if (streamer.peek(streamer.current_index + k) !== start.charAt(k)) {
+							continue NO_PARENT_CONTAINER;
+						}
+					}
+
+					return container[i].copy();
+				}
+			}
+		
+			// Finally {{{3
+			if (this.global_null_region) {
+				return this.global_null_region.copy();
+			}
+			// }}}3
+
+		}
+		// }}}2
+	},
+	// }}}1
+};
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : string_stream.js
+* Created at  : 2017-04-07
+* Updated at  : 2017-05-06
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var StringStream = function (string) {
+	this.string        = string;
+	this.current_index = 0;
+};
+StringStream.prototype = {
+	peek : function (index) {
+		return this.string.charAt(index);
+	},
+	seek : function (offset, length) {
+		return this.string.substring(offset, offset + length);
+	},
+	next : function () {
+		return this.peek( ++this.current_index );
+	},
+	current : function () {
+		return this.peek(this.current_index);
+	},
+};
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : token_parser.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-06
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var TokenParser = function (language, regions) {
+	this.lines  = [{ number : 1, index : 0 }];
+	this.start  = { line : 1, column : 1 };
+	this.tokens = [];
+	this.stack  = [];
+
+	this.regions  = regions;
+	this.language = language;
+};
+TokenParser.prototype = {
+
+is_array : Array.isArray,
+
+// Main parser {{{1
+parse : function (source) {
+	var streamer          = this.streamer = new StringStream(source),
+		current_character = streamer.current(), region;
+
+	while (current_character) {
+		if (this.current_region) {
+			if (this.current_region.ignore_chars && this.current_region.ignore_chars.indexOf(current_character) !== -1) {
+				current_character = streamer.next();
+				continue;
+			} else if (this.region_end(this.current_region)) {
+				this.current_token  = this.current_token.parent;
+				this.current_region = this.current_region.parent;
+
+				current_character = streamer.next();
+				continue;
+			}
+		}
+
+		// Region {{{2
+		region = this.regions.find(this.current_region, streamer);
+		if (region) {
+			this.parse_region(region);
+
+			if (region.keepend) {
+				this.stack.push({
+					token  : this.current_token,
+					region : region,
+				});
+			}
+
+		// White space {{{2
+		} else if (current_character <= ' ') {
+			this.handle_new_line(current_character);
+
+		// Number {{{2
+		} else if (current_character >= '0' && current_character <= '9') {
+			this.parse_number();
+
+		// Identifier {{{2
+		} else if (this.SPECIAL_CHARACTERS.indexOf(current_character) === -1) {
+			this.parse_identifier();
+
+		// Special character {{{2
+		} else {
+			this.parse_special_character();
+		}
+		// }}}2
+
+		current_character = streamer.next();
+	}
+
+	return this.tokens;
+},
+
+// Parse number {{{1
+parse_number : function () {
+	var streamer = this.streamer, current_character;
+
+	this.prepare_new_token(streamer.current_index);
+
+	// jshint curly : false
+	for (current_character = streamer.next(); current_character >= '0' && current_character <= '9' ;
+		current_character = streamer.next());
+	// jshint curly : true
+
+	this.add_token( this.make_token("Number") );
+	this.streamer.current_index -= 1;
+},
+
+// Parse Identifier {{{1
+
+SPECIAL_CHARACTERS : [
+	',', '.', ';', ':',
+	'<', '>', '~', '`',
+	'!', '@', '#', '|', 
+	'%', '^', '&', '*',
+	'(', ')', '-', '+',
+	'=', '[', ']', '/',
+	'?', '"', '{', '}',
+	'_', "'", '\\',
+].join(''),
+
+parse_identifier : function () {
+	var streamer = this.streamer, current_character;
+
+	this.prepare_new_token(streamer.current_index);
+
+	// jshint curly : false
+	for (current_character = streamer.next(); // initialization terminator
+		current_character > ' ' && this.SPECIAL_CHARACTERS.indexOf(current_character) === -1;
+		current_character = streamer.next());
+	// jshint curly : true
+
+	this.add_token( this.make_token("Identifier") );
+	streamer.current_index -= 1;
+},
+
+// Parse region {{{1
+parse_region : function (region) {
+	var streamer = this.streamer,
+		i, is_matched, current_character, current_token;
+
+	this.prepare_new_token(streamer.current_index);
+
+	if (region.start) {
+		streamer.current_index += region.start.length;
+	}
+
+	if (region.contains) {
+		current_token          = this.make_token(region.type, region.name);
+		current_token.children = [];
+
+		if (this.current_token) {
+			region.parent        = this.current_region;
+			current_token.parent = this.current_token;
+			this.current_token.children.push(current_token);
+		} else {
+			this.tokens.push( current_token );
+		}
+
+		this.current_token  = current_token;
+		this.current_region = region;
+
+		if (region.start) {
+			streamer.current_index -= 1;
+		}
+		return;
+	}
+
+	current_character = streamer.current();
+
+	while (current_character) {
+		this.handle_new_line(current_character);
+
+		// escape handler
+		if (current_character === region.escape_char) {
+			streamer.current_index += 2;
+			current_character = streamer.current();
+			continue;
+		}
+
+		// skip handler
+		if (region.skip && current_character === region.skip.charAt(0)) {
+			for (i = 1, is_matched = true; i < region.skip.length; ++i) {
+				if (streamer.peek(streamer.current_index + i) !== region.skip.charAt(i)) {
+					is_matched = false;
+					break;
+				}
+			}
+
+			if (is_matched) {
+				streamer.current_index += region.skip.length;
+				current_character = streamer.current();
+				continue;
+			}
+		}
+
+		if (this.region_end(region, true)) {
+			return;
+		}
+
+		current_character = streamer.next();
+	}
+},
+
+// Parse special character {{{1
+parse_special_character : function () {
+	if (this.current_region &&
+		(! this.current_region.contains_chars || this.current_region.contains_chars.indexOf(this.streamer.current()) === -1)) {
+		this.prepare_new_token(this.streamer.current_index);
+		this.streamer.current_index += 1;
+		this.make_token("SpecialCharacter").error_unexpected_token();
+	}
+
+	this.prepare_new_token(this.streamer.current_index);
+	this.streamer.current_index += 1;
+
+	this.add_token( this.make_token("SpecialCharacter") );
+	this.streamer.current_index -= 1;
+},
+
+// Check end token {{{1
+region_end : function (region, to_add) {
+	var i = 0;
+	if (this.is_array(region.end)) {
+		for (; i < region.end.length; ++i) {
+			if (this.check_end_token(region, region.end[i], to_add)) {
+				this.finallzie_region(region);
+				return true;
+			}
+		}
+	}
+
+	if (this.check_end_token(region, region.end, to_add)) {
+		this.finallzie_region(region);
+		return true;
+	}
+
+	if (this.region_end_stack(region, to_add)) {
+		return true;
+	}
+},
+
+finallzie_region : function (region) {
+	for (var i = 0; i < this.stack.length; ++i) {
+		if (this.stack[i].region === region) {
+			this.current_token  = this.stack[i].token;
+			this.current_region = this.stack[i].region;
+			this.stack.splice(i, this.stack.length);
+		}
+	}
+},
+
+region_end_stack : function (region, to_add) {
+	for (var i = this.stack.length - 1, j; i >= 0; --i) {
+		if (this.is_array(this.stack[i].region.end)) {
+			for (j = 0; j < this.stack[i].region.end.length; ++j) {
+				if (this.check_end_token(region, this.stack[i].region.end[j], to_add)) {
+					this.finallzie_region(this.stack[i].region);
+					return true;
+				}
+			}
+		} else if (this.check_end_token(region, this.stack[i].region.end, to_add)) {
+			this.finallzie_region(this.stack[i].region);
+			return true;
+		}
+	}
+},
+
+check_end_token : function (region, end, to_add) {
+	var i        = 1,
+		streamer = this.streamer;
+
+	if (streamer.current() === end.charAt(0)) {
+		for (; i < end.length; ++i) {
+			if (streamer.peek(streamer.current_index + i) !== end.charAt(i)) {
+				return false;
+			}
+		}
+
+		if (! region.until) {
+			streamer.current_index += end.length;
+		}
+
+		if (to_add) {
+			var token = this.make_token(region.type, region.name);
+			this.set_value(token, region.start ? region.start.length : 0, region.until ? 0 : end.length);
+
+			this.add_token(token);
+		} else {
+			this.set_end(this.current_token);
+			this.set_value(this.current_token, region.start ? region.start.length : 0, region.until ? 0 : end.length);
+		}
+
+		streamer.current_index -= 1;
+
+		return true;
+	}
+},
+// }}}1
+
+handle_new_line : function (current_character) {
+	if (current_character === '\r' || current_character === '\n') {
+		this.new_line();
+	}
+},
+
+new_line : function () {
+	this.lines.push({
+		number : (this.lines.length + 1),
+		index  : (this.streamer.current_index + 1),
+	});
+},
+
+// Set value without surrounding
+set_value : function (token, start_length, end_length) {
+	token.value = this.streamer.seek(
+		token.start.index + start_length,
+		(token.end.index - token.start.index - start_length - end_length)
+	);
+},
+
+set_end : function (token) {
+	token.end.line   = this.lines.length;
+	token.end.column = (this.streamer.current_index - this.lines[this.lines.length - 1].index);
+	token.end.index  = this.streamer.current_index;
+},
+
+prepare_new_token : function (current_index) {
+	this.start = {
+		line   : this.lines.length,
+		column : (current_index - this.lines[this.lines.length - 1].index) + 1,
+		index  : current_index
+	};
+},
+
+add_token : function (token) {
+	if (this.current_token) {
+		this.current_token.children.push(token);
+	} else {
+		this.tokens.push(token);
+	}
+},
+
+make_token : function (type, name) {
+	var offset = this.start.index,
+		length = this.streamer.current_index - this.start.index,
+		token  = new Token();
+
+	token.type  = type;
+	token.name  = name || type;
+	token.value = this.streamer.seek(offset, length);
+	token.start = this.start;
+	token.end   = {
+		line           : this.lines.length,
+		column         : (this.streamer.current_index - this.lines[this.lines.length - 1].index) + 1,
+		virtual_column : this.lines.column,
+		index          : this.streamer.current_index
+	};
+},
+
+};
+
+var jeefo_tokenizer = jeefo.module("jeefo_tokenizer", ["jeefo_core"]);
+jeefo_tokenizer.namespace("tokenizer.Token", function () {
+	return Token;
+}).
+namespace("tokenizer.Region", function () {
+	return Region;
+}).
+namespace("tokenizer.TokenParser", function () {
+	return TokenParser;
+});
+
+});
+
+/**
+ * jeefo_javascript_parser : v0.0.2
+ * Author                  : je3f0o, <je3f0o@gmail.com>
+ * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
+ * License                 : The MIT License
+ * Copyright               : 2017
+ **/
+jeefo.use(function () {
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : javascript_tokenizer.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-03
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+var app      = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
 	LANGUAGE = "javascript";
 
 // Regions {{{1
-js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
+app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 	var javascript_regions = new Region(LANGUAGE);
 
 	// Comment {{{2
@@ -182,7 +973,7 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 });
 // }}}1
 
-js.namespace("javascript.tokenizer", [
+app.namespace("javascript.tokenizer", [
 	"tokenizer.TokenParser",
 	"javascript.es5_regions"
 ], function (TokenParser, jeefo_js_regions) {
@@ -195,13 +986,13 @@ js.namespace("javascript.tokenizer", [
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_parser.js
 * Created at  : 2017-04-14
-* Updated at  : 2017-05-02
+* Updated at  : 2017-05-07
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // Javascript Parser {{{1
-js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
+app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
 
 	var keywords = [
 		"break", "continue", "return",
@@ -282,6 +1073,12 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		this.finalizer = finalizer;
 		this.start     = start;
 		this.end       = end;
+	};
+	p.ThrowStatement = function (start, end, argument) {
+		this.type     = "ThrowStatement";
+		this.argument = argument;
+		this.start    = start;
+		this.end      = end;
 	};
 	p.ReturnStatement = function (start, end, argument) {
 		this.type     = "ReturnStatement";
@@ -531,13 +1328,17 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			switch (tokens[index].type) {
 				case "Identifier":
 					if (index === start_index) {
-						switch (tokens[index].value) {
+						index = this.parse_identifier(temp, tokens, index);
+
+						switch (temp.identifier.name) {
 							case "function" :
 								return this.parse_function_declaration(temp, tokens, start_index);
 							case "var" :
 								return this.parse_variable_declaration(temp, tokens, start_index, tokens.length);
+							case "throw" :
+								return this.parse_statement_has_expression_argument(temp, tokens, start_index, this.ThrowStatement);
 							case "return" :
-								return this.parse_return_statement(temp, tokens, start_index);
+								return this.parse_statement_has_expression_argument(temp, tokens, start_index, this.ReturnStatement);
 							case "if" :
 								return this.parse_if_statement(temp, tokens, start_index);
 							case "for" :
@@ -549,9 +1350,9 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 							case "try" :
 								return this.parse_try_statement(temp, tokens, start_index);
 							case "break" :
-								return this.parse_break_statement(temp, tokens, start_index);
+								return this.parse_statement_has_label(temp, tokens, start_index, this.BreakStatement);
 							case "continue" :
-								return this.parse_continue_statement(temp, tokens, start_index);
+								return this.parse_statement_has_label(temp, tokens, start_index, this.ContinueStatement);
 						}
 					}
 					break;
@@ -562,6 +1363,13 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 							this.parse_block_statement(tokens[start_index].children)
 						);
 						return index;
+					}
+					break;
+				case "Parenthesis":
+					if (index === start_index) {
+						this.parse_sequence_expression(temp, tokens[index].children, 0, tokens[index].children.length);
+						temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[index + 1].end, temp.expression);
+						return index + 1;
 					}
 					break;
 				case "SpecialCharacter":
@@ -590,6 +1398,11 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 					temp.statement = new this.Comment(tokens[index]);
 					return index;
 			}
+		}
+
+		if (index > start_index) {
+			this.parse_expression_statement(temp, tokens, start_index, index);
+			return index;
 		}
 
 		throw Error("Executed unreachable code.");
@@ -898,16 +1711,16 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		return statements;
 	};
 
-	// Parse Return statement {{{2
-	p.parse_return_statement = function (temp, tokens, index) {
+	// Parse Return, Throw statement {{{2
+	p.parse_statement_has_expression_argument = function (temp, tokens, index, Statement) {
 		var i = this.parse_sequence_expression(temp, tokens, index + 1, tokens.length);
-		temp.statement = new this.ReturnStatement(tokens[index].start, tokens[i].end, temp.expression);
+		temp.statement = new Statement(tokens[index].start, tokens[i].end, temp.expression);
 
 		return i;
 	};
 
-	// Parse Break statement {{{2
-	p.parse_break_statement = function (temp, tokens, index) {
+	// Parse Break, Continue statement {{{2
+	p.parse_statement_has_label = function (temp, tokens, index, Statement) {
 		var i = index, label = null;
 
 		if (tokens[i + 1]) {
@@ -923,29 +1736,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 			}
 		}
 
-		temp.statement = new this.BreakStatement(tokens[index].start, tokens[i].end, label);
-		
-		return i;
-	};
-	
-	// Parse Continue statement {{{2
-	p.parse_continue_statement = function (temp, tokens, index) {
-		var i = index + 1, label = null;
-
-		if (tokens[i]) {
-			if (this.is_identifier(tokens[i])) {
-				i = this.parse_identifier(temp, tokens, i);
-				label = temp.identifier;
-			}
-		}
-
-		if (tokens[i + 1]) {
-			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ';') {
-				++i;
-			}
-		}
-
-		temp.statement = new this.ContinueStatement(tokens[index].start, tokens[i].end, label);
+		temp.statement = new Statement(tokens[index].start, tokens[i].end, label);
 		
 		return i;
 	};
@@ -953,7 +1744,11 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	// Parse Expression statement {{{2
 	p.parse_expression_statement = function (temp, tokens, index, end_index) {
 		this.parse_sequence_expression(temp, tokens, index, end_index);
-		temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index].end, temp.expression);
+		if (tokens[end_index]) {
+			temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index].end, temp.expression);
+		} else {
+			temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index - 1].end, temp.expression);
+		}
 	};
 	// }}}2
 
@@ -977,11 +1772,11 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 				// Identifier {{{3
 				case "Identifier":
 					if (declarator) {
-						tokens[i].error_unexpected_type();
-					}
-					i = this.parse_identifier(temp, tokens, i);
-					declarator = new this.VariableDeclarator(temp.identifier);
-					expect_identifer = false;;
+					tokens[i].error_unexpected_type();
+				}
+				i = this.parse_identifier(temp, tokens, i);
+				declarator = new this.VariableDeclarator(temp.identifier);
+				expect_identifer = false;;
 					break;
 				// Special characters {{{3
 				case "SpecialCharacter":
@@ -1005,11 +1800,11 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 						case '$':
 						case '_':
 							if (declarator) {
-								tokens[i].error_unexpected_type();
-							}
-							i = this.parse_identifier(temp, tokens, i);
-							declarator = new this.VariableDeclarator(temp.identifier);
-							expect_identifer = false;;
+							tokens[i].error_unexpected_type();
+						}
+						i = this.parse_identifier(temp, tokens, i);
+						declarator = new this.VariableDeclarator(temp.identifier);
+						expect_identifer = false;;
 							break;
 						case ',':
 							if (declarator) {
@@ -1109,6 +1904,10 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 					case ',':
 					case ';':
 					case delimiter:
+						if (pieces.length === 0) {
+							temp.expression = null;
+							return i;
+						}
 						break LOOP;
 				}
 			}
@@ -1476,9 +2275,17 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 	p.parse_sequence_expression = function (temp, tokens, i, end_index, is_raw, delimiter) {
 		var expressions = [];
 
+		if (tokens.length === 0 || i >= tokens.length || (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';')) {
+			if (is_raw) {
+				temp.expressions = expressions;
+			} else {
+				temp.expression = null;
+			}
+			return i;
+		}
+
 		LOOP:
 		for (; i < end_index; ++i) {
-			temp.expression = null;
 			i = this.parse_expression(temp, tokens, i, end_index, delimiter);
 
 			if (temp.expression) {
@@ -1617,16 +2424,12 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		var i = 0, temp = new this.Temp(), elements = [];
 
 		for (; i < tokens.length; ++i) {
-			if (tokens[i].type === "SpecialCharacter") {
-				if (tokens[i].value === ',') {
-					if (temp.to_add) {
-						elements.push(temp.expression.parsed_token);
-						temp.to_add = false;
-					} else {
-						elements.push(null);
-					}
+			if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ',') {
+				if (temp.to_add) {
+					elements.push(temp.expression.parsed_token);
+					temp.to_add = false;
 				} else {
-					tokens[i].error_unexpected_token();
+					elements.push(null);
 				}
 			} else {
 				i = this.parse_expression(temp, tokens, i, tokens.length);
@@ -1899,7 +2702,9 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 	// Parse Identifier {{{2
 	p.parse_identifier = function (temp, tokens, index) {
-		var identifier = temp.identifier = new this.Identifier(tokens[index]), i = index + 1;
+		var i          = index + 1,
+			token      = temp.token      = new Token(),
+			identifier = temp.identifier = new this.Identifier(tokens[index]);
 
 		LOOP:
 		for (; i < tokens.length; ++i) {
@@ -1933,46 +2738,44 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 
 		identifier.end = tokens[i - 1].end;
 
-		temp.token = new Token({
-			type  : "Identifier",
-			value : identifier.name,
-			start : tokens[index].start,
-			end   : tokens[i - 1].end,
-		});
+		token.type  = "Identifier";
+		token.value = identifier.name;
+		token.start = tokens[index].start;
+		token.end   = tokens[i - 1].end;
 
 		return i - 1;
 	};
 
 	// Parse Parenthesis {{{2
-	p.parse_parenthesis = function (pieces, index) {
-		var i = index - 1, temp = pieces[index].parsed_token, callee, args;
+	p.parse_parenthesis = function (pieces, indices) {
+		var i = 0, temp = pieces[indices[0]].parsed_token, j, args;
 
-		for (; i >= 0; --i) {
-			if (pieces[i]) {
-				if (pieces[i].parsed_token.type !== "Operator") {
-					callee    = pieces[i];
-					pieces[i] = null;
+		LOOP:
+		for (; i < indices.length; ++i) {
+			for (j = indices[i] - 1; j >= 0; --j) {
+				if (pieces[j]) {
+					if (pieces[j].parsed_token.type !== "Operator") {
+						args = this.parse_arguments(temp, pieces[indices[i]].start_token.children);
+
+						pieces[indices[i]].parsed_token = new this.CallExpression(
+							pieces[j].start_token.start,
+							pieces[indices[i]].end_token.end,
+							pieces[j].parsed_token,
+							args
+						);
+						pieces[indices[i]].start_token = pieces[j].start_token;
+						pieces[j] = null;
+					} else {
+						this.parse_sequence_expression(
+							temp, pieces[indices[i]].start_token.children,
+							0, pieces[indices[i]].start_token.children.length
+						);
+						pieces[indices[i]].parsed_token = temp.expression;
+					}
+
+					continue LOOP;
 				}
-				break;
 			}
-		}
-
-		if (callee) {
-			args = this.parse_arguments(temp, pieces[index].start_token.children);
-
-			pieces[index].parsed_token = new this.CallExpression(
-				callee.start_token.start,
-				pieces[index].end_token.end,
-				callee.parsed_token,
-				args
-			);
-			pieces[index].start_token = callee.start_token;
-		} else {
-			this.parse_sequence_expression(
-				temp, pieces[index].start_token.children,
-				0, pieces[index].start_token.children.length
-			);
-			pieces[index].parsed_token = temp.expression;
 		}
 	};
 
@@ -2171,6 +2974,9 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 							tokens[i].error_unexpected_token();
 					}
 					break;
+				case "Comment":
+					properties.push(new this.Comment(tokens[i]));
+					break;
 				default:
 					tokens[i].error_unexpected_token();
 			}
@@ -2258,7 +3064,7 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 							break;
 						case '+'   :
 						case '-'   :
-							if (pieces[i - 1] && pieces[i - 1].parsed_token.type === "Operator") {
+							if (i === 0 || (pieces[i - 1] && pieces[i - 1].parsed_token.type === "Operator")) {
 								unary_operator_indices.unshift(i);
 							} else {
 								medium_math_operator_indices.push(i);
@@ -2287,7 +3093,15 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 					}
 					break;
 				case "Parenthesis":
-					parenthesis_indices.push(i);
+					if (i === 0) {
+						this.parse_sequence_expression(
+							pieces[0], pieces[0].start_token.children,
+							0, pieces[0].start_token.children.length
+						);
+						pieces[0].parsed_token = pieces[0].expression;
+					} else {
+						parenthesis_indices.push(i);
+					}
 					break;
 				case "Array":
 					if (pieces[i - 1] && pieces[i - 1].parsed_token.type !== "Operator") {
@@ -2312,8 +3126,8 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 		for (i = 0; i < member_operator_indices.length; ++i) {
 			member_operator_indices[i].is_parsed = this.parse_member_expression(pieces, member_operator_indices[i].index);
 		}
-		for (i = parenthesis_indices.length - 1; i >= 0; --i) {
-			this.parse_parenthesis(pieces, parenthesis_indices[i]);
+		if (parenthesis_indices.length) {
+			this.parse_parenthesis(pieces, parenthesis_indices);
 		}
 		for (i = 0; i < member_operator_indices.length; ++i) {
 			if (! member_operator_indices[i].is_parsed) {
@@ -2386,7 +3200,8 @@ js.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], f
 });
 // }}}1
 
-js.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Parser"], function (tokenizer, JavascriptParser) {
+// Public API {{{1
+app.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Parser"], function (tokenizer, JavascriptParser) {
 	var parser = new JavascriptParser();
 
 	var ECMA6String = function () {};
@@ -2456,4 +3271,7 @@ js.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Parse
 			throw error;
 		}
 	};
+});
+// }}}1
+
 });

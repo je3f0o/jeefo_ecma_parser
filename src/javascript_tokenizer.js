@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : javascript_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-02
+* Updated at  : 2017-05-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,18 +9,20 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo = require("jeefo_tokenizer");
+var jeefo = require("jeefo");
+require("jeefo_tokenizer")(jeefo);
+console.log("ZZZZZZZZZZ");
 
 /* global */
 /* exported */
 /* exported */
 
 //ignore:end
-var js       = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
+var app      = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
 	LANGUAGE = "javascript";
 
 // Regions {{{1
-js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
+app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 	var javascript_regions = new Region(LANGUAGE);
 
 	// Comment {{{2
@@ -183,7 +185,7 @@ js.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
 });
 // }}}1
 
-js.namespace("javascript.tokenizer", [
+app.namespace("javascript.tokenizer", [
 	"tokenizer.TokenParser",
 	"javascript.es5_regions"
 ], function (TokenParser, jeefo_js_regions) {
@@ -194,5 +196,5 @@ js.namespace("javascript.tokenizer", [
 });
 
 //ignore:start
-module.exports = js;
+module.exports = jeefo;
 //ignore:end

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preprocessor.js
 * Created at  : 2017-04-26
-* Updated at  : 2017-05-02
+* Updated at  : 2017-05-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,38 +9,41 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo              = require("jeefo");
-var JavascriptCompiler = require("./compiler");
-var pp = require("../src/javascript_parser");
+var jeefo = require("jeefo").create();
 
-/* global */
-/* exported */
+jeefo.use(require("jeefo_javascript_beautifier"));
+
+var pp = jeefo.module("jeefo.preprocessor", ["jeefo_javascript_beautifier"]);
+
+/* globals */
 /* exported */
 
 //ignore:end
 
 // Preprocessor {{{1
-pp.namespace("javascript.Preprocessor", function () {
+pp.namespace("javascript.Preprocessor", [
+	"object.assign",
+	"javascript.Beautifier",
+], function (assign, JavascriptBeautifier) {
 
 	// Scope {{{2
 	var Scope = function (parent, defs) {
 		this.parent   = parent;
 		this.children = [];
 		if (parent) {
-			this.defs  = this.assign(this.object_create(null), parent.defs, defs);
+			this.defs  = this.assign({}, parent.defs, defs);
 			this.level = parent.level + 1;
 		} else {
-			this.defs  = this.assign(this.object_create(null), defs);
+			this.defs  = this.assign({}, defs);
 			this.level = 0;
 		}
 	},
 	p = Scope.prototype;
-	p.Scope         = Scope;
-	p.assign        = jeefo.assign;
-	p.object_create = Object.create;
+	p.assign      = assign;
+	p.Constructor = Scope;
 
 	p.$new = function () {
-		var scope = new this.Scope(this);
+		var scope = new this.Constructor(this);
 		this.children.push(scope);
 		return scope;
 	};
@@ -57,7 +60,7 @@ pp.namespace("javascript.Preprocessor", function () {
 		this.scope    = new this.Scope(null, defs);
 		this.result   = file.code;
 		this.actions  = [];
-		this.compiler = new JavascriptCompiler(indent || '', indentation || '\t');
+		this.compiler = new JavascriptBeautifier(indent || '', indentation || '\t');
 		this.cache    = {};
 	};
 	p = JavascriptPreprocessor.prototype;
@@ -77,13 +80,11 @@ pp.namespace("javascript.Preprocessor", function () {
 	};
 
 	p.replace_between = function (def) {
-		this.result = this.result.substr(0, def.start) +
-			def.replacement +
-			this.result.substr(def.end, this.result.length);
+		this.result = `${ this.result.substr(0, def.start) }${ def.replacement }${ this.result.substr(def.end) }`;
 	};
 
 	p.remove = function (def) {
-		this.result = this.result.substr(0, def.start) + this.result.substr(def.end, this.result.length);
+		this.result = `${ this.result.substr(0, def.start) }${ this.result.substr(def.end) }`;
 	};
 
 	p.register = function (action, def) {
@@ -91,6 +92,7 @@ pp.namespace("javascript.Preprocessor", function () {
 		this.actions.push(def);
 	};
 
+	// Define {{{2
 	p.define = function (args, scope) {
 		var i = 0, ids = [], def, j;
 
@@ -107,7 +109,7 @@ pp.namespace("javascript.Preprocessor", function () {
 			case "FunctionExpression":
 				var params = def.params = new Array(def.token.parameters.length);
 
-				for (; i < params.length; ++i) {
+				for (i = params.length - 1; i >= 0; --i) {
 					if (params.indexOf(def.token.parameters[i].name) !== -1) {
 						def.token.parameters[i].error("Duplicated parameter");
 					}
@@ -130,11 +132,15 @@ pp.namespace("javascript.Preprocessor", function () {
 				}
 
 				break;
+			default:
+				def.compiled = this.compiler.compile(def.token);
 		}
 	};
 
-	p.find = function (type, token, container) {
+	// Find {{{2
+	p.find = function (type, token, container, parent) {
 		var i = 0;
+		parent = parent;
 
 		switch (token.type) {
 			case type:
@@ -142,118 +148,133 @@ pp.namespace("javascript.Preprocessor", function () {
 				break;
 			case "Program" :
 				for (; i < token.body.length; ++i) {
-					this.find(type, token.body[i], container);
+					this.find(type, token.body[i], container, token);
 				}
 				break;
 			case "ObjectLiteral" :
 				for (; i < token.properties.length; ++i) {
-					this.find(type, token.properties[i].property, container);
+					this.find(type, token.properties[i].value, container, token);
 				}
 				break;
 			case "ArrayLiteral" :
 				for (; i < token.elements.length; ++i) {
-					this.find(type, token.elements[i], container);
+					this.find(type, token.elements[i], container, token);
 				}
 				break;
 			case "BinaryExpression" :
 			case "LogicalExpression" :
-				this.find(type, token.left, container);
-				this.find(type, token.right, container);
+				this.find(type, token.left, container, token);
+				this.find(type, token.right, container, token);
 				break;
 			case "IfStatement" :
-				this.find(type, token.test, container);
-				this.find(type, token.statement, container);
+				this.find(type, token.test, container, token);
+				this.find(type, token.statement, container, token);
 				if (token.alternate) {
-					this.find(type, token.alternate, container);
+					this.find(type, token.alternate, container, token);
 				}
 				break;
 			case "ForStatement" :
 				if (token.init) {
-					this.find(type, token.init, container);
+					this.find(type, token.init, container, token);
 				}
 				if (token.test) {
-					this.find(type, token.test, container);
+					this.find(type, token.test, container, token);
 				}
 				if (token.update) {
-					this.find(type, token.update, container);
+					this.find(type, token.update, container, token);
 				}
-				this.find(type, token.statement, container);
+				this.find(type, token.statement, container, token);
 				break;
 			case "ReturnStatement" :
-				this.find(type, token.argument, container);
+				if (token.argument) {
+					this.find(type, token.argument, container, token);
+				}
 				break;
 			case "BlockStatement" :
 				for (; i < token.body.length; ++i) {
-					this.find(type, token.body[i], container);
+					this.find(type, token.body[i], container, token);
 				}
 				break;
 			case "ExpressionStatement" :
-				this.find(type, token.expression, container);
+				this.find(type, token.expression, container, token);
 				break;
 			case "AssignmentExpression" :
-				this.find(type, token.left, container);
-				this.find(type, token.right, container);
+				this.find(type, token.left, container, token);
+				this.find(type, token.right, container, token);
 				break;
 			case "MemberExpression" :
-				this.find(type, token.object, container);
-				this.find(type, token.property, container);
+				this.find(type, token.object, container, token);
+				this.find(type, token.property, container, token);
 				break;
 			case "NewExpression" :
-				this.find(type, token.callee, container);
+				this.find(type, token.callee, container, token);
 				break;
 			case "CallExpression" :
-				this.find(type, token.callee, container);
+				this.find(type, token.callee, container, token);
 				for (; i < token["arguments"].length; ++i) {
-					this.find(type, token["arguments"][i], container);
+					this.find(type, token["arguments"][i], container, token);
 				}
 				break;
 			case "UnaryExpression" :
 			case "ReturnStatement" :
-				this.find(type, token.argument, container);
+				this.find(type, token.argument, container, token);
 				break;
 			case "VariableDeclaration" :
 				for (; i < token.declarations.length; ++i) {
 					if (token.declarations[i].init) {
-						this.find(type, token.declarations[i].init, container); 
+						this.find(type, token.declarations[i].init, container, token); 
 					}
 				}
 				break;
 			case "SwitchStatement" :
 				for (i = 0; i < token.cases.length; ++i) {
-					this.find(type, token.cases[i], container);
+					this.find(type, token.cases[i], container, token);
 				}
 				break;
 			case "SwitchCase" :
 				this.find(type, token.test, container);
 				for (i = 0; i < token.statements.length; ++i) {
-					this.find(type, token.statements[i], container);
+					this.find(type, token.statements[i], container, token);
 				}
 				break;
 			case "FunctionExpression" :
 				for (; i < token.parameters.length; ++i) {
-					this.find(type, token.parameters[i], container);
+					this.find(type, token.parameters[i], container, token);
 				}
-				this.find(type, token.body, container);
+				this.find(type, token.body, container, token);
 				break;
 		}
 	};
 
+	// Function definition {{{2
 	p.call_expression = function (expression, def, scope) {
-		var i = 0, j = 0, args = [], statements = [];
+		var args = new Array(expression["arguments"].length),
+			i = args.length - 1,
+			j = 0,
+			statements = [];
 
 		this.compiler.current_indent = '';
 
-		for (; i < expression["arguments"].length; ++i) {
-			args.push(this.compiler.compile(expression["arguments"][i]));
+		for (; i >= 0; --i) {
+			switch (expression["arguments"][i].type) {
+				case "Identifier" :
+					if (scope.defs.hasOwnProperty(expression["arguments"][i].name)) {
+						args[i] = scope.defs[expression["arguments"][i].name].compiled;
+					}
+					break;
+			}
+			if (! args[i]) {
+				args[i] = this.compiler.compile(expression["arguments"][i]);
+			}
 		}
 
-		for (i = 1; i < scope.level; ++i) {
+		for (i = scope.level - 1; i >= 1; --i) {
 			this.compiler.current_indent = this.compiler.current_indent + this.compiler.indentation;
 		}
 		
-		for (i = 0; i < def.params.length; ++i) {
-			for (j = 0; j < def.params[i].length; ++j) {
-				def.params[i][j].name = args[i];
+		for (i = def.params.length - 1; i >= 0; --i) {
+			for (j = def.params[i].length - 1; j >= 0; --j) {
+				def.params[i][j].compiled = args[i];
 			}
 		}
 
@@ -292,25 +313,52 @@ pp.namespace("javascript.Preprocessor", function () {
 		}
 	};
 
+	// Expression {{{2
 	p.expression = function (expression, scope) {
+		var i = 0;
+
 		switch (expression.type) {
+			case "Comment" :
+				return;
+			case "NumberLiteral" :
+			case "StringLiteral" :
+			case "RegExpLiteral" :
+				return;
+			case "Identifier" :
+				if (scope.defs.hasOwnProperty(expression.name) && ! this.remove_indices) {
+					this.register("replace", {
+						start       : expression.start.index,
+						end         : expression.end.index,
+						replacement : scope.defs[expression.name].compiled
+					});
+				}
+				break;
 			case "CallExpression" :
 				switch (expression.callee.type) {
 					case "MemberExpression" :
 						if (expression.callee.object.name === "PP" && expression.callee.property.name === "define") {
 							this.define(expression["arguments"], scope);
-						} else {
-							this.process(expression["arguments"], scope.$new());
+						} else if (! this.remove_indices) {
+							this.process_arguments(expression["arguments"], scope);
+							this.expression(expression.callee, scope);
 						}
 						break;
 					case "Identifier":
-						if (scope.defs[expression.callee.name]) {
+						if (scope.defs.hasOwnProperty(expression.callee.name)) {
 							this.call_expression(expression, scope.defs[expression.callee.name], scope);
+						} else if (! this.remove_indices) {
+							this.process_arguments(expression["arguments"], scope);
+							this.expression(expression.callee, scope);
 						}
+						break;
+					case "FunctionExpression":
+						this.process_arguments(expression["arguments"], scope);
+						this.expression(expression.callee, scope);
 						break;
 				}
 				break;
 			case "AssignmentExpression":
+				this.expression(expression.left, scope);
 				this.expression(expression.right, scope);
 				break;
 			case "BinaryExpression":
@@ -321,13 +369,76 @@ pp.namespace("javascript.Preprocessor", function () {
 			case "FunctionExpression" :
 				this.process(expression.body.body, scope.$new());
 				break;
-			//case "MemberExpression" :
-				//console.log(expression);
-			//default:
-				//console.log(expression.type);
+			case "MemberExpression" :
+				this.expression(expression.object, scope);
+				this.expression(expression.property, scope);
+				break;
+			case "NewExpression" :
+				this.expression(expression.callee, scope);
+				for (i = expression["arguments"].length - 1; i >= 0; --i) {
+					this.expression(expression["arguments"][i], scope);
+				}
+				break;
+			case "UnaryExpression" :
+				this.expression(expression.argument, scope);
+				break;
+			case "ArrayLiteral" :
+				break;
+			case "Property" :
+				this.expression(expression.value, scope);
+				break;
+			case "ObjectLiteral" :
+				for (i = expression.properties.length - 1; i >= 0; --i) {
+					this.expression(expression.properties[i], scope);
+				}
+				break;
+			case "ConditionalExpression" :
+				this.expression(expression.test, scope);
+				if (expression.consequent) {
+					this.expression(expression.consequent, scope);
+				}
+				if (expression.alternate) {
+					this.expression(expression.alternate, scope);
+				}
+				break;
+			case "SequenceExpression" :
+				for (i = expression.expressions.length - 1; i >= 0; --i) {
+					this.expression(expression.expressions[i], scope);
+				}
+				break;
+			case "VariableDeclaration" :
+				this.variable_declaration(expression.declarations, scope);
+				break;
+			case "TemplateLiteral" :
+				if (this.remove_indices) { return; }
+
+				for (i = expression.body.length - 1; i >= 0; --i) {
+					if (expression.body[i].type === "TemplateLiteralExpression") {
+						this.expression(expression.body[i].expression, scope);
+					}
+				}
+
+				expression.compiled = this.compiler.compile(expression);
+
+				this.register("replace", {
+					start       : expression.start.index,
+					end         : expression.end.index,
+					replacement : expression.compiled
+				});
+				break;
+			default:
+				console.log("UNIMPLEMENTED expression", expression.type);
 		}
 	};
 
+	// Handler arguments {{{2
+	p.process_arguments = function (args, scope) {
+		// jshint curly : false
+		for (var i = args.length - 1; i >= 0; this.expression(args[i], scope), --i);
+		// jshint curly : true
+	};
+
+	// Variable declarations {{{2
 	p.variable_declaration = function (declarations, scope) {
 		for (var i = 0; i < declarations.length; ++i) {
 			if (declarations[i].init) {
@@ -336,24 +447,28 @@ pp.namespace("javascript.Preprocessor", function () {
 		}
 	};
 
-	p.push_current_statement = function (statement) {
-		statement.parent       = this.current_statement;
-		this.current_statement = statement;
-	};
-	p.pop_current_statement = function () {
-		this.current_statement = this.current_statement.parent;
-	};
-
+	// Statement {{{2
 	p.statement = function (statement, scope) {
 		switch (statement.type) {
 			case "BlockStatement" :
-				this.push_current_statement(statement);
 				this.process(statement.body, scope.$new());
-				this.pop_current_statement();
 				break;
+			case "IfStatement" :
+				this.process([statement], scope);
+				break;
+			case "ForStatement" :
+			case "SwitchStatement" :
+				this.process([statement], scope);
+				break;
+			case "EmptyStatement" :
+				break;
+			default:
+				console.log("UNIMPLEMENTED statement", statement.type);
 		}
 	};
+	// }}}2
 
+	// Main process loop {{{2
 	p.process = function (tokens, scope) {
 		for (var i = 0; i < tokens.length; ++i) {
 
@@ -366,7 +481,7 @@ pp.namespace("javascript.Preprocessor", function () {
 							if (! this.remove_indices) {
 								this.remove_indices = {
 									start : tokens[i].start.index,
-									end   : this.result.length,
+									end   : tokens[i].end.index,
 								};
 								this.register("remove", this.remove_indices);
 							}
@@ -383,56 +498,80 @@ pp.namespace("javascript.Preprocessor", function () {
 
 				// Statement {{{3
 				case "ExpressionStatement" :
-					this.push_current_statement(tokens[i]);
 					this.expression(tokens[i].expression, scope);
-					this.pop_current_statement();
 					break;
+				case "ThrowStatement" :
 				case "ReturnStatement" :
 					if (tokens[i].argument) {
-						this.push_current_statement(tokens[i]);
 						this.expression(tokens[i].argument, scope);
-						this.pop_current_statement();
 					}
 					break;
 				case "IfStatement" :
-					this.push_current_statement(tokens[i]);
-
 					this.expression(tokens[i].test, scope);
 					this.statement(tokens[i].statement, scope);
 					if (tokens[i].alternate) {
-						this.process([tokens[i].alternate], scope);
+						this.statement(tokens[i].alternate, scope);
 					}
-
-					this.pop_current_statement();
+					break;
+				case "LabeledStatement" :
+					this.statement(tokens[i].statement, scope);
 					break;
 				case "ForStatement" :
-				case "WhileStatement" :
-					this.push_current_statement(tokens[i]);
+					if (tokens[i].init) {
+						// TODO: implement var declare version
+						this.expression(tokens[i].init, scope);
+					}
+					if (tokens[i].test) {
+						this.expression(tokens[i].test, scope);
+					}
+					if (tokens[i].update) {
+						this.expression(tokens[i].update, scope);
+					}
 					this.statement(tokens[i].statement, scope);
-					this.pop_current_statement();
+					break;
+				case "WhileStatement" :
+					this.statement(tokens[i].statement, scope);
 					break;
 				case "SwitchStatement" :
-					this.push_current_statement(tokens[i]);
-
 					scope.level += 1;
 					this.process(tokens[i].cases, scope);
 					scope.level -= 1;
+					break;
+				case "TryStatement" :
+					this.statement(tokens[i].block, scope);
 
-					this.pop_current_statement();
+					if (tokens[i].handler) {
+						this.expression(tokens[i].handler.param, scope);
+						this.statement(tokens[i].handler.body, scope);
+					}
+
+					if (tokens[i].finalizer) {
+						this.statement(tokens[i].finalizer, scope);
+					}
+					break;
+				case "BreakStatement" :
+				case "ContinueStatement" :
+					if (tokens[i].label) {
+						this.expression(tokens[i].label, scope);
+					}
 					break;
 				
-				// Expression {{{3
-				case "FunctionExpression" :
-					this.process(tokens[i].body.body, scope.$new());
-					break;
 				// Other {{{3
 				case "VariableDeclaration" :
 					this.variable_declaration(tokens[i].declarations, scope);
 					break;
+				case "FunctionDeclaration" :
+					this.process(tokens[i].body.body, scope.$new());
+					break;
 				case "SwitchCase" :
+					this.expression(tokens[i].test, scope);
+					this.process(tokens[i].statements, scope.$new());
+					break;
 				case "DefaultCase" :
 					this.process(tokens[i].statements, scope.$new());
 					break;
+				default:
+					console.log("UNIMPLEMENTED token", tokens[i].type);
 				// }}}3
 			}
 		}
@@ -516,6 +655,13 @@ pp.namespace("javascript.ES5_preprocessor", [
 	instance.define("IS_BOOLEAN"  , function (x) { return typeof x === "boolean";  } , true);
 	instance.define("IS_FUNCTION" , function (x) { return typeof x === "function"; } , true);
 
+	instance.define("IS_OBJECT" , function (x) { return x !== null && typeof x === "object"; } , true);
+
+	instance.define("ARRAY_EXISTS" , function (arr, x) { return arr.indexOf(x) >= 0; } , true);
+	instance.define("ARRAY_NOT_EXISTS" , function (arr, x) { return arr.indexOf(x) === -1; } , true);
+
+	instance.define("IS_JEEFO_PROMISE" , function (x) { return x && x.type === "JEEFO_PROMISE"; } , true);
+
 	return instance;
 });
 // }}}1
@@ -530,45 +676,16 @@ pp.run(["javascript.ES5_preprocessor"], function (pp) {
 
 if (require.main === module) {
 	
-pp.run(["javascript.ES5_preprocessor", "tokenizer.TokenParser", "tokenizer.Region"], function (pp, TokenParser, Region) {
+pp.run(["javascript.ES5_preprocessor"], function (pp) {
 	
 	var fs = require("fs"),
 		path = require("path");
 	
-	var language = "ECMA6";
-	
-	var es6_string_template_regions = new Region(language);
-	es6_string_template_regions.register({
-		type  : "ES6StringVariable",
-		name  : "ES6 string template variable",
-		start : "${",
-		end   : '}',
-	});
-	var es6_string_tokenizer = new TokenParser(language, es6_string_template_regions);
-	
-	var filename = path.resolve(__dirname, "./javascript_compiler.js");
 	var source = `if (IS_NULL(x)) {}`;
+	//var filename = path.join(__dirname, "../../jeefo_javascript_beautifier/src/beautifier.js");
+	var filename = path.join(__dirname, "../src/javascript_parser.js");
 	source = fs.readFileSync(filename, "utf8");
 
-	pp.middleware(function (pp) {
-		var strs = [];
-		pp.find("StringLiteral", pp.file.program, strs);
-
-		strs.forEach(function (str) {
-			var tt = es6_string_tokenizer.parse(str.value);
-			var is_es6 = tt.some(function (t) {
-				return t.type === "ES6StringVariable";
-			});
-
-			if (is_es6) {
-				pp.register("replace", {
-					start : str.start.index,
-					end : str.end.index,
-					replacement : "ECMA6666666666666666666666666"
-				});
-			}
-		});
-	});
 
 	try {
 		var start = Date.now();
@@ -582,6 +699,8 @@ pp.run(["javascript.ES5_preprocessor", "tokenizer.TokenParser", "tokenizer.Regio
 		console.log(code);
 	} catch (e) {
 		console.error("ERROR:", e);
+		console.log(e.$stack);
+		console.log(e.stack);
 	}
 });
 

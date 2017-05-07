@@ -1,9 +1,3286 @@
+
+"use strict";
+
+module.exports = function (jeefo) {
+
+/**
+ * jeefo_core : v0.0.7
+ * Author     : je3f0o, <je3f0o@gmail.com>
+ * Homepage   : https://github.com/je3f0o/jeefo_core
+ * License    : The MIT License
+ * Copyright  : 2017
+ **/
+jeefo.use(function () {
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : core.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-07
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var core_module = jeefo.module("jeefo_core", []),
+
+CAMEL_CASE_REGEXP = /[A-Z]/g,
+dash_case = function (str) {
+	return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+		return (pos ? '-' : '') + letter.toLowerCase();
+	});
+},
+snake_case = function (str) {
+	return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+		return (pos ? '_' : '') + letter.toLowerCase();
+	});
+},
+
+to_string          = Object.prototype.toString,
+function_to_string = Function.toString,
+
+IS_DIGITS_SIGNED_INT      = /^\-?\d+$/,
+IS_DIGITS_UNSIGNED_INT    = /^\d+$/,
+IS_DIGITS_SIGNED_NUMBER   = /^\-?\d+(?:.\d+)?$/,
+IS_DIGITS_UNSIGNED_NUMNER = /^\d+(?:.\d+)?$/,
+
+// Used to detect host constructors (Safari > 4; really typed array specific)
+HOST_CONSTRUCTOR_REGEX = /^\[object .+?Constructor\]$/,
+/*
+// Compile a regexp using a common native method as a template.
+// We chose `Object#toString` because there's a good chance it is not being mucked with.
+new RegExp('^' +
+	// Coerce `Object#toString` to a string
+	String(to_string).
+		// Escape any special regexp characters
+		replace(/[.*+?^${}()|[\]\/\\]/g, "\\$&").
+		// Replace mentions of `toString` with `.*?` to keep the template generic.
+		// Replace thing like `for ...` to support environments like Rhino which add extra info
+		// such as method arity.
+		replace(/toString|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + '$'
+)
+*/
+NATIVE_REGEX = /^function.*?\(\) \{ \[native code\] \}$/,
+
+is_date = function (value) {
+	return to_string.call(value) === "[object Date]";
+},
+
+is_regex = function (value) {
+	return to_string.call(value) === "[object RegExp]";
+},
+
+is_digits = function (value, is_unsigned) {
+	return (is_unsigned ? IS_DIGITS_UNSIGNED_NUMNER : IS_DIGITS_SIGNED_NUMBER).test(value);
+},
+
+is_digits_int = function (value, is_unsigned) {
+	return (is_unsigned ? IS_DIGITS_UNSIGNED_INT : IS_DIGITS_SIGNED_INT).test(value);
+},
+
+is_native = function (value) {
+	var type = typeof value;
+	return type === "function" ?
+		// Use `Function#toString` to bypass the value's own `toString` method
+		// and avoid being faked out.
+		NATIVE_REGEX.test(function_to_string.call(value)) :
+		// Fallback to a host object check because some environments will represent
+		// things like typed arrays as DOM methods which may not conform to the
+		// normal native pattern.
+		(value && type === "object" && HOST_CONSTRUCTOR_REGEX.test(to_string.call(value))) || false;	
+},
+
+json_parse = function (value) {
+	try {
+		return JSON.parse(value);
+	} catch (e) {}
+};
+
+core_module.extend("namespace", ["$injector", "make_injectable"], function (injector, make_injectable) {
+	return function (full_name) {
+		var namespaces = full_name.split('.'),
+			name = namespaces.pop(),
+			i = 0, namespace = '', part, container;
+
+		for (; i < namespaces.length; ++i) {
+			part = namespaces[i];
+
+			if (namespace) {
+				container = injector.resolve_sync(namespace);
+			}
+
+			namespace = namespace ? namespace + '.' + part : part;
+
+			if (! injector.has(namespace)) {
+				injector.register(namespace, {
+					fn : function () { return {}; }
+				});
+
+				if (container) {
+					container[part] = injector.resolve_sync(namespace);
+				}
+			}
+		}
+
+		injector.register(full_name, make_injectable.apply(null, arguments));
+
+		if (namespace) {
+			container       = injector.resolve_sync(namespace);
+			container[name] = injector.resolve_sync(full_name);
+		}
+
+		return this;
+	};
+}).
+
+namespace("transform.dash_case", function () {
+	return dash_case;
+}).
+
+namespace("transform.snake_case", function () {
+	return snake_case;
+}).
+
+extend("curry", [
+	"$injector",
+	"make_injectable",
+	"transform.snake_case",
+], function ($injector, make_injectable, snake_case) {
+	return function (name) {
+		$injector.register(snake_case(name + "Curry"), make_injectable.apply(null, arguments));
+		return this;
+	};
+}).
+
+extend("run", ["$injector", "$q", "Array"], function ($injector, $q, Arr) {
+	var instance = this;
+
+	return function (dependencies, fn) {
+		if (typeof dependencies === "function") {
+			dependencies.call(this);
+		} else if (typeof dependencies === "string") {
+			$injector.resolve(dependencies).then(function (value) {
+				fn.call(instance, value);
+			});
+		} else {
+			var	args = new Arr(dependencies.length);
+
+			$q.for_each_async(dependencies, function (dependency, index, next) {
+				$injector.resolve(dependency).then(function (value) {
+					args[index] = value;
+					next();
+				});
+			}).then(function () {
+				fn.apply(instance, args);
+			});
+		}
+
+		return this;
+	};
+}).
+
+extend("factory", [
+	"$injector",
+	"make_injectable",
+	"transform.snake_case",
+], function ($injector, make_injectable, snake_case) {
+	return function (name) {
+		$injector.register(snake_case(name + "Factory"), make_injectable.apply(null, arguments));
+		return this;
+	};
+}).
+
+extend("service", [
+	"$injector",
+	"make_injectable",
+	"transform.snake_case",
+], function ($injector, make_injectable, snake_case) {
+	return function (name) {
+		var injectable = make_injectable.apply(null, arguments);
+		injectable.is_constructor = true;
+
+		$injector.register(snake_case(name + "Service"), injectable);
+		return this;
+	};
+}).
+
+run("$injector", function ($injector) {
+
+	$injector.register("is_date", {
+		fn : function () { return is_date; }
+	}).
+	register("is_regex", {
+		fn : function () { return is_regex; }
+	}).
+	register("is_digit", {
+		fn : function () { return is_digits; }
+	}).
+	register("is_digit_int", {
+		fn : function () { return is_digits_int; }
+	}).
+	register("is_native", {
+		fn : function () { return is_native; }
+	}).
+	register("json_parse", {
+		fn : function () { return json_parse; }
+	});
+
+});
+
+});
+
+/**
+ * jeefo_tokenizer : v0.0.17
+ * Author          : je3f0o, <je3f0o@gmail.com>
+ * Homepage        : https://github.com/je3f0o/jeefo_tokenizer
+ * License         : The MIT License
+ * Copyright       : 2017
+ **/
+jeefo.use(function () {
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : token.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-06
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var Token = function () {};
+Token.prototype = {
+	error : function (message) {
+		var error = new SyntaxError(message);
+		error.value        = this.value;
+		error.lineNumber   = this.start.line;
+		error.columnNumber = this.start.column;
+		throw error;
+	},
+	error_unexpected_type : function () {
+		this.error("Unexpected " + this.type);
+	},
+	error_unexpected_token : function () {
+		this.error("Unexpected token");
+	},
+};
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : region.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-07
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var RegionDefinition = function (definition) {
+	this.type  = definition.type;
+	this.name  = definition.name || definition.type;
+	this.start = definition.start;
+	this.end   = definition.end;
+
+	if (definition.skip)        { this.skip        = definition.skip;        }
+	if (definition.until)       { this.until       = definition.until;       }
+	if (definition.keepend)     { this.keepend     = definition.keepend;     }
+	if (definition.contains)    { this.contains    = definition.contains;    }
+	if (definition.contained)   { this.contained   = definition.contained;   }
+	if (definition.escape_char) { this.escape_char = definition.escape_char; }
+
+	if (definition.contains) { this.contains_chars = this.find_special_characters(definition.contains); }
+};
+RegionDefinition.prototype = {
+	copy : function () {
+		return new this.constructor(this);
+	},
+
+	find_special_characters : function (container) {
+		for (var i = container.length - 1; i >= 0; --i) {
+			if (container[i].type === "SpecialCharacter") {
+				return container[i].chars.join('');
+			}
+		}
+	},
+};
+
+var Region = function (language) {
+	this.hash                   = {};
+	this.language               = language;
+	this.global_null_regions    = [];
+	this.contained_null_regions = [];
+};
+Region.prototype = {
+	RegionDefinition : RegionDefinition,
+
+	sort_function : function (a, b) { return a.start.length - b.start.length; },
+
+	register : function (region) {
+		region = new this.RegionDefinition(region);
+
+		if (region.start) {
+			if (this.hash[region.start[0]]) {
+				this.hash[region.start[0]].push(region);
+
+				this.hash[region.start[0]].sort(this.sort_function);
+			} else {
+				this.hash[region.start[0]] = [region];
+			}
+		} else if (region.contained) {
+			this.contained_null_regions.push(region);
+		} else {
+			if (this.global_null_region) {
+				throw Error("Overwritten global null region.");
+			}
+			this.global_null_region = region;
+		}
+	},
+
+	// Find {{{1
+	find : function (parent, streamer) {
+		var i         = 0,
+			container = this.hash[streamer.current()],
+			start, j, k;
+		
+		// Has parent {{{2
+		if (parent && parent.contains) {
+
+			// Search for contained regions {{{3
+			if (container) {
+				CONTAINER:
+				for (i = container.length - 1; i >= 0; --i) {
+					for (j = parent.contains.length - 1; j >= 0; --j) {
+						if (container[i].type !== parent.contains[j].type) {
+							continue;
+						}
+
+						for (start = container[i].start, k = start.length - 1; k >= 1; --k) {
+							if (streamer.peek(streamer.current_index + k) !== start.charAt(k)) {
+								continue CONTAINER;
+							}
+						}
+
+						return container[i].copy();
+					}
+				}
+			}
+
+			// Looking for null regions {{{3
+			for (i = parent.contains.length - 1; i >= 0; --i) {
+				for (j = this.contained_null_regions.length - 1; j >= 0; --j) {
+					if (this.contained_null_regions[j].type === parent.contains[i].type) {
+						return this.contained_null_regions[j].copy();
+					}
+				}
+			}
+			// }}}3
+
+		// No parent {{{2
+		// It means lookup for only global regions
+		} else {
+
+			// Has container {{{3
+			if (container) {
+
+				NO_PARENT_CONTAINER:
+				for (i = container.length - 1; i >= 0; --i) {
+					if (container[i].contained) {
+						continue;
+					}
+
+					for (start = container[i].start, k = start.length - 1; k >= 1; --k) {
+						if (streamer.peek(streamer.current_index + k) !== start.charAt(k)) {
+							continue NO_PARENT_CONTAINER;
+						}
+					}
+
+					return container[i].copy();
+				}
+			}
+		
+			// Finally {{{3
+			if (this.global_null_region) {
+				return this.global_null_region.copy();
+			}
+			// }}}3
+
+		}
+		// }}}2
+	},
+	// }}}1
+};
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : string_stream.js
+* Created at  : 2017-04-07
+* Updated at  : 2017-05-06
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var StringStream = function (string) {
+	this.string        = string;
+	this.current_index = 0;
+};
+StringStream.prototype = {
+	peek : function (index) {
+		return this.string.charAt(index);
+	},
+	seek : function (offset, length) {
+		return this.string.substring(offset, offset + length);
+	},
+	next : function () {
+		return this.peek( ++this.current_index );
+	},
+	current : function () {
+		return this.peek(this.current_index);
+	},
+};
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : token_parser.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-06
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+
+var TokenParser = function (language, regions) {
+	this.lines  = [{ number : 1, index : 0 }];
+	this.start  = { line : 1, column : 1 };
+	this.tokens = [];
+	this.stack  = [];
+
+	this.regions  = regions;
+	this.language = language;
+};
+TokenParser.prototype = {
+
+is_array : Array.isArray,
+
+// Main parser {{{1
+parse : function (source) {
+	var streamer          = this.streamer = new StringStream(source),
+		current_character = streamer.current(), region;
+
+	while (current_character) {
+		if (this.current_region) {
+			if (this.current_region.ignore_chars && this.current_region.ignore_chars.indexOf(current_character) !== -1) {
+				current_character = streamer.next();
+				continue;
+			} else if (this.region_end(this.current_region)) {
+				this.current_token  = this.current_token.parent;
+				this.current_region = this.current_region.parent;
+
+				current_character = streamer.next();
+				continue;
+			}
+		}
+
+		// Region {{{2
+		region = this.regions.find(this.current_region, streamer);
+		if (region) {
+			this.parse_region(region);
+
+			if (region.keepend) {
+				this.stack.push({
+					token  : this.current_token,
+					region : region,
+				});
+			}
+
+		// White space {{{2
+		} else if (current_character <= ' ') {
+			this.handle_new_line(current_character);
+
+		// Number {{{2
+		} else if (current_character >= '0' && current_character <= '9') {
+			this.parse_number();
+
+		// Identifier {{{2
+		} else if (this.SPECIAL_CHARACTERS.indexOf(current_character) === -1) {
+			this.parse_identifier();
+
+		// Special character {{{2
+		} else {
+			this.parse_special_character();
+		}
+		// }}}2
+
+		current_character = streamer.next();
+	}
+
+	return this.tokens;
+},
+
+// Parse number {{{1
+parse_number : function () {
+	var streamer = this.streamer, current_character;
+
+	this.prepare_new_token(streamer.current_index);
+
+	// jshint curly : false
+	for (current_character = streamer.next(); current_character >= '0' && current_character <= '9' ;
+		current_character = streamer.next());
+	// jshint curly : true
+
+	this.add_token( this.make_token("Number") );
+	this.streamer.current_index -= 1;
+},
+
+// Parse Identifier {{{1
+
+SPECIAL_CHARACTERS : [
+	',', '.', ';', ':',
+	'<', '>', '~', '`',
+	'!', '@', '#', '|', 
+	'%', '^', '&', '*',
+	'(', ')', '-', '+',
+	'=', '[', ']', '/',
+	'?', '"', '{', '}',
+	'_', "'", '\\',
+].join(''),
+
+parse_identifier : function () {
+	var streamer = this.streamer, current_character;
+
+	this.prepare_new_token(streamer.current_index);
+
+	// jshint curly : false
+	for (current_character = streamer.next(); // initialization terminator
+		current_character > ' ' && this.SPECIAL_CHARACTERS.indexOf(current_character) === -1;
+		current_character = streamer.next());
+	// jshint curly : true
+
+	this.add_token( this.make_token("Identifier") );
+	streamer.current_index -= 1;
+},
+
+// Parse region {{{1
+parse_region : function (region) {
+	var streamer = this.streamer,
+		i, is_matched, current_character, current_token;
+
+	this.prepare_new_token(streamer.current_index);
+
+	if (region.start) {
+		streamer.current_index += region.start.length;
+	}
+
+	if (region.contains) {
+		current_token          = this.make_token(region.type, region.name);
+		current_token.children = [];
+
+		if (this.current_token) {
+			region.parent        = this.current_region;
+			current_token.parent = this.current_token;
+			this.current_token.children.push(current_token);
+		} else {
+			this.tokens.push( current_token );
+		}
+
+		this.current_token  = current_token;
+		this.current_region = region;
+
+		if (region.start) {
+			streamer.current_index -= 1;
+		}
+		return;
+	}
+
+	current_character = streamer.current();
+
+	while (current_character) {
+		this.handle_new_line(current_character);
+
+		// escape handler
+		if (current_character === region.escape_char) {
+			streamer.current_index += 2;
+			current_character = streamer.current();
+			continue;
+		}
+
+		// skip handler
+		if (region.skip && current_character === region.skip.charAt(0)) {
+			for (i = 1, is_matched = true; i < region.skip.length; ++i) {
+				if (streamer.peek(streamer.current_index + i) !== region.skip.charAt(i)) {
+					is_matched = false;
+					break;
+				}
+			}
+
+			if (is_matched) {
+				streamer.current_index += region.skip.length;
+				current_character = streamer.current();
+				continue;
+			}
+		}
+
+		if (this.region_end(region, true)) {
+			return;
+		}
+
+		current_character = streamer.next();
+	}
+},
+
+// Parse special character {{{1
+parse_special_character : function () {
+	if (this.current_region &&
+		(! this.current_region.contains_chars || this.current_region.contains_chars.indexOf(this.streamer.current()) === -1)) {
+		this.prepare_new_token(this.streamer.current_index);
+		this.streamer.current_index += 1;
+		this.make_token("SpecialCharacter").error_unexpected_token();
+	}
+
+	this.prepare_new_token(this.streamer.current_index);
+	this.streamer.current_index += 1;
+
+	this.add_token( this.make_token("SpecialCharacter") );
+	this.streamer.current_index -= 1;
+},
+
+// Check end token {{{1
+region_end : function (region, to_add) {
+	var i = 0;
+	if (this.is_array(region.end)) {
+		for (; i < region.end.length; ++i) {
+			if (this.check_end_token(region, region.end[i], to_add)) {
+				this.finallzie_region(region);
+				return true;
+			}
+		}
+	}
+
+	if (this.check_end_token(region, region.end, to_add)) {
+		this.finallzie_region(region);
+		return true;
+	}
+
+	if (this.region_end_stack(region, to_add)) {
+		return true;
+	}
+},
+
+finallzie_region : function (region) {
+	for (var i = 0; i < this.stack.length; ++i) {
+		if (this.stack[i].region === region) {
+			this.current_token  = this.stack[i].token;
+			this.current_region = this.stack[i].region;
+			this.stack.splice(i, this.stack.length);
+		}
+	}
+},
+
+region_end_stack : function (region, to_add) {
+	for (var i = this.stack.length - 1, j; i >= 0; --i) {
+		if (this.is_array(this.stack[i].region.end)) {
+			for (j = 0; j < this.stack[i].region.end.length; ++j) {
+				if (this.check_end_token(region, this.stack[i].region.end[j], to_add)) {
+					this.finallzie_region(this.stack[i].region);
+					return true;
+				}
+			}
+		} else if (this.check_end_token(region, this.stack[i].region.end, to_add)) {
+			this.finallzie_region(this.stack[i].region);
+			return true;
+		}
+	}
+},
+
+check_end_token : function (region, end, to_add) {
+	var i        = 1,
+		streamer = this.streamer;
+
+	if (streamer.current() === end.charAt(0)) {
+		for (; i < end.length; ++i) {
+			if (streamer.peek(streamer.current_index + i) !== end.charAt(i)) {
+				return false;
+			}
+		}
+
+		if (! region.until) {
+			streamer.current_index += end.length;
+		}
+
+		if (to_add) {
+			var token = this.make_token(region.type, region.name);
+			this.set_value(token, region.start ? region.start.length : 0, region.until ? 0 : end.length);
+
+			this.add_token(token);
+		} else {
+			this.set_end(this.current_token);
+			this.set_value(this.current_token, region.start ? region.start.length : 0, region.until ? 0 : end.length);
+		}
+
+		streamer.current_index -= 1;
+
+		return true;
+	}
+},
+// }}}1
+
+handle_new_line : function (current_character) {
+	if (current_character === '\r' || current_character === '\n') {
+		this.new_line();
+	}
+},
+
+new_line : function () {
+	this.lines.push({
+		number : (this.lines.length + 1),
+		index  : (this.streamer.current_index + 1),
+	});
+},
+
+// Set value without surrounding
+set_value : function (token, start_length, end_length) {
+	token.value = this.streamer.seek(
+		token.start.index + start_length,
+		(token.end.index - token.start.index - start_length - end_length)
+	);
+},
+
+set_end : function (token) {
+	token.end.line   = this.lines.length;
+	token.end.column = (this.streamer.current_index - this.lines[this.lines.length - 1].index);
+	token.end.index  = this.streamer.current_index;
+},
+
+prepare_new_token : function (current_index) {
+	this.start = {
+		line   : this.lines.length,
+		column : (current_index - this.lines[this.lines.length - 1].index) + 1,
+		index  : current_index
+	};
+},
+
+add_token : function (token) {
+	if (this.current_token) {
+		this.current_token.children.push(token);
+	} else {
+		this.tokens.push(token);
+	}
+},
+
+make_token : function (type, name) {
+	var offset = this.start.index,
+		length = this.streamer.current_index - this.start.index,
+		token  = new Token();
+
+	token.type  = type;
+	token.name  = name || type;
+	token.value = this.streamer.seek(offset, length);
+	token.start = this.start;
+	token.end   = {
+		line           : this.lines.length,
+		column         : (this.streamer.current_index - this.lines[this.lines.length - 1].index) + 1,
+		virtual_column : this.lines.column,
+		index          : this.streamer.current_index
+	};
+},
+
+};
+
+var jeefo_tokenizer = jeefo.module("jeefo_tokenizer", ["jeefo_core"]);
+jeefo_tokenizer.namespace("tokenizer.Token", function () {
+	return Token;
+}).
+namespace("tokenizer.Region", function () {
+	return Region;
+}).
+namespace("tokenizer.TokenParser", function () {
+	return TokenParser;
+});
+
+});
+
 /**
  * jeefo_javascript_parser : v0.0.2
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
- * License                 : The MIT license
+ * License                 : The MIT License
  * Copyright               : 2017
  **/
-"use strict";module.exports=function(e){!function(e){!function(e){var t=e.module("jeefo_core",[]),r=function(e){return function(t,r,n,s){return"function"===typeof r?(s=n,n=r,r=[]):"string"===typeof r&&(r=[r]),void 0===s&&(s=!0),e.call(this,t,{fn:n,dependencies:r,resolve_once:s})}},n=function(e){var t=function(t,r){return(r?e:"")+t.toLowerCase()};return function(){return this.replace(/[A-Z]/g,t)}};String.prototype.dash_case=n("-"),String.prototype.snake_case=n("_"),t.extend("curry",["$injector"],function(e){return r(function(t,r){e.register((t+"Curry").snake_case(),r)})}),t.curry("makeInjectable",function(){return r}),t.extend("run",["$injector"],function(e){var t=Array;return function(r,n){var s,i,a=0;if("function"===typeof r)n=r,i=[];else if("string"===typeof r)i=[e.resolve_sync(r)];else for(a=0,s=r.length,i=new t(s);a<s;++a)i[a]=e.resolve_sync(r[a]);return n.apply(this,i)}}),t.extend("namespace",["$injector","make_injectable_curry"],function(e,t){return t(function(t,r){for(var n,s,i=t.split("."),a=i.pop(),o=0,h=i.length,p="";o<h;++o)n=i[o],p&&(s=e.resolve_sync(p)),p=p?p+"."+n:n,e.has(p)||(e.register(p,{dependencies:[],resolve_once:!0,fn:function(){return{}}}),s&&(s[n]=e.resolve_sync(p)));e.register(t,r),p&&(s=e.resolve_sync(p),s[a]=e.resolve_sync(t))})}),t.extend("factory",["$injector","make_injectable_curry"],function(e,t){return t(function(t,r){e.register((t+"Factory").snake_case(),r)})}),t.extend("service",["$injector","make_injectable_curry"],function(e,t){return t(function(t,r){r.is_constructor=!0,e.register((t+"Service").snake_case(),r)})})}(e);var t=function(e){for(var t in e)this[t]=e[t]},r=t.prototype;r.error=function(e){var t=new SyntaxError(e);throw t.token=this.value,t.lineNumber=this.start.line,t.columnNumber=this.start.column,t},r.error_unexpected_type=function(){this.error("Unexpected "+this.type)},r.error_unexpected_token=function(){this.error("Unexpected token")};var n=function(e){this.type=e.type,this.name=e.name||e.type,this.start=e.start,this.end=e.end,e.skip&&(this.skip=e.skip),e.until&&(this.until=e.until),e.keepend&&(this.keepend=e.keepend),e.contains&&(this.contains=e.contains),e.contained&&(this.contained=e.contained),e.escape_char&&(this.escape_char=e.escape_char),e.contains&&(this.contains_chars=this.find_special_characters(e.contains))};r=n.prototype,r.RegionDefinition=n,r.copy=function(){return new this.RegionDefinition(this)},r.find_special_characters=function(e){for(var t=0;t<e.length;++t)if("SpecialCharacter"===e[t].type)return e[t].chars.join("")};var s=function(e){this.hash={},this.language=e,this.global_null_regions=[],this.contained_null_regions=[]};r=s.prototype,r.sort_function=function(e,t){return e.start.length-t.start.length},r.register=function(e){if(e=new n(e),e.start)this.hash[e.start[0]]?(this.hash[e.start[0]].push(e),this.hash[e.start[0]].sort(this.sort_function)):this.hash[e.start[0]]=[e];else if(e.contained)this.contained_null_regions.push(e);else{if(this.global_null_region)throw Error("Overwritten global null region.");this.global_null_region=e}},r.find=function(e,t){var r,n,s,i=0,a=this.hash[t.current()];if(e&&e.contains){if(a)e:for(i=a.length-1;i>=0;--i)for(n=e.contains.length-1;n>=0;--n)if(a[i].type===e.contains[n].type){for(s=1,r=a[i].start;s<r.length;++s)if(t.peek(t.current_index+s)!==r[s])continue e;return a[i].copy()}for(i=e.contains.length-1;i>=0;--i)for(n=this.contained_null_regions.length-1;n>=0;--n)if(this.contained_null_regions[n].type===e.contains[i].type)return this.contained_null_regions[n].copy()}else{if(a)e:for(i=a.length-1;i>=0;--i)if(!a[i].contained){for(s=1,r=a[i].start;s<r.length;++s)if(t.peek(t.current_index+s)!==r[s])continue e;return a[i].copy()}if(this.global_null_region)return this.global_null_region.copy()}};var i=function(e){this.string=e,this.current_index=0};r=i.prototype,r.peek=function(e){return this.string.charAt(e)},r.seek=function(e,t){return this.string.substring(e,e+t)},r.next=function(){return this.peek(this.current_index+=1)},r.current=function(){return this.peek(this.current_index)};var a=function(e,t){this.lines=[{number:1,index:0}],this.start={line:1,column:1},this.tokens=[],this.stack=[],this.regions=t,this.language=e};r=a.prototype,r.is_array=Array.isArray,r.parse=function(e){for(var t,r=this.streamer=new i(e),n=r.current();n;){if(this.current_region){if(this.current_region.ignore_chars&&-1!==this.current_region.ignore_chars.indexOf(n)){n=r.next();continue}if(this.region_end(this.current_region)){this.current_token=this.current_token.parent,this.current_region=this.current_region.parent,n=r.next();continue}}t=this.regions.find(this.current_region,r),t?(this.parse_region(t),t.keepend&&this.stack.push({token:this.current_token,region:t})):n<=" "?this.handle_new_line(n):n>="0"&&n<="9"?this.parse_number():-1===this.SPECIAL_CHARACTERS.indexOf(n)?this.parse_identifier():this.parse_special_character(),n=r.next()}return this.tokens},r.parse_number=function(){var e,t=this.streamer;for(this.prepare_new_token(t.current_index),e=t.next();e>="0"&&e<="9";e=t.next());this.add_token(this.make_token("Number")),this.streamer.current_index-=1},r.SPECIAL_CHARACTERS=[",",".",";",":","<",">","~","`","!","@","#","|","%","^","&","*","(",")","-","+","=","[","]","/","?",'"',"{","}","_","'","\\"].join(""),r.parse_identifier=function(){var e,t=this.streamer;for(this.prepare_new_token(t.current_index),e=t.next();e>" "&&-1===this.SPECIAL_CHARACTERS.indexOf(e);e=t.next());this.add_token(this.make_token("Identifier")),t.current_index-=1},r.parse_region=function(e){var t,r,n,s,i=this.streamer;if(this.prepare_new_token(i.current_index),e.start&&(i.current_index+=e.start.length),e.contains)return s=this.make_token(e.type,e.name),s.children=[],this.current_token?(e.parent=this.current_region,s.parent=this.current_token,this.current_token.children.push(s)):this.tokens.push(s),this.current_token=s,this.current_region=e,void(e.start&&(i.current_index-=1));for(n=i.current();n;)if(this.handle_new_line(n),n!==e.escape_char){if(e.skip&&n===e.skip[0]){for(t=1,r=!0;t<e.skip.length;++t)if(i.peek(i.current_index+t)!==e.skip[t]){r=!1;break}if(r){i.current_index+=e.skip.length,n=i.current();continue}}if(this.region_end(e,!0))return;n=i.next()}else i.current_index+=2,n=i.current()},r.parse_special_character=function(){!this.current_region||this.current_region.contains_chars&&-1!==this.current_region.contains_chars.indexOf(this.streamer.current())||(this.prepare_new_token(this.streamer.current_index),this.streamer.current_index+=1,this.make_token("SpecialCharacter").error_unexpected_token()),this.prepare_new_token(this.streamer.current_index),this.streamer.current_index+=1,this.add_token(this.make_token("SpecialCharacter")),this.streamer.current_index-=1},r.region_end=function(e,t){var r=0;if(this.is_array(e.end))for(;r<e.end.length;++r)if(this.check_end_token(e,e.end[r],t))return this.finallzie_region(e),!0;return this.check_end_token(e,e.end,t)?(this.finallzie_region(e),!0):!!this.region_end_stack(e,t)||void 0},r.finallzie_region=function(e){for(var t=0;t<this.stack.length;++t)this.stack[t].region===e&&(this.current_token=this.stack[t].token,this.current_region=this.stack[t].region,this.stack.splice(t,this.stack.length))},r.region_end_stack=function(e,t){for(var r,n=this.stack.length-1;n>=0;--n)if(this.is_array(this.stack[n].region.end)){for(r=0;r<this.stack[n].region.end.length;++r)if(this.check_end_token(e,this.stack[n].region.end[r],t))return this.finallzie_region(this.stack[n].region),!0}else if(this.check_end_token(e,this.stack[n].region.end,t))return this.finallzie_region(this.stack[n].region),!0},r.check_end_token=function(e,t,r){var n=1,s=this.streamer;if(s.current()===t[0]){for(;n<t.length;++n)if(s.peek(s.current_index+n)!==t[n])return!1;if(e.until||(s.current_index+=t.length),r){var i=this.make_token(e.type,e.name);this.set_value(i,e.start?e.start.length:0,e.until?0:t.length),this.add_token(i)}else this.set_end(this.current_token),this.set_value(this.current_token,e.start?e.start.length:0,e.until?0:t.length);return s.current_index-=1,!0}},r.handle_new_line=function(e){"\r"!==e&&"\n"!==e||this.new_line()},r.new_line=function(){this.lines.push({number:this.lines.length+1,index:this.streamer.current_index+1})},r.set_value=function(e,t,r){e.value=this.streamer.seek(e.start.index+t,e.end.index-e.start.index-t-r)},r.set_end=function(e){e.end.line=this.lines.length,e.end.column=this.streamer.current_index-this.lines[this.lines.length-1].index,e.end.index=this.streamer.current_index},r.prepare_new_token=function(e){this.start={line:this.lines.length,column:e-this.lines[this.lines.length-1].index+1,index:e}},r.add_token=function(e){this.current_token?this.current_token.children.push(e):this.tokens.push(e)},r.make_token=function(e,r){var n=this.start.index,s=this.streamer.current_index-this.start.index;return new t({type:e,name:r||e,value:this.streamer.seek(n,s),start:this.start,end:{line:this.lines.length,column:this.streamer.current_index-this.lines[this.lines.length-1].index+1,virtual_column:this.lines.column,index:this.streamer.current_index}})};var o=e.module("jeefo_tokenizer",["jeefo_core"]);o.namespace("tokenizer.Token",function(){return t}),o.namespace("tokenizer.Region",function(){return s}),o.namespace("tokenizer.TokenParser",function(){return a})}(e);var t=e.module("jeefo_javascript_parser",["jeefo_tokenizer"]);t.namespace("javascript.es5_regions",["tokenizer.Region"],function(e){var t=new e("javascript");return t.register({type:"Comment",name:"Inline comment",start:"//",end:"\n"}),t.register({type:"Comment",name:"Multi line comment",start:"/*",end:"*/"}),t.register({type:"String",name:"Double quote string",start:'"',escape_char:"\\",end:'"'}),t.register({type:"String",name:"Single quote string",start:"'",escape_char:"\\",end:"'"}),t.register({type:"TemplateLiteral quasi string",start:null,end:"${",until:!0,contained:!0}),t.register({type:"TemplateLiteral expression",start:"${",end:"}",contains:[{type:"Block"},{type:"Array"},{type:"String"},{type:"RegExp"},{type:"Comment"},{type:"Parenthesis"},{type:"SpecialCharacter",chars:["-","_","+","*","%","&","|","$","?","`","=","!","<",">","\\",":",".",",",";"]}]}),t.register({type:"TemplateLiteral",start:"`",escape_char:"\\",end:"`",contains:[{type:"TemplateLiteral quasi string"},{type:"TemplateLiteral expression"}],keepend:!0}),t.register({type:"Parenthesis",name:"Parenthesis",start:"(",end:")",contains:[{type:"Block"},{type:"Array"},{type:"String"},{type:"RegExp"},{type:"Comment"},{type:"Parenthesis"},{type:"TemplateLiteral"},{type:"SpecialCharacter",chars:["-","_","+","*","%","&","|","$","?","`","=","!","<",">","\\",":",".",",",";"]}]}),t.register({type:"Array",name:"Array literal",start:"[",end:"]",contains:[{type:"Block"},{type:"Array"},{type:"String"},{type:"Comment"},{type:"Parenthesis"},{type:"SpecialCharacter",chars:["-","_","+","*","%","&","|","$","?","`","=","!","<",">",":",".",",",";"]}]}),t.register({type:"Block",name:"Block",start:"{",end:"}",contains:[{type:"Block"},{type:"Array"},{type:"String"},{type:"RegExp"},{type:"Comment"},{type:"Parenthesis"},{type:"TemplateLiteral"},{type:"SpecialCharacter",chars:["-","_","+","*","%","&","|","$","?","`","=","!","<",">","\\",":",".",",",";"]}]}),t.register({type:"RegExp",name:"RegExp",start:"/",skip:"\\/",end:"/"}),t}),t.namespace("javascript.tokenizer",["tokenizer.TokenParser","javascript.es5_regions"],function(e,t){return function(r){return new e("javascript",t).parse(r)}}),t.namespace("javascript.Parser",["javascript.tokenizer","tokenizer.Token"],function(e,t){var r=["break","continue","return","do","for","while","switch","case","default","in","typeof","instanceof","try","catch","finally","throw","var","function","this","new","debugger","if","else","with","delete","void"],n=function(e,t){this.reserved=r,e&&(this.statement_middlewares=e),t&&(this.expression_middlewares=t)},s=n.prototype;s.EmptyStatement=function(e){this.type="EmptyStatement",this.start=e.start,this.end=e.end},s.IfStatement=function(e,t,r,n,s){this.type="IfStatement",this.test=r,this.statement=n,this.alternate=s||null,this.start=e,this.end=t},s.ForStatement=function(e,t,r,n,s,i){this.type="ForStatement",this.init=r,this.test=n,this.update=s,this.statement=i,this.start=e,this.end=t},s.ForInStatement=function(e,t,r,n,s){this.type="ForInStatement",this.left=r,this.right=n,this.statement=s,this.start=e,this.end=t},s.WhileStatement=function(e,t,r,n){this.type="WhileStatement",this.test=r,this.statement=n,this.start=e,this.end=t},s.SwitchStatement=function(e,t,r,n){this.type="SwitchStatement",this.test=r,this.cases=n,this.start=e,this.end=t},s.LabeledStatement=function(e,t,r,n){this.type="LabeledStatement",this.label=r,this.statement=n,this.start=e,this.end=t},s.TryStatement=function(e,t,r,n,s){this.type="TryStatement",this.block=r,this.handler=n,this.finalizer=s,this.start=e,this.end=t},s.ReturnStatement=function(e,t,r){this.type="ReturnStatement",this.argument=r,this.start=e,this.end=t},s.BreakStatement=function(e,t,r){this.type="BreakStatement",this.label=r,this.start=e,this.end=t},s.ContinueStatement=function(e,t,r){this.type="ContinueStatement",this.label=r,this.start=e,this.end=t},s.ExpressionStatement=function(e,t,r){this.type="ExpressionStatement",this.expression=r,this.start=e,this.end=t},s.BlockStatement=function(e,t){this.type="BlockStatement",this.body=t,this.start=e.start,this.end=e.end},s.ProgramStatement=function(e,t,r){this.type="ProgramStatement",this.body=r,this.start=e,this.end=t},s.NumberLiteral=function(e){this.type="NumberLiteral",this.value=e.value,this.start=e.start,this.end=e.end},s.StringLiteral=function(e){this.type="StringLiteral",this.value=e.value,this.start=e.start,this.end=e.end},s.ArrayLiteral=function(e,t){this.type="ArrayLiteral",this.elements=t,this.start=e.start,this.end=e.end},s.RegExpLiteral=function(e,t,r,n){this.type="RegExpLiteral",this.regex={pattern:r,flags:n},this.start=e,this.end=t},s.ObjectLiteral=function(e,t){this.type="ObjectLiteral",this.properties=t,this.start=e.start,this.end=e.end},s.MemberExpression=function(e,t,r,n,s){this.type="MemberExpression",this.object=r,this.property=n,this.is_computed=!!s,this.start=e,this.end=t},s.CallExpression=function(e,t,r,n){this.type="CallExpression",this.callee=r,this.arguments=n,this.start=e,this.end=t},s.NewExpression=function(e,t,r,n){this.type="NewExpression",this.callee=r,this.arguments=n,this.start=e,this.end=t},s.UnaryExpression=function(e,t,r,n,s){this.type="UnaryExpression",this.operator=r,this.argument=n,this.is_prefix=!!s,this.start=e,this.end=t},s.LogicalExpression=function(e,t,r,n,s){this.type="LogicalExpression",this.operator=n,this.left=r,this.right=s,this.start=e,this.end=t},s.BinaryExpression=function(e,t,r,n,s){this.type="BinaryExpression",this.operator=n,this.left=r,this.right=s,this.start=e,this.end=t},s.AssignmentExpression=function(e,t,r,n,s){this.type="AssignmentExpression",this.operator=n,this.left=r,this.right=s,this.start=e,this.end=t},s.ConditionalExpression=function(e,t,r,n,s){this.type="ConditionalExpression",this.test=r,this.consequent=n,this.alternate=s,this.start=e,this.end=t},s.SequenceExpression=function(e){this.type="SequenceExpression",this.expressions=e,this.start=e[0].start,this.end=e[e.length-1].end},s.FunctionExpression=function(e,t,r,n,s){this.type="FunctionExpression",this.id=r,this.parameters=n,this.body=s,this.start=e,this.end=t},s.VariableDeclaration=function(e,t,r){this.type="VariableDeclaration",this.declarations=r,this.start=e,this.end=t},s.VariableDeclarator=function(e){this.type="VariableDeclarator",this.id=e,this.init=null,this.start=e.start,this.end=e.end},s.FunctionDeclaration=function(e,t,r,n,s){this.type="FunctionDeclaration",this.id=r,this.parameters=n,this.body=s,this.start=e,this.end=t},s.Comment=function(e){this.type="Comment",this.comment=e.value,this.start=e.start,this.end=e.end},s.Property=function(e,t){this.type="Property",this.key=e,this.value=null,this.is_computed=!!t,this.start=e.start},s.CatchClause=function(e,t,r,n){this.type="CatchClause",this.param=r,this.body=n,this.start=e,this.end=t},s.SwitchCase=function(e,t,r,n){this.type="SwitchCase",this.test=r,this.statements=n,this.start=e,this.end=t},s.DefaultCase=function(e,t,r){this.type="DefaultCase",this.statements=r,this.start=e,this.end=t},s.Identifier=function(e){this.type="Identifier",this.name=e.value,this.start=e.start},s.Operator=function(e){this.type="Operator",this.operator=e},s.Piece=function(e){this.start_token=e},s.Temp=function(){},s.File=function(e,t,r){this.type="File",this.name=e,this.code=t,this.program=r},s.Program=function(e){this.type="Program",this.body=e,this.start=e.length?e[0].start:{line:1,column:1,index:0},this.end=e.length?e[e.length-1].end:{line:1,column:1,index:0}},s.parse=function(t,r){this.raw_tokens=e(r);var n=this.parse_block_statement(this.raw_tokens);return new this.File(t,r,new this.Program(n))},s.parse_statement=function(e,t,r){for(var n,s=r;s<t.length;++s)switch(t[s].type){case"Identifier":if(s===r)switch(t[s].value){case"function":return this.parse_function_declaration(e,t,r);case"var":return this.parse_variable_declaration(e,t,r,t.length);case"return":return this.parse_return_statement(e,t,r);case"if":return this.parse_if_statement(e,t,r);case"for":return this.parse_for_statement(e,t,r);case"while":return this.parse_while_statement(e,t,r);case"switch":return this.parse_switch_statement(e,t,r);case"try":return this.parse_try_statement(e,t,r);case"break":return this.parse_break_statement(e,t,r);case"continue":return this.parse_continue_statement(e,t,r)}break;case"Block":if(s===r)return e.statement=new this.BlockStatement(t[r],this.parse_block_statement(t[r].children)),s;break;case"SpecialCharacter":switch(t[s].value){case":":if(!n)return this.parse_labeled_statement(e,t,r);break;case";":return s===r?e.statement=new this.EmptyStatement(t[s]):this.parse_expression_statement(e,t,r,s),s;case"$":case"_":break;default:n=!0}break;case"Comment":return e.statement=new this.Comment(t[s]),s}throw Error("Executed unreachable code.")},s.parse_if_statement=function(e,t,r,n){var s,i,a,o=r+1;if(t[o]?"Parenthesis"===t[o].type?(s=this.parse_test(e,t[o].children),++o):t[o].error_unexpected_token():n.error_unexpected_token(),t[o]){if(o=this.parse_statement(e,t,o),!e.statement)throw Error("Fallback error");i=e.statement}else n.error_unexpected_token();if(t[o+1]&&"Identifier"===t[o+1].type&&"else"===t[o+1].value){if(!t[o+2])throw Error("Fallback error");o=this.parse_statement(e,t,o+2),a=e.statement}return e.statement=new this.IfStatement(t[r].start,t[o].end,s,i,a),o},s.parse_for_statement=function(e,t,r,n){var s,i,a,o,h,p,c=r+1;if(t[c])if("Parenthesis"===t[c].type){switch(this.parse_for_arguments(e,t[c].children),s=e.type){case"loop":i=e.init,a=e.test,o=e.update;break;case"in":h=e.left,p=e.right;break;default:throw Error("Fallback error")}++c}else t[c].error_unexpected_token();else n.error_unexpected_token();if(t[c]){if(c=this.parse_statement(e,t,c),!e.statement)throw Error("error");switch(s){case"loop":e.statement=new this.ForStatement(t[r].start,t[c].end,i,a,o,e.statement);break;case"in":e.statement=new this.ForInStatement(t[r].start,t[c].end,h,p,e.statement)}}else n.error_unexpected_token();return c},s.parse_while_statement=function(e,t,r,n){var s,i=r+1;if(t[i]?"Parenthesis"===t[i].type?(s=this.parse_test(e,t[i].children),i+=1):t[i].error_unexpected_token():n.error_unexpected_token(),t[i]){if(i=this.parse_statement(e,t,i),!e.statement)throw Error("Fallback error");e.statement=new this.WhileStatement(t[r].start,t[i].end,s,e.statement)}else n.error_unexpected_token();return i},s.parse_switch_statement=function(e,t,r,n){var s,i,a=r+1;if(t[a])if("Parenthesis"===t[a].type){if(this.parse_sequence_expression(e,t[a].children,0,t[a].children.length),!e.expression)throw Error("Fallback error");i=e.expression,a+=1}else t[a].error_unexpected_token();else n.error_unexpected_token();return t[a]?"Block"===t[a].type?s=this.parse_switch_cases(e,t[a].children):t[a].error_unexpected_token():n.error_unexpected_token(),e.statement=new this.SwitchStatement(t[r].start,t[a].end,i,s),a},s.parse_labeled_statement=function(e,t,r){var n,s;if(n=this.parse_identifier(e,t,r),s=e.identifier,!t[n+1])throw Error("Fallback error");return"SpecialCharacter"===t[n+1].type&&":"===t[n+1].value?(n=this.parse_statement(e,t,n+2,!0),e.statement=new this.LabeledStatement(t[r].start,e.statement.end,s,e.statement)):t[n+1].error_unexpected_token(),n},s.parse_try_statement=function(e,t,r,n){var s,i,a,o,h=r+1,p=null,c=null;if(t[h]?"Block"===t[h].type?(i=new this.BlockStatement(t[h],this.parse_block_statement(t[h].children)),++h):t[h].error_unexpected_token():n.error_unexpected_token(),t[h]&&"Identifier"===t[h].type&&"catch"===t[h].value){if(++h,t[h])if("Parenthesis"===t[h].type){if(s=this.parse_identifier(e,t[h].children,0),!e.identifier)throw Error("error");a=e.identifier,t[h].children.length>s+1&&t[h].children[s+1].error_unexpected_token(),h+=1}else t[h].error_unexpected_token();else n.error_unexpected_token();t[h]?"Block"===t[h].type?(o=new this.BlockStatement(t[h],this.parse_block_statement(t[h].children)),p=new this.CatchClause(t[h-2].start,t[h].end,a,o)):t[h].error_unexpected_token():n.error_unexpected_token()}if(t[h+1]&&"Identifier"===t[h+1].type&&"finally"===t[h+1].value)if(h+=2,t[h]){if("Block"!==t[h].type)throw Error("error");c=new this.BlockStatement(t[h],this.parse_block_statement(t[h].children))}else t[h].error_unexpected_token();if(!p&&!c)throw Error("Error");return e.statement=new this.TryStatement(t[r].start,t[h].end,i,p,c),h},s.parse_block_statement=function(e){var t=new this.Temp,r=0,n=[];if(this.statement_middlewares)return this.parse_block_statement_with_middlewares(t,e,n);for(;r<e.length;++r)r=this.parse_statement(t,e,r),n.push(t.statement);return n},s.parse_block_statement_with_middlewares=function(e,t,r){var n,s,i=0;e:for(;i<t.length;++i){for(n=0;n<this.statement_middlewares.length;++n)if((s=this.statement_middlewares[i](this,e,t,i))>i){i=s,r.push(e.statement);continue e}i=this.parse_statement(e,t,i),r.push(e.statement)}return r},s.parse_return_statement=function(e,t,r){var n=this.parse_sequence_expression(e,t,r+1,t.length);return e.statement=new this.ReturnStatement(t[r].start,t[n].end,e.expression),n},s.parse_break_statement=function(e,t,r){var n=r,s=null;return t[n+1]&&this.is_identifier(t[n+1])&&(n=this.parse_identifier(e,t,n+1),s=e.identifier),t[n+1]&&"SpecialCharacter"===t[n+1].type&&";"===t[n+1].value&&++n,e.statement=new this.BreakStatement(t[r].start,t[n].end,s),n},s.parse_continue_statement=function(e,t,r){var n=r+1,s=null;return t[n]&&this.is_identifier(t[n])&&(n=this.parse_identifier(e,t,n),s=e.identifier),t[n+1]&&"SpecialCharacter"===t[n+1].type&&";"===t[n+1].value&&++n,e.statement=new this.ContinueStatement(t[r].start,t[n].end,s),n},s.parse_expression_statement=function(e,t,r,n){this.parse_sequence_expression(e,t,r,n),e.statement=new this.ExpressionStatement(t[r].start,t[n].end,e.expression)},s.parse_number_literal=function(){},s.parse_variable_declaration=function(e,t,r,n){for(var s,i=r+1,a=[],o=!0;i<n;++i)switch(t[i].type){case"Number":t[i].error("Unexpected ILLEGAL token");break;case"Identifier":s&&t[i].error_unexpected_type(),i=this.parse_identifier(e,t,i),s=new this.VariableDeclarator(e.identifier),o=!1;break;case"SpecialCharacter":switch(t[i].value){case"=":if(s){if(!t[i+1])throw new Error("Fallback error");i=this.parse_expression(e,t,i+1,n),s.end=e.expression.end_token.end,s.init=e.expression.parsed_token,a.push(s),s=null}else t[i].error_unexpected_token();break;case"$":case"_":s&&t[i].error_unexpected_type(),i=this.parse_identifier(e,t,i),s=new this.VariableDeclarator(e.identifier),o=!1;break;case",":s?(a.push(s),s=null):o&&t[i].error_unexpected_token(),o=!0;break;case";":return o&&t[i].error_unexpected_token(),s&&a.push(s),e.statement=new this.VariableDeclaration(t[r].start,t[i].end,a),i;default:t[i].error_unexpected_token()}break;case"Comment":break;default:t[i].error_unexpected_token()}return a.push(s),e.statement=new this.VariableDeclaration(t[r].start,t[i-1].end,a),i-1},s.parse_function_declaration=function(e,t,r){var n,s,i,a=r+1;return t[a]&&(this.is_identifier(t[a])?(a=this.parse_identifier(e,t,a)+1,s=e.identifier):t[a].error_unexpected_token()),t[a]&&("Parenthesis"===t[a].type?(n=this.parse_parameters(e,t[a].children),++a):t[a].error_unexpected_token()),t[a]&&("Block"===t[a].type?i=new this.BlockStatement(t[a],this.parse_block_statement(t[a].children)):t[a].error_unexpected_token()),e.statement=new this.FunctionDeclaration(t[r].start,i.end,s,n,i),a},s.parse_expression=function(e,t,r,n,s){var i=0,a=[];e:for(;r<n;++r){if("SpecialCharacter"===t[r].type)switch(t[r].value){case",":case";":case s:break e}r=this.parse_expression_piece(e,t,r),e.piece.parsed_token&&a.push(e.piece)}for(this.assemble_pieces(a,0);i<a.length;++i)if(a[i]){e.expression=a[i];break}return r-1},s.parse_expression_piece=function(e,t,r){if(e.piece=new this.Piece(t[r]),this.expression_middlewares)for(var n=0;n<this.expression_middlewares.length;++n)if(r=this.expression_middlewares[n](this,e.piece,t,r),e.piece.parsed_token)return e.piece.end_token=t[r],r;switch(t[r].type){case"Number":e.piece.parsed_token=new this.NumberLiteral(t[r]);break;case"String":e.piece.parsed_token=new this.StringLiteral(t[r]);break;case"RegExp":r=this.parse_regex(e.piece,t,r);break;case"Identifier":switch(r=this.parse_identifier(e,t,r),e.identifier.name){case"in":case"void":case"delete":case"typeof":case"instanceof":e.piece.parsed_token=new this.Operator(e.identifier.name);break;default:e.piece.parsed_token=e.identifier}e.piece.start_token=e.piece.end_token=e.token;break;case"Array":case"Block":case"Parenthesis":e.piece.parsed_token={type:t[r].type};break;case"SpecialCharacter":switch(t[r].value){case"_":case"$":r=this.parse_identifier(e,t,r),e.piece.parsed_token=e.identifier,e.piece.start_token=e.piece.end_token=e.token;break;default:r=this.parse_operators(e.piece,t,r)}break;case"Comment":e.piece.parsed_token=null}return e.piece.end_token||(e.piece.end_token=t[r]),r},s.parse_new_expression=function(e,t,r){var n,s=t+1;for(this.assemble_pieces(e,s,r,"Parenthesis");s<e.length;++s)if(e[s]){n=e[s],e[s]=null;break}return"CallExpression"===n.parsed_token.type?e[t].parsed_token=new this.NewExpression(e[t].start_token.start,n.end_token.end,n.parsed_token.callee,n.parsed_token.arguments):e[t].parsed_token=new this.NewExpression(e[t].start_token.start,n.end_token.end,n.parsed_token,[]),e[t].end_token=n.end_token,s},s.parse_unary_expression=function(e,t,r){for(var n,s,i,a=0;a<t.length;++a)switch(s=t[a],e[s].parsed_token.operator){case"--":case"++":return e[s-1]&&e[s-1].parsed_token&&"Operator"!==e[s-1].parsed_token.type&&"NumberLiteral"!==e[s-1].parsed_token.type?(e[s-1].parsed_token=new this.UnaryExpression(e[s-1].start_token.start,e[s].end_token.end,e[s].parsed_token.operator,e[s-1].parsed_token),e[s-1].end_token=e[s].end_token):e[s+1]&&e[s+1].parsed_token&&"Operator"!==e[s+1].parsed_token.type&&"NumberLiteral"!==e[s+1].parsed_token.type&&(e[s+1].parsed_token=new this.UnaryExpression(e[s].start_token.start,e[s+1].end_token.end,e[s].parsed_token.operator,e[s+1].parsed_token,!0),e[s+1].start_token=e[s].start_token),void(e[s]=null);case"+":case"-":case"!":case"~":case"void":case"delete":case"typeof":for(n=s+1;n<e.length;++n)if(e[n]){i=e[n],e[n]=null;break}i||r.error_unexpected_token(),i.parsed_token&&"Operator"===i.parsed_token.type&&i.start_token.error_unexpected_token(),i&&(e[s].parsed_token=new this.UnaryExpression(e[s].start_token.start,i.end_token.end,e[s].parsed_token.operator,i.parsed_token,!0),e[s].end_token=i.end_token)}},s.parse_binary_expression=function(e,t,r){for(var n,s,i,a=0;a<t.length;++a){for(n=t[a]-1;n>=0;--n)if(e[n]){s=e[n],e[n]=null;break}for(n=t[a]+1;n<e.length;++n)if(e[n]){i=e[n],e[n]=null;break}e[t[a]].parsed_token=new r(s.start_token.start,i.end_token.end,s.parsed_token,e[t[a]].parsed_token.operator,i.parsed_token),e[t[a]].start_token=s.start_token,e[t[a]].end_token=i.end_token}},s.parse_member_expression=function(e,t){var r,n,s;switch(e[t].parsed_token.type){case"Operator":for(r=t-1;r>=0;--r)if(e[r]){if(n=e[r],"Parenthesis"===n.parsed_token.type)return!1;e[r]=null;break}for(r=t+1;r>=0;++r)if(e[r]){s=e[r],e[r]=null;break}e[t].parsed_token=new this.MemberExpression(n.start_token.start,s.end_token.end,n.parsed_token,s.parsed_token),e[t].start_token=n.start_token,e[t].end_token=s.end_token;break;case"Array":for(r=t-1;r>=0;--r)if(e[r]&&"Operator"!==e[r].parsed_token.type){if(n=e[r],"Parenthesis"===n.parsed_token.type)return!1;e[r]=null;break}if(s=e[t].parsed_token,this.parse_sequence_expression(s,e[t].start_token.children,0,e[t].start_token.children.length),!s.expression)throw Error("Fallback error");e[t].parsed_token=new this.MemberExpression(n.start_token.start,e[t].end_token.end,n.parsed_token,s.expression,!0),e[t].start_token=n.start_token}return!0},s.parse_function_expression=function(e,t,r){var n,s,i=null,a=t+1;return e[a]?"Identifier"===e[a].parsed_token.type?(i=e[a].parsed_token,e[a]=null,++a):"Parenthesis"!==e[a].parsed_token.type&&e[a].start_token.error_unexpected_token():r.error_unexpected_token(),e[a]?"Parenthesis"===e[a].parsed_token.type?(n=this.parse_parameters(e[a],e[a].start_token.children),e[a]=null,++a):e[a].start_token.error_unexpected_token():r.error_unexpected_token(),e[a]?"Block"===e[a].parsed_token.type?(s=new this.BlockStatement(e[a].start_token,this.parse_block_statement(e[a].start_token.children)),e[a]=null):e[a].start_token.error_unexpected_token():r.error_unexpected_token(),e[t].parsed_token=new this.FunctionExpression(e[t].start_token.start,s.end,i,n,s),a},s.parse_sequence_expression=function(e,t,r,n,s,i){var a=[];e:for(;r<n;++r)if(e.expression=null,r=this.parse_expression(e,t,r,n,i),e.expression&&a.push(e.expression.parsed_token),t[r+1])if("SpecialCharacter"===t[r+1].type)switch(t[r+1].value){case";":case i:r+=2;break e;case",":++r;break;default:t[r+1].error_unexpected_token()}else t[r+1].error_unexpected_token();return s?e.expressions=a:a.length>1?e.expression=new this.SequenceExpression(a):1===a.length?e.expression=a[0]:e.expression=null,r-1},s.parse_assignment_expression=function(e,t){for(var r,n,s,i=0;i<t.length;++i){for(r=t[i]-1;r>=0;--r)if(e[r]){n=e[r],e[r]=null;break}switch(n.parsed_token.type){case"Identifier":case"MemberExpression":case"AssignmentExpression":break;default:n.start_token.error("Assigning to rvalue")}for(r=t[i]+1;r<e.length;++r)if(e[r]){s=e[r],e[r]=null;break}e[t[i]].parsed_token=new this.AssignmentExpression(n.start_token.start,s.end_token.end,n.parsed_token,e[t[i]].parsed_token.operator,s.parsed_token),e[t[i]].start_token=n.start_token,e[t[i]].end_token=s.end_token}},s.parse_conditional_expression=function(e,t){for(var r,n,s,i,a,o=0;o<t.length;++o,s=null){for(r=t[o]-1;r>=0;--r)if(e[r]){n=r,s=e[r];break}if(!s)throw Error("Fallback error");if("Operator"===s.parsed_token.type)throw Error("Fallback error");for(r=t[o]+1;r<e.length;++r)if(e[r]){i=e[r],e[r]=null;break}for(r=t[o]+1;r<e.length;++r)if(e[r]){"Operator"===e[r].parsed_token.type?e[r]=null:e[r].start_token.error_unexpected_token();break}for(r=t[o]+1;r<e.length;++r)if(e[r]){a=e[r],e[r]=null;break}e[t[o]]=null,e[n].parsed_token=new this.ConditionalExpression(s.start_token.start,a.end_token.end,s.parsed_token,i.parsed_token,a.parsed_token),e[n].start_token=s.start_token,e[n].end_token=a.end_token}},s.parse_array=function(e){for(var t=0,r=new this.Temp,n=[];t<e.length;++t)"SpecialCharacter"===e[t].type?","===e[t].value?r.to_add?(n.push(r.expression.parsed_token),r.to_add=!1):n.push(null):e[t].error_unexpected_token():(t=this.parse_expression(r,e,t,e.length),r.to_add=!0);return r.to_add&&n.push(r.expression.parsed_token),n},s.parse_switch_cases=function(e,t){var r,n,s,i,a=0,o=[];e:for(;a<t.length;++a){switch(t[a].type){case"Comment":o.push(new this.Comment(t[a]));continue e;case"Identifier":break;default:t[a].error_unexpected_token()}t:switch(t[a].value){case"case":if(r=a,
-!t[a+1])throw new Error("Fallback error");if("SpecialCharacter"===t[a+1].type&&":"===t[a+1].value?t[a+1].error_unexpected_token():a=this.parse_sequence_expression(e,t,a+1,t.length,!1,":"),!t[a])throw new Error("Fallback error");if("SpecialCharacter"===t[a].type&&":"===t[a].value){if(s=e.expression,i=[],a+1===t.length){o.push(new this.SwitchCase(t[r].start,t[a].end,s,i));break}r:for(n=a+1;n<t.length;++n)switch(t[n].type){case"Comment":break;case"Identifier":switch(t[n].value){case"case":case"default":o.push(new this.SwitchCase(t[r].start,t[a].end,s,i));break t}break r;default:break r}r:for(++a;a<t.length&&(a=this.parse_statement(e,t,a),i.push(e.statement),t[a+1]&&"Identifier"===t[a+1].type);++a)switch(t[a+1].value){case"case":case"default":break r}o.push(new this.SwitchCase(t[r].start,t[a].end,s,i))}else t[a].error_unexpected_token();break;case"default":if(r=a,!t[a+1])throw new Error("Fallback error");if("SpecialCharacter"===t[a+1].type&&":"===t[a+1].value){if(++a,i=[],a+1===t.length){o.push(new this.DefaultCase(t[r].start,t[a].end,i));break}r:for(n=a+1;n<t.length;++n)switch(t[n].type){case"Comment":break;case"Identifier":switch(t[n].value){case"case":case"default":o.push(new this.DefaultCase(t[r].start,t[a].end,i));break t}break r;default:break r}r:for(++a;a<t.length&&(a=this.parse_statement(e,t,a),i.push(e.statement),t[a+1]&&"Identifier"===t[a+1].type);++a)switch(t[a+1].value){case"case":case"default":break r}o.push(new this.DefaultCase(t[r].start,t[a].end,i))}else t[a].error_unexpected_token();break;default:t[a].error_unexpected_token()}}return o},s.parse_operators=function(e,t,r){switch(t[r].value){case".":return e.parsed_token=new this.Operator("."),r;case"-":return"-"===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("--"),r+1):"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("-="),r+1):(e.parsed_token=new this.Operator("-"),r);case"+":return"+"===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("++"),r+1):"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("+="),r+1):(e.parsed_token=new this.Operator("+"),r);case"/":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("/="),r+1):(e.parsed_token=new this.Operator("/"),r);case"*":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("*="),r+1):(e.parsed_token=new this.Operator("*"),r);case"%":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("%="),r+1):(e.parsed_token=new this.Operator("%"),r);case"=":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?"="===t[r+2].value&&t[r+2].start.index===t[r+1].end.index?(e.parsed_token=new this.Operator("==="),r+2):(e.parsed_token=new this.Operator("=="),r+1):(e.parsed_token=new this.Operator("="),r);case"&":return"&"===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("&&"),r+1):(e.parsed_token=new this.Operator("&"),r);case"|":return"|"===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("||"),r+1):(e.parsed_token=new this.Operator("|"),r);case">":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator(">="),r+1):(e.parsed_token=new this.Operator(">"),r);case"<":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?(e.parsed_token=new this.Operator("<="),r+1):(e.parsed_token=new this.Operator("<"),r);case"!":return"="===t[r+1].value&&t[r+1].start.index===t[r].end.index?"="===t[r+2].value&&t[r+2].start.index===t[r+1].end.index?(e.parsed_token=new this.Operator("!=="),r+2):(e.parsed_token=new this.Operator("!="),r+1):(e.parsed_token=new this.Operator("!"),r);case"?":case":":return e.parsed_token=new this.Operator(t[r].value),r;default:t[r].error_unexpected_token()}},s.parse_identifier=function(e,r,n){var s=e.identifier=new this.Identifier(r[n]),i=n+1;e:for(;i<r.length;++i)switch(r[i].type){case"Number":case"Identifier":if(r[i-1].end.index!==r[i].start.index)break e;s.name=s.name+r[i].value;break;case"SpecialCharacter":switch(r[i].value){case"$":case"_":if(r[i-1].end.index!==r[i].start.index)break e;s.name=s.name+r[i].value;break;default:break e}break;default:break e}return s.end=r[i-1].end,e.token=new t({type:"Identifier",value:s.name,start:r[n].start,end:r[i-1].end}),i-1},s.parse_parenthesis=function(e,t){for(var r,n,s=t-1,i=e[t].parsed_token;s>=0;--s)if(e[s]){"Operator"!==e[s].parsed_token.type&&(r=e[s],e[s]=null);break}r?(n=this.parse_arguments(i,e[t].start_token.children),e[t].parsed_token=new this.CallExpression(r.start_token.start,e[t].end_token.end,r.parsed_token,n),e[t].start_token=r.start_token):(this.parse_sequence_expression(i,e[t].start_token.children,0,e[t].start_token.children.length),e[t].parsed_token=i.expression)},s.REGEX_FLAGS="gimuy",s.parse_regex=function(e,t,r){var n,s,i=r+1,a=0,o="";if(t[i]&&t[r].end.index===t[i].start.index&&"Identifier"===t[i].type)for(s=t[i].value,n=!0,a=s.length-1;a>=0;--a)-1!==this.REGEX_FLAGS.indexOf(s.charAt(a))&&-1===o.indexOf(s.charAt(a))?o+=s.charAt(a):t[i].error("Invalid regular expression flags");return n||(o="",i=r),e.parsed_token=new this.RegExpLiteral(t[r].start,t[i].end,t[r].value,o),i},s.parse_arguments=function(e,t){return this.parse_sequence_expression(e,t,0,t.length,!0),e.expressions},s.parse_for_arguments=function(e,t){var r=t[0]&&"Identifier"===t[0].type&&"var"===t[0].value,n=r?1:0;if(!t[n])throw Error("error");switch(e.identifier=null,this.is_identifier(t[n])?(n=this.parse_identifier(e,t,n),e.type=t[n+1]&&"in"===t[n+1].value?"in":"loop"):e.type="loop",e.type){case"in":if(e.left=r?new this.VariableDeclaration(t[0].start,e.identifier.end,[new this.VariableDeclarator(e.identifier)]):e.identifier,n=this.parse_sequence_expression(e,t,n+2,t.length),!e.expression)throw Error("error");e.right=e.expression;break;case"loop":if(r?(n=this.parse_variable_declaration(e,t,0,t.length),e.init=e.statement):(n=this.parse_sequence_expression(e,t,0,t.length),e.init=e.expression),"SpecialCharacter"!==t[n].type||";"!==t[n].value)throw Error("ERROR");if(n=this.parse_sequence_expression(e,t,n+1,t.length),e.test=e.expression,"SpecialCharacter"!==t[n].type||";"!==t[n].value)throw Error("ERROR");n=this.parse_sequence_expression(e,t,n+1,t.length),e.update=e.expression}},s.parse_parameters=function(e,t){for(var r=0,n=[];r<t.length;++r)this.is_identifier(t[r])?(r=this.parse_identifier(e,t,r),t[r+1]&&("SpecialCharacter"===t[r+1].type&&","===t[r+1].value?++r:t[r+1].error_unexpected_token()),n.push(e.identifier)):t[r].error_unexpected_token();return n},s.parse_test=function(e,t){if(this.parse_sequence_expression(e,t,0,t.length),e.expression)return e.expression;throw Error("Fallback error")},s.parse_object_literal=function(e){for(var t,r,n=0,s=[],i=new this.Temp,a=e.children;n<a.length;++n)if(t||!this.is_identifier(a[n]))switch(a[n].type){case"Number":t&&a[n].error_unexpected_type(),t=new this.Property(new this.NumberLiteral(a[n])),r=!0;break;case"String":t&&a[n].error_unexpected_type(),t=new this.Property(new this.StringLiteral(a[n])),r=!0;break;case"Array":break;case"SpecialCharacter":switch(a[n].value){case":":r?(n=this.parse_expression(i,a,n+1,a.length),r=!1,t.value=i.expression.parsed_token):t?(n=this.parse_expression(i,a,n+1,a.length),t.value=i.expression.parsed_token):a[n].error_unexpected_token(),s.push(t),t=null;break;case",":r?a[n].error_unexpected_token():t&&(t.value=t.key,t.end=t.value.end,s.push(t),t=null);break;default:a[n].error_unexpected_token()}break;default:a[n].error_unexpected_token()}else n=this.parse_identifier(i,a,n),t=new this.Property(i.identifier);if(t){if(r)throw Error("Fallback error");t.value=t.key,t.end=t.value.end,s.push(t)}return new this.ObjectLiteral(e,s)},s.parse_block=function(e,t){e[t].parsed_token=this.parse_object_literal(e[t].start_token)},s.assemble_pieces=function(e,t,r,n){for(var s=[],i=[],a=[],o=[],h=[],p=[],c=[],_=[],l=[],d=[];t<e.length;++t){switch(e[t].parsed_token.type){case"Identifier":switch(e[t].parsed_token.name){case"new":t=this.parse_new_expression(e,t);break;case"function":t=this.parse_function_expression(e,t)}break;case"Operator":switch(e[t].parsed_token.operator){case"?":l.unshift(t);break;case"&&":case"||":_.push(t);break;case".":s.push({index:t});break;case"!":case"~":case"++":case"--":case"void":case"delete":case"typeof":a.unshift(t);break;case"<":case">":case"<=":case">=":case"==":case"===":case"!=":case"!==":c.push(t);break;case"+":case"-":e[t-1]&&"Operator"===e[t-1].parsed_token.type?a.unshift(t):h.push(t);break;case"*":case"/":case"%":o.push(t);break;case"=":case"+=":case"-=":case"*=":case"/=":case"%=":case"&=":case"^=":case"|=":case"**=":case"<<=":case">>=":case">>>=":d.push(t)}break;case"Parenthesis":i.push(t);break;case"Array":e[t-1]&&"Operator"!==e[t-1].parsed_token.type?s.push({index:t}):e[t].parsed_token=new this.ArrayLiteral(e[t].start_token,this.parse_array(e[t].start_token.children));break;case"Block":this.parse_block(e,t)}if(n&&e[t].parsed_token.type===n)break}for(t=0;t<s.length;++t)s[t].is_parsed=this.parse_member_expression(e,s[t].index);for(t=i.length-1;t>=0;--t)this.parse_parenthesis(e,i[t]);for(t=0;t<s.length;++t)s[t].is_parsed||this.parse_member_expression(e,s[t].index);this.parse_unary_expression(e,a),this.parse_binary_expression(e,o,this.BinaryExpression),this.parse_binary_expression(e,h,this.BinaryExpression),this.parse_binary_expression(e,p,this.BinaryExpression),this.parse_binary_expression(e,c,this.BinaryExpression),this.parse_binary_expression(e,_,this.LogicalExpression),this.parse_conditional_expression(e,l),this.parse_assignment_expression(e,d)},s.is_identifier=function(e){return"Identifier"===e.type||"$"===e.value||"_"===e.value},s.error_end_of_file=function(){this.raw_tokens[this.raw_tokens.length-1].error("Unexpected end of file")};var i=function(){this.statement_middlewares=[],this.expression_middlewares=[]};return s=i.prototype,s.JavascriptParser=n,s.clone_middlewares=function(e){for(var t=0,r=new Array(e.length);t<r.length;++t)r[t]=e[t];return r},s.statement=function(e){this.statement_middlewares?this.statement_middlewares.push(e):this.statement_middlewares=[e]},s.expression=function(e){this.expression_middlewares?this.expression_middlewares.push(e):this.expression_middlewares=[e]},s.parse=function(e,t){return new this.JavascriptParser(this.statement_middlewares&&this.clone_middlewares(this.statement_middlewares),this.expression_middlewares&&this.clone_middlewares(this.expression_middlewares)).parse(e,t)},i}),t.namespace("javascript.ES5_parser",["javascript.tokenizer","javascript.Parser"],function(e,t){var r=new t,n=function(){},s=n.prototype;s.TemplateLiteral=function(e,t){this.type="TemplateLiteral",this.body=t,this.start=e.start,this.end=e.end},s.TemplateLiteralString=function(e){this.type="TemplateLiteralString",this.value=e.value,this.start=e.start,this.end=e.end},s.TemplateLiteralExpression=function(e,t){this.type="TemplateLiteralExpression",this.expression=t,this.start=e.start,this.end=e.end},s.parse=function(e,t,r,n){if("TemplateLiteral"===r[n].type){for(var s=[],i=0;i<r[n].children.length;++i)switch(r[n].children[i].type){case"TemplateLiteral quasi string":s.push(new this.TemplateLiteralString(r[n].children[i]));break;case"TemplateLiteral expression":e.parse_sequence_expression(t,r[n].children[i].children,0,r[n].children[i].children.length),s.push(new this.TemplateLiteralExpression(r[n].children[i],t.expression));break;default:r[n].error_unexpected_token()}t.parsed_token=new this.TemplateLiteral(r[n],s)}return n};var i=new n;return r.expression(function(e,t,r,n){return i.parse(e,t,r,n)}),function(e,t){try{return r.parse(e,t)}catch(t){throw t.fileName=e,t.$stack=t.stack,t}}})};
+jeefo.use(function () {
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : javascript_tokenizer.js
+* Created at  : 2017-04-08
+* Updated at  : 2017-05-03
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+var app      = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
+	LANGUAGE = "javascript";
+
+// Regions {{{1
+app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
+	var javascript_regions = new Region(LANGUAGE);
+
+	// Comment {{{2
+	javascript_regions.register({
+		type  : "Comment",
+		name  : "Inline comment",
+		start : "//",
+		end   : "\n",
+	});
+	javascript_regions.register({
+		type  : "Comment",
+		name  : "Multi line comment",
+		start : "/*",
+		end   : "*/",
+	});
+
+	// String {{{2
+	javascript_regions.register({
+		type        : "String",
+		name        : "Double quote string",
+		start       : '"',
+		escape_char : '\\',
+		end         : '"',
+	});
+	javascript_regions.register({
+		type        : "String",
+		name        : "Single quote string",
+		start       : "'",
+		escape_char : '\\',
+		end         : "'",
+	});
+	javascript_regions.register({
+		type      : "TemplateLiteral quasi string",
+		start     : null,
+		end       : '${',
+		until     : true,
+		contained : true,
+	});
+	javascript_regions.register({
+		type  : "TemplateLiteral expression",
+		start : "${",
+		end   : '}',
+		contains : [
+			{ type : "Block"       } ,
+			{ type : "Array"       } ,
+			{ type : "String"      } ,
+			{ type : "RegExp"      } ,
+			{ type : "Comment"     } ,
+			{ type : "Parenthesis" } ,
+			{
+				type  : "SpecialCharacter",
+				chars : [
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
+					':', '.', ',', ';', // delimiters
+				]
+			},
+		]
+	});
+	javascript_regions.register({
+		type        : "TemplateLiteral",
+		start       : '`',
+		escape_char : '\\',
+		end         : '`',
+		contains : [
+			{ type : "TemplateLiteral quasi string" } ,
+			{ type : "TemplateLiteral expression"   } ,
+		],
+		keepend : true
+	});
+
+	// Parenthesis {{{2
+	javascript_regions.register({
+		type  : "Parenthesis",
+		name  : "Parenthesis",
+		start : '(',
+		end   : ')',
+		contains : [
+			{ type : "Block"           } ,
+			{ type : "Array"           } ,
+			{ type : "String"          } ,
+			{ type : "RegExp"          } ,
+			{ type : "Comment"         } ,
+			{ type : "Parenthesis"     } ,
+			{ type : "TemplateLiteral" } ,
+			{
+				type  : "SpecialCharacter",
+				chars : [
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
+					':', '.', ',', ';', // delimiters
+				]
+			},
+		]
+	});
+
+	// Array {{{2
+	javascript_regions.register({
+		type  : "Array",
+		name  : "Array literal",
+		start : '[',
+		end   : ']',
+		contains : [
+			{ type : "Block"       },
+			{ type : "Array"       },
+			{ type : "String"      },
+			{ type : "Comment"     },
+			{ type : "Parenthesis" },
+			{
+				type  : "SpecialCharacter",
+				chars : [
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>',
+					':', '.', ',', ';', // delimiters
+				]
+			},
+		]
+	});
+
+	// Block {{{2
+	javascript_regions.register({
+		type  : "Block",
+		name  : "Block",
+		start : '{',
+		end   : '}',
+		contains : [
+			{ type : "Block"           } ,
+			{ type : "Array"           } ,
+			{ type : "String"          } ,
+			{ type : "RegExp"          } ,
+			{ type : "Comment"         } ,
+			{ type : "Parenthesis"     } ,
+			{ type : "TemplateLiteral" } ,
+			{
+				type  : "SpecialCharacter",
+				chars : [
+					'-', '_', '+', '*', '%', // operator
+					'&', '|', '$', '?', '`',
+					'=', '!', '<', '>', '\\',
+					':', '.', ',', ';', // delimiters
+				]
+			},
+		]
+	});
+
+	// RegExp {{{2
+	javascript_regions.register({
+		type  : "RegExp",
+		name  : "RegExp",
+		start : '/',
+		skip  : '\\/',
+		end   : '/',
+	});
+	// }}}2
+
+	return javascript_regions;
+});
+// }}}1
+
+app.namespace("javascript.tokenizer", [
+	"tokenizer.TokenParser",
+	"javascript.es5_regions"
+], function (TokenParser, jeefo_js_regions) {
+	return function (source) {
+		var tokenizer = new TokenParser(LANGUAGE, jeefo_js_regions);
+		return tokenizer.parse(source);
+	};
+});
+
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : javascript_parser.js
+* Created at  : 2017-04-14
+* Updated at  : 2017-05-07
+* Author      : jeefo
+* Purpose     :
+* Description :
+_._._._._._._._._._._._._._._._._._._._._.*/
+// Javascript Parser {{{1
+app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
+
+	var keywords = [
+		"break", "continue", "return",
+		"do", "for", "while",
+		"switch", "case", "default",
+		"in", "typeof", "instanceof",
+		"try", "catch", "finally", "throw",
+		"var", "function", "this",
+		"new", "debugger",
+		"if", "else",
+		"with", "delete", "void",
+	];
+
+	var JavascriptParser = function (statement_middlewares, expression_middlewares) {
+		this.reserved               = keywords;
+		if (statement_middlewares)  { this.statement_middlewares  = statement_middlewares;  }
+		if (expression_middlewares) { this.expression_middlewares = expression_middlewares; }
+	},
+	p = JavascriptParser.prototype;
+
+	// Classes {{{2
+	// Statements {{{3
+	p.EmptyStatement = function (token) {
+		this.type  = "EmptyStatement";
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.IfStatement = function (start, end, test, statement, alternate) {
+		this.type       = "IfStatement";
+		this.test       = test;
+		this.statement  = statement;
+		this.alternate  = alternate || null;
+		this.start      = start;
+		this.end        = end;
+	};
+	p.ForStatement = function (start, end, init, test, update, statement) {
+		this.type      = "ForStatement";
+		this.init      = init;
+		this.test      = test;
+		this.update    = update;
+		this.statement = statement;
+		this.start     = start;
+		this.end       = end;
+	};
+	p.ForInStatement = function (start, end, left, right, statement) {
+		this.type      = "ForInStatement";
+		this.left      = left;
+		this.right     = right;
+		this.statement = statement;
+		this.start     = start;
+		this.end       = end;
+	};
+	p.WhileStatement = function (start, end, test, statement) {
+		this.type      = "WhileStatement";
+		this.test      = test;
+		this.statement = statement;
+		this.start     = start;
+		this.end       = end;
+	};
+	p.SwitchStatement = function (start, end, test, cases) {
+		this.type  = "SwitchStatement";
+		this.test  = test;
+		this.cases = cases;
+		this.start = start;
+		this.end   = end;
+	};
+	p.LabeledStatement = function (start, end, label, statement) {
+		this.type      = "LabeledStatement";
+		this.label     = label;
+		this.statement = statement;
+		this.start     = start;
+		this.end       = end;
+	};
+	p.TryStatement = function (start, end, block, handler, finalizer) {
+		this.type      = "TryStatement";
+		this.block     = block;
+		this.handler   = handler;
+		this.finalizer = finalizer;
+		this.start     = start;
+		this.end       = end;
+	};
+	p.ThrowStatement = function (start, end, argument) {
+		this.type     = "ThrowStatement";
+		this.argument = argument;
+		this.start    = start;
+		this.end      = end;
+	};
+	p.ReturnStatement = function (start, end, argument) {
+		this.type     = "ReturnStatement";
+		this.argument = argument;
+		this.start    = start;
+		this.end      = end;
+	};
+	p.BreakStatement = function (start, end, label) {
+		this.type  = "BreakStatement";
+		this.label = label;
+		this.start = start;
+		this.end   = end;
+	};
+	p.ContinueStatement = function (start, end, label) {
+		this.type  = "ContinueStatement";
+		this.label = label;
+		this.start = start;
+		this.end   = end;
+	};
+	p.ExpressionStatement = function (start, end, expression) {
+		this.type       = "ExpressionStatement";
+		this.expression = expression;
+		this.start      = start;
+		this.end        = end;
+	};
+	p.BlockStatement = function (token, body) {
+		this.type  = "BlockStatement";
+		this.body  = body;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.ProgramStatement = function (start, end, body) {
+		this.type  = "ProgramStatement";
+		this.body  = body;
+		this.start = start;
+		this.end   = end;
+	};
+	// Literals {{{3
+	p.NumberLiteral = function (token) {
+		this.type  = "NumberLiteral";
+		this.value = token.value;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.StringLiteral = function (token) {
+		this.type  = "StringLiteral";
+		this.value = token.value;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.ArrayLiteral = function (token, elements) {
+		this.type     = "ArrayLiteral";
+		this.elements = elements;
+		this.start    = token.start;
+		this.end      = token.end;
+	};
+	p.RegExpLiteral = function (start, end, pattern, flags) {
+		this.type  = "RegExpLiteral";
+		this.regex = {
+			pattern : pattern,
+			flags   : flags
+		};
+		this.start = start;
+		this.end   = end;
+	};
+	p.ObjectLiteral = function (token, properties) {
+		this.type       = "ObjectLiteral";
+		this.properties = properties;
+		this.start      = token.start;
+		this.end        = token.end;
+	};
+	// Expressions {{{3
+	p.MemberExpression = function (start, end, object, property, is_computed) {
+		this.type        = "MemberExpression";
+		this.object      = object;
+		this.property    = property;
+		this.is_computed = is_computed ? true : false;
+		this.start       = start;
+		this.end         = end;
+	};
+	p.CallExpression = function (start, end, callee, args) {
+		this.type         = "CallExpression";
+		this.callee       = callee;
+		this["arguments"] = args;
+		this.start        = start;
+		this.end          = end;
+	};
+	p.NewExpression = function (start, end, callee, args) {
+		this.type         = "NewExpression";
+		this.callee       = callee;
+		this["arguments"] = args;
+		this.start        = start;
+		this.end          = end;
+	};
+	p.UnaryExpression = function (start, end, operator, argument, is_prefix) {
+		this.type      = "UnaryExpression";
+		this.operator  = operator;
+		this.argument  = argument;
+		this.is_prefix = is_prefix ? true : false;
+		this.start     = start;
+		this.end       = end;
+	};
+	p.LogicalExpression = function (start, end, left, operator, right) {
+		this.type     = "LogicalExpression";
+		this.operator = operator;
+		this.left     = left;
+		this.right    = right;
+		this.start    = start;
+		this.end      = end;
+	};
+	p.BinaryExpression = function (start, end, left, operator, right) {
+		this.type     = "BinaryExpression";
+		this.operator = operator;
+		this.left     = left;
+		this.right    = right;
+		this.start    = start;
+		this.end      = end;
+	};
+	p.AssignmentExpression = function (start, end, left, operator, right) {
+		this.type     = "AssignmentExpression";
+		this.operator = operator;
+		this.left     = left;
+		this.right    = right;
+		this.start    = start;
+		this.end      = end;
+	};
+	p.ConditionalExpression = function (start, end, test, consequent, alternate) {
+		this.type       = "ConditionalExpression";
+		this.test       = test;
+		this.consequent = consequent;
+		this.alternate  = alternate;
+		this.start      = start;
+		this.end        = end;
+	};
+	p.SequenceExpression = function (expressions) {
+		this.type        = "SequenceExpression";
+		this.expressions = expressions;
+		this.start       = expressions[0].start;
+		this.end         = expressions[expressions.length - 1].end;
+	};
+	p.FunctionExpression = function (start, end, id, parameters, body) {
+		this.type       = "FunctionExpression";
+		this.id         = id;
+		this.parameters = parameters;
+		this.body       = body;
+		this.start      = start;
+		this.end        = end;
+	};
+	// Delcarations {{{3
+	p.VariableDeclaration = function (start, end, declarators) {
+		this.type         = "VariableDeclaration";
+		this.declarations = declarators;
+		this.start        = start;
+		this.end          = end;
+	};
+	p.VariableDeclarator = function (identifier) {
+		this.type  = "VariableDeclarator";
+		this.id    = identifier;
+		this.init  = null;
+		this.start = identifier.start;
+		this.end   = identifier.end;
+	};
+	p.FunctionDeclaration = function (start, end, id, parameters, body) {
+		this.type       = "FunctionDeclaration";
+		this.id         = id;
+		this.parameters = parameters;
+		this.body       = body;
+		this.start      = start;
+		this.end        = end;
+	};
+	// Others {{{3
+	p.Comment = function (token) {
+		this.type    = "Comment";
+		this.comment = token.value;
+		this.start   = token.start;
+		this.end     = token.end;
+	};
+	p.Property = function (key, is_computed) {
+		this.type        = "Property";
+		this.key         = key;
+		this.value       = null;
+		this.is_computed = is_computed ? true : false;
+		this.start       = key.start;
+	};
+	p.CatchClause = function (start, end, param, body) {
+		this.type  = "CatchClause";
+		this.param = param;
+		this.body  = body;
+		this.start = start;
+		this.end   = end;
+	};
+	p.SwitchCase = function (start, end, test, statements) {
+		this.type       = "SwitchCase";
+		this.test       = test;
+		this.statements = statements;
+		this.start      = start;
+		this.end        = end;
+	};
+	p.DefaultCase = function (start, end, statements) {
+		this.type       = "DefaultCase";
+		this.statements = statements;
+		this.start      = start;
+		this.end        = end;
+	};
+	p.Identifier = function (token) {
+		this.type  = "Identifier";
+		this.name  = token.value;
+		this.start = token.start;
+	};
+	p.Operator = function (operator) {
+		this.type     = "Operator";
+		this.operator = operator;
+	};
+	p.Piece = function (token) {
+		this.start_token = token;
+	};
+	p.Temp = function () {};
+	p.File = function (name, code, program) {
+		this.type    = "File";
+		this.name    = name;
+		this.code    = code;
+		this.program = program;
+	};
+	p.Program = function (body) {
+		this.type  = "Program";
+		this.body  = body;
+		this.start = body.length ? body[0].start             : { line : 1, column : 1, index : 0 };
+		this.end   = body.length ? body[body.length - 1].end : { line : 1, column : 1, index : 0 };
+	};
+	// }}}3
+	// }}}2
+
+	// Parse {{{2
+	p.parse = function (filename, source_code) {
+		this.raw_tokens = tokenizer(source_code);
+		//console.log(888, this.raw_tokens);
+
+		var body    = this.parse_block_statement(this.raw_tokens);
+		return new this.File(filename, source_code, new this.Program(body));
+	};
+
+	// Parse statement {{{2
+	p.parse_statement = function (temp, tokens, start_index) {
+		var index = start_index, has_special_characters;
+
+		for (; index < tokens.length; ++index) {
+			switch (tokens[index].type) {
+				case "Identifier":
+					if (index === start_index) {
+						index = this.parse_identifier(temp, tokens, index);
+
+						switch (temp.identifier.name) {
+							case "function" :
+								return this.parse_function_declaration(temp, tokens, start_index);
+							case "var" :
+								return this.parse_variable_declaration(temp, tokens, start_index, tokens.length);
+							case "throw" :
+								return this.parse_statement_has_expression_argument(temp, tokens, start_index, this.ThrowStatement);
+							case "return" :
+								return this.parse_statement_has_expression_argument(temp, tokens, start_index, this.ReturnStatement);
+							case "if" :
+								return this.parse_if_statement(temp, tokens, start_index);
+							case "for" :
+								return this.parse_for_statement(temp, tokens, start_index);
+							case "while" :
+								return this.parse_while_statement(temp, tokens, start_index);
+							case "switch" :
+								return this.parse_switch_statement(temp, tokens, start_index);
+							case "try" :
+								return this.parse_try_statement(temp, tokens, start_index);
+							case "break" :
+								return this.parse_statement_has_label(temp, tokens, start_index, this.BreakStatement);
+							case "continue" :
+								return this.parse_statement_has_label(temp, tokens, start_index, this.ContinueStatement);
+						}
+					}
+					break;
+				case "Block":
+					if (index === start_index) {
+						temp.statement = new this.BlockStatement(
+							tokens[start_index],
+							this.parse_block_statement(tokens[start_index].children)
+						);
+						return index;
+					}
+					break;
+				case "Parenthesis":
+					if (index === start_index) {
+						this.parse_sequence_expression(temp, tokens[index].children, 0, tokens[index].children.length);
+						temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[index + 1].end, temp.expression);
+						return index + 1;
+					}
+					break;
+				case "SpecialCharacter":
+					switch (tokens[index].value) {
+						case ':':
+							if (! has_special_characters) {
+								return this.parse_labeled_statement(temp, tokens, start_index);
+							}
+							break;
+						case ';':
+							if (index === start_index) {
+								temp.statement = new this.EmptyStatement(tokens[index]);
+							} else {
+								this.parse_expression_statement(temp, tokens, start_index, index);
+							}
+
+							return index;
+						case '$':
+						case '_':
+							break;
+						default:
+							has_special_characters = true;
+					}
+					break;
+				case "Comment":
+					temp.statement = new this.Comment(tokens[index]);
+					return index;
+			}
+		}
+
+		if (index > start_index) {
+			this.parse_expression_statement(temp, tokens, start_index, index);
+			return index;
+		}
+
+		throw Error("Executed unreachable code.");
+	};
+
+	// Parse If statement {{{2
+	p.parse_if_statement = function (temp, tokens, index, next_token) {
+		var i = index + 1, test, statement, alternate;
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Parenthesis") {
+				test = this.parse_test(temp, tokens[i].children);
+				++i;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (tokens[i]) {
+			i = this.parse_statement(temp, tokens, i);
+			if (temp.statement) {
+				statement = temp.statement;
+			} else {
+				throw Error("Fallback error");
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (tokens[i + 1] && tokens[i + 1].type === "Identifier" && tokens[i + 1].value === "else") {
+			if (tokens[i + 2]) {
+				i = this.parse_statement(temp, tokens, i + 2);
+				alternate = temp.statement;
+			} else {
+				throw Error("Fallback error");
+			}
+		}
+
+		temp.statement = new this.IfStatement(
+			tokens[index].start, tokens[i].end,
+			test, statement, alternate
+		);
+
+		return i;
+	};
+
+	// Parse For statement {{{2
+	p.parse_for_statement = function (temp, tokens, index, next_token) {
+		var i = index + 1, type, init, test, update, left, right;
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Parenthesis") {
+				this.parse_for_arguments(temp, tokens[i].children);
+				type = temp.type;
+				switch (type) {
+					case "loop" :
+						init   = temp.init;
+						test   = temp.test;
+						update = temp.update;
+						break;
+					case "in" :
+						left  = temp.left;
+						right = temp.right;
+						break;
+					default:
+						throw Error("Fallback error");
+				}
+				++i;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (tokens[i]) {
+			i = this.parse_statement(temp, tokens, i);
+
+			if (temp.statement) {
+				switch (type) {
+					case "loop" :
+						temp.statement = new this.ForStatement(
+							tokens[index].start, tokens[i].end,
+							init, test, update, temp.statement
+						);
+						break;
+					case "in" :
+						temp.statement = new this.ForInStatement(
+							tokens[index].start, tokens[i].end,
+							left, right, temp.statement
+						);
+						break;
+				}
+			} else {
+				throw Error("error");
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		return i;
+	};
+
+	// Parse While statement {{{2
+	p.parse_while_statement = function (temp, tokens, index, next_token) {
+		var i = index + 1, test;
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Parenthesis") {
+				test = this.parse_test(temp, tokens[i].children);
+				i = i + 1;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (tokens[i]) {
+			i = this.parse_statement(temp, tokens, i);
+			if (temp.statement) {
+				temp.statement = new this.WhileStatement(tokens[index].start, tokens[i].end, test, temp.statement);
+			} else {
+				throw Error("Fallback error");
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		return i;
+	};
+
+	// Parse Switch statement {{{2
+	p.parse_switch_statement = function (temp, tokens, index, next_token) {
+		var i = index + 1, body, discriminant;
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Parenthesis") {
+				this.parse_sequence_expression(temp, tokens[i].children, 0, tokens[i].children.length);
+				if (temp.expression) {
+					discriminant = temp.expression;
+				} else {
+					throw Error("Fallback error");
+				}
+				i = i + 1;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Block") {
+				body = this.parse_switch_cases(temp, tokens[i].children);
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		temp.statement = new this.SwitchStatement(tokens[index].start, tokens[i].end, discriminant, body);
+
+		return i;
+	};
+
+	// Parse Labeled statement {{{2
+	p.parse_labeled_statement = function (temp, tokens, index) {
+		var i, label;
+
+		i = this.parse_identifier(temp, tokens, index);
+		label = temp.identifier;
+
+		if (tokens[i + 1]) {
+			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
+				i = this.parse_statement(temp, tokens, i + 2, true);
+
+				temp.statement = new this.LabeledStatement(tokens[index].start, temp.statement.end, label, temp.statement);
+			} else {
+				tokens[i + 1].error_unexpected_token();
+			}
+		} else {
+			throw Error("Fallback error");
+		}
+
+		return i;
+	};
+
+	// Parse Try statement {{{2
+	p.parse_try_statement = function (temp, tokens, index, next_token) {
+		var i = index + 1, handler = null, finalizer = null, j, block, param, body;
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Block") {
+				block = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
+				++i;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Identifier" && tokens[i].value === "catch") {
+				++i;
+
+				if (tokens[i]) {
+					if (tokens[i].type === "Parenthesis") {
+						j = this.parse_identifier(temp, tokens[i].children, 0);
+						if (temp.identifier) {
+							param = temp.identifier;
+
+							if (tokens[i].children.length > j + 1) {
+								tokens[i].children[j + 1].error_unexpected_token();
+							}
+						} else {
+							throw Error("error");
+						}
+
+						i = i + 1;
+					} else {
+						tokens[i].error_unexpected_token();
+					}
+				} else {
+					next_token.error_unexpected_token();
+				}
+
+				if (tokens[i]) {
+					if (tokens[i].type === "Block") {
+						body    = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
+						handler = new this.CatchClause(tokens[i - 2].start, tokens[i].end, param, body);
+					} else {
+						tokens[i].error_unexpected_token();
+					}
+				} else {
+					next_token.error_unexpected_token();
+				}
+			}
+		}
+
+		if (tokens[i + 1]) {
+			if (tokens[i + 1].type === "Identifier" && tokens[i + 1].value === "finally") {
+				i += 2;
+
+				if (tokens[i]) {
+					if (tokens[i].type === "Block") {
+						finalizer = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
+					} else {
+						throw Error("error");
+					}
+				} else {
+					tokens[i].error_unexpected_token();
+				}
+			}
+		}
+
+		if (! handler && ! finalizer) {
+			throw Error("Error");
+		}
+
+		temp.statement = new this.TryStatement(tokens[index].start, tokens[i].end, block, handler, finalizer);
+
+		return i;
+	};
+
+	// Parse Block statement {{{2
+	p.parse_block_statement = function (tokens) {
+		var temp = new this.Temp(), i = 0, statements = [];
+
+		if (this.statement_middlewares) {
+			return this.parse_block_statement_with_middlewares(temp, tokens, statements);
+		} else {
+			for (; i < tokens.length; ++i) {
+				i = this.parse_statement(temp, tokens, i);
+				statements.push(temp.statement);
+			}
+		}
+
+		return statements;
+	};
+
+	// Parse Block statement with middlewares {{{2
+	p.parse_block_statement_with_middlewares = function (temp, tokens, statements) {
+		var i = 0, j, return_index;
+
+		LOOP:
+		for (; i < tokens.length; ++i) {
+			for (j = 0; j < this.statement_middlewares.length; ++j) {
+				return_index = this.statement_middlewares[i](this, temp, tokens, i);
+
+				if (return_index > i) {
+					i = return_index;
+					statements.push(temp.statement);
+					continue LOOP;
+				}
+			}
+
+			i = this.parse_statement(temp, tokens, i);
+			statements.push(temp.statement);
+		}
+
+		return statements;
+	};
+
+	// Parse Return, Throw statement {{{2
+	p.parse_statement_has_expression_argument = function (temp, tokens, index, Statement) {
+		var i = this.parse_sequence_expression(temp, tokens, index + 1, tokens.length);
+		temp.statement = new Statement(tokens[index].start, tokens[i].end, temp.expression);
+
+		return i;
+	};
+
+	// Parse Break, Continue statement {{{2
+	p.parse_statement_has_label = function (temp, tokens, index, Statement) {
+		var i = index, label = null;
+
+		if (tokens[i + 1]) {
+			if (this.is_identifier(tokens[i + 1])) {
+				i = this.parse_identifier(temp, tokens, i + 1);
+				label = temp.identifier;
+			}
+		}
+
+		if (tokens[i + 1]) {
+			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ';') {
+				++i;
+			}
+		}
+
+		temp.statement = new Statement(tokens[index].start, tokens[i].end, label);
+		
+		return i;
+	};
+	
+	// Parse Expression statement {{{2
+	p.parse_expression_statement = function (temp, tokens, index, end_index) {
+		this.parse_sequence_expression(temp, tokens, index, end_index);
+		if (tokens[end_index]) {
+			temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index].end, temp.expression);
+		} else {
+			temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index - 1].end, temp.expression);
+		}
+	};
+	// }}}2
+
+	// Parse Number expression {{{2
+	p.parse_number_literal = function () {
+		//var 
+	};
+	// }}}2
+
+	// Parse Variable declaration {{{2
+	p.parse_variable_declaration = function (temp, tokens, index, end_index) {
+		var i = index + 1, vars = [], expect_identifer = true, declarator;
+
+		
+		for (; i < end_index; ++i) {
+			switch (tokens[i].type) {
+				// Number {{{3
+				case "Number":
+					tokens[i].error("Unexpected ILLEGAL token");
+					break;
+				// Identifier {{{3
+				case "Identifier":
+					if (declarator) {
+					tokens[i].error_unexpected_type();
+				}
+				i = this.parse_identifier(temp, tokens, i);
+				declarator = new this.VariableDeclarator(temp.identifier);
+				expect_identifer = false;;
+					break;
+				// Special characters {{{3
+				case "SpecialCharacter":
+					switch (tokens[i].value) {
+						case '=':
+							if (declarator) {
+								if (tokens[i + 1]) {
+									i = this.parse_expression(temp, tokens, i + 1, end_index);
+									declarator.end  = temp.expression.end_token.end;
+									declarator.init = temp.expression.parsed_token;
+
+									vars.push(declarator);
+									declarator = null;
+								} else {
+									throw new Error("Fallback error");
+								}
+							} else {
+								tokens[i].error_unexpected_token();
+							}
+							break;
+						case '$':
+						case '_':
+							if (declarator) {
+							tokens[i].error_unexpected_type();
+						}
+						i = this.parse_identifier(temp, tokens, i);
+						declarator = new this.VariableDeclarator(temp.identifier);
+						expect_identifer = false;;
+							break;
+						case ',':
+							if (declarator) {
+								vars.push(declarator);
+								declarator = null;
+							} else if (expect_identifer) {
+								tokens[i].error_unexpected_token();
+							}
+							expect_identifer = true;
+							break;
+						case ';':
+							if (expect_identifer) {
+								tokens[i].error_unexpected_token();
+							}
+							if (declarator) {
+								vars.push(declarator);
+							}
+
+							temp.statement = new this.VariableDeclaration(tokens[index].start, tokens[i].end, vars);
+							return i;
+						default:
+							tokens[i].error_unexpected_token();
+					}
+					break;
+				// Comment {{{3
+				case "Comment":
+					break;
+				// Unexpected token {{{3
+				default:
+					tokens[i].error_unexpected_token();
+				// }}}3
+			}
+		}
+
+		// some kind of error...
+		//if (! declarator) { }
+
+		vars.push(declarator);
+		temp.statement = new this.VariableDeclaration(tokens[index].start, tokens[i - 1].end, vars);
+
+		return i - 1;
+	};
+
+	// Parse Function declaration {{{2
+	p.parse_function_declaration = function (temp, tokens, index) {
+		var i = index + 1, parameters, id, body;
+
+		if (tokens[i]) {
+			if (this.is_identifier(tokens[i])) {
+				i  = this.parse_identifier(temp, tokens, i) + 1;
+				id = temp.identifier;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+			// some kind of error
+			//} else {
+		}
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Parenthesis") {
+				parameters = this.parse_parameters(temp, tokens[i].children);
+				++i;
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+			// some kind of error
+			//} else {
+		}
+
+		if (tokens[i]) {
+			if (tokens[i].type === "Block") {
+				body = new this.BlockStatement(
+					tokens[i],
+					this.parse_block_statement(tokens[i].children)
+				);
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+			// some kind of error
+			//} else {
+		}
+
+		temp.statement = new this.FunctionDeclaration(tokens[index].start, body.end, id, parameters, body);
+
+		return i;
+	};
+	// }}}2
+
+	// Parse expression {{{2
+	p.parse_expression = function (temp, tokens, i, end_index, delimiter) {
+		var j = 0, pieces = [];
+
+		LOOP:
+		for (; i < end_index; ++i) {
+			if (tokens[i].type === "SpecialCharacter") {
+				switch (tokens[i].value) {
+					case ',':
+					case ';':
+					case delimiter:
+						if (pieces.length === 0) {
+							temp.expression = null;
+							return i;
+						}
+						break LOOP;
+				}
+			}
+			i = this.parse_expression_piece(temp, tokens, i);
+
+			if (temp.piece.parsed_token) {
+				pieces.push(temp.piece);
+			}
+		}
+
+		this.assemble_pieces(pieces, 0);
+
+		for (; j < pieces.length; ++j) {
+			if (pieces[j]) {
+				temp.expression = pieces[j];
+				break;
+			}
+		}
+		/*
+		var c = 0;
+		for (j = 0; j < pieces.length; ++j) {
+			if (pieces[j]) {
+				c += 1;
+			}
+		}
+		if (c > 1) {
+			console.log("HERE", pieces);
+			process.exit()
+		}
+		*/
+		
+		return i - 1;
+	};
+
+	// Parse expression pieces {{{2
+	p.parse_expression_piece = function (temp, tokens, i) {
+		temp.piece = new this.Piece(tokens[i]);
+
+		if (this.expression_middlewares) {
+			for (var j = 0; j < this.expression_middlewares.length; ++j) {
+				i = this.expression_middlewares[j](this, temp.piece, tokens, i);
+
+				if (temp.piece.parsed_token) {
+					temp.piece.end_token = tokens[i];
+					return i;
+				}
+			}
+		}
+
+		switch (tokens[i].type) {
+			// Number literal {{{3
+			case "Number":
+				temp.piece.parsed_token = new this.NumberLiteral(tokens[i]);
+				break;
+			// String literal {{{3
+			case "String":
+				temp.piece.parsed_token = new this.StringLiteral(tokens[i]);
+				break;
+			// Regex literal {{{3
+			case "RegExp":
+				i = this.parse_regex(temp.piece, tokens, i);
+				break;
+			// Identifier {{{3
+			case "Identifier":
+				i = this.parse_identifier(temp, tokens, i);
+
+				switch (temp.identifier.name) {
+					case "in"         :
+					case "void"       :
+					case "delete"     :
+					case "typeof"     :
+					case "instanceof" :
+						temp.piece.parsed_token = new this.Operator(temp.identifier.name);
+						break;
+					default:
+						temp.piece.parsed_token = temp.identifier;
+				}
+
+				temp.piece.start_token = temp.piece.end_token = temp.token;
+				break;
+			// Parenthesis, Square bracket, Curly bracket {{{3
+			case "Array":
+			case "Block":
+			case "Parenthesis":
+				temp.piece.parsed_token = { type : tokens[i].type };
+				break;
+			// Special characters {{{3
+			case "SpecialCharacter":
+				switch (tokens[i].value) {
+					case '_' :
+					case '$' :
+						i = this.parse_identifier(temp, tokens, i);
+						temp.piece.parsed_token = temp.identifier;
+						temp.piece.start_token  = temp.piece.end_token = temp.token;
+						break;
+					default:
+						i = this.parse_operators(temp.piece, tokens, i);
+				}
+				break;
+			// Comment {{{3
+			case "Comment":
+				temp.piece.parsed_token = null;
+			// }}}3
+		}
+
+		if (! temp.piece.end_token) {
+			temp.piece.end_token = tokens[i];
+		}
+
+		return i;
+	};
+
+	// Parse New expression {{{2
+	p.parse_new_expression = function (pieces, index, next_token) {
+		var i = index + 1, callee;
+
+		this.assemble_pieces(pieces, i, next_token, "Parenthesis");
+
+		for (; i < pieces.length; ++i) {
+			if (pieces[i]) {
+				callee    = pieces[i];
+				pieces[i] = null;
+				break;
+			}
+		}
+
+		if (callee.parsed_token.type === "CallExpression") {
+			pieces[index].parsed_token = new this.NewExpression(
+				pieces[index].start_token.start, callee.end_token.end,
+				callee.parsed_token.callee, callee.parsed_token["arguments"]
+			);
+		} else {
+			pieces[index].parsed_token = new this.NewExpression(
+				pieces[index].start_token.start, callee.end_token.end,
+				callee.parsed_token, []
+			);
+		}
+		pieces[index].end_token = callee.end_token;
+
+		return i;
+	};
+
+	// Parse Unary expression {{{2
+	p.parse_unary_expression = function (pieces, indices, next_token) {
+		for (var j = 0, i, index, operand; j < indices.length; ++j) {
+			index = indices[j];
+
+			switch (pieces[index].parsed_token.operator) {
+				case "--" :
+				case "++" :
+					if (pieces[index - 1] && pieces[index - 1].parsed_token &&
+						pieces[index - 1].parsed_token.type !== "Operator" &&
+						pieces[index - 1].parsed_token.type !== "NumberLiteral") {
+
+						pieces[index - 1].parsed_token = new this.UnaryExpression(
+							pieces[index - 1].start_token.start,
+							pieces[index].end_token.end,
+							pieces[index].parsed_token.operator,
+							pieces[index - 1].parsed_token
+						);
+						pieces[index - 1].end_token = pieces[index].end_token;
+					} else if (
+						pieces[index + 1] && pieces[index + 1].parsed_token &&
+						pieces[index + 1].parsed_token.type !== "Operator" &&
+						pieces[index + 1].parsed_token.type !== "NumberLiteral") {
+
+						pieces[index + 1].parsed_token = new this.UnaryExpression(
+							pieces[index].start_token.start,
+							pieces[index + 1].end_token.end,
+							pieces[index].parsed_token.operator,
+							pieces[index + 1].parsed_token,
+							true
+						);
+						pieces[index + 1].start_token = pieces[index].start_token;
+					}
+					pieces[index] = null;
+					return;
+				case '+'      :
+				case '-'      :
+				case '!'      :
+				case '~'      :
+				case "void"   :
+				case "delete" :
+				case "typeof" :
+					i = index + 1;
+
+					for (; i < pieces.length; ++i) {
+						if (pieces[i]) {
+							operand   = pieces[i];
+							pieces[i] = null;
+							break;
+						}
+					}
+
+					if (! operand) {
+						next_token.error_unexpected_token();
+					}
+
+					if (operand.parsed_token && operand.parsed_token.type === "Operator") {
+						operand.start_token.error_unexpected_token();
+					}
+
+					if (operand) {
+						pieces[index].parsed_token = new this.UnaryExpression(
+							pieces[index].start_token.start,
+							operand.end_token.end,
+							pieces[index].parsed_token.operator,
+							operand.parsed_token,
+							true
+						);
+						pieces[index].end_token = operand.end_token;
+					}
+					break;
+			}
+		}
+	};
+
+	// Parse Binary expression {{{2
+	p.parse_binary_expression = function (pieces, indices, Expression) {
+		for (var i = 0, j, left, right; i < indices.length; ++i) {
+			for (j = indices[i] - 1; j >= 0; --j) {
+				if (pieces[j]) {
+					left      = pieces[j];
+					pieces[j] = null;
+					break;
+				}
+			}
+
+			for (j = indices[i] + 1; j < pieces.length; ++j) {
+				if (pieces[j]) {
+					right     = pieces[j];
+					pieces[j] = null;
+					break;
+				}
+			}
+
+			pieces[indices[i]].parsed_token = new Expression(
+				left.start_token.start, right.end_token.end,
+				left.parsed_token, pieces[indices[i]].parsed_token.operator, right.parsed_token
+			);
+			pieces[indices[i]].start_token = left.start_token;
+			pieces[indices[i]].end_token   = right.end_token;
+		}
+	};
+
+	// Parse Member expression {{{2
+	p.parse_member_expression = function (pieces, index) {
+		var i, object, property;
+
+		switch (pieces[index].parsed_token.type) {
+			case "Operator":
+				for (i = index - 1; i >= 0; --i) {
+					if (pieces[i]) {
+						object = pieces[i];
+
+						if (object.parsed_token.type === "Parenthesis") {
+							return false;
+						}
+
+						pieces[i] = null;
+						break;
+					}
+				}
+
+				for (i = index + 1; i >= 0; ++i) {
+					if (pieces[i]) {
+						property  = pieces[i];
+						pieces[i] = null;
+						break;
+					}
+				}
+
+
+				pieces[index].parsed_token = new this.MemberExpression(
+					object.start_token.start, property.end_token.end,
+					object.parsed_token     , property.parsed_token
+				);
+				pieces[index].start_token = object.start_token;
+				pieces[index].end_token   = property.end_token;
+				break;
+			case "Array":
+				for (i = index - 1; i >= 0; --i) {
+					if (pieces[i] && pieces[i].parsed_token.type !== "Operator") {
+						object    = pieces[i];
+
+						if (object.parsed_token.type === "Parenthesis") {
+							return false;
+						}
+
+						pieces[i] = null;
+						break;
+					}
+				}
+
+				property = pieces[index].parsed_token;
+				this.parse_sequence_expression(
+					property, pieces[index].start_token.children,
+					0, pieces[index].start_token.children.length
+				);
+
+				if (property.expression) {
+					pieces[index].parsed_token = new this.MemberExpression(
+						object.start_token.start, pieces[index].end_token.end,
+						object.parsed_token, property.expression, true
+					);
+				} else {
+					throw Error("Fallback error");
+				}
+				pieces[index].start_token = object.start_token;
+
+				break;
+		}
+
+		return true;
+	};
+
+	// Parse Function expression {{{2
+	p.parse_function_expression = function (pieces, index, next_token) {
+		var id = null, i = index + 1, parameters, body;
+
+		if (pieces[i]) {
+			if (pieces[i].parsed_token.type === "Identifier") {
+				id        = pieces[i].parsed_token;
+				pieces[i] = null;
+				++i;
+			} else if (pieces[i].parsed_token.type !== "Parenthesis") {
+				pieces[i].start_token.error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (pieces[i]) {
+			if (pieces[i].parsed_token.type === "Parenthesis") {
+				parameters = this.parse_parameters(pieces[i], pieces[i].start_token.children);
+				pieces[i]  = null;
+				++i;
+			} else {
+				pieces[i].start_token.error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		if (pieces[i]) {
+			if (pieces[i].parsed_token.type === "Block") {
+				body = new this.BlockStatement(
+					pieces[i].start_token,
+					this.parse_block_statement(pieces[i].start_token.children)
+				);
+				pieces[i] = null;
+			} else {
+				pieces[i].start_token.error_unexpected_token();
+			}
+		} else {
+			next_token.error_unexpected_token();
+		}
+
+		pieces[index].parsed_token = new this.FunctionExpression(pieces[index].start_token.start, body.end, id, parameters, body);
+
+		return i;
+	};
+
+	// Parse Sequence expression {{{2
+	p.parse_sequence_expression = function (temp, tokens, i, end_index, is_raw, delimiter) {
+		var expressions = [];
+
+		if (tokens.length === 0 || i >= tokens.length || (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';')) {
+			if (is_raw) {
+				temp.expressions = expressions;
+			} else {
+				temp.expression = null;
+			}
+			return i;
+		}
+
+		LOOP:
+		for (; i < end_index; ++i) {
+			i = this.parse_expression(temp, tokens, i, end_index, delimiter);
+
+			if (temp.expression) {
+				expressions.push(temp.expression.parsed_token);
+			}
+
+			if (tokens[i + 1]) {
+				if (tokens[i + 1].type === "SpecialCharacter") {
+					switch (tokens[i + 1].value) {
+						case ';':
+						case delimiter :
+							i += 2;
+							break LOOP;
+						case ',':
+							++i;
+							break;
+						default:
+							tokens[i + 1].error_unexpected_token();
+					}
+				} else {
+					tokens[i + 1].error_unexpected_token();
+				}
+			}
+		}
+
+		if (is_raw) {
+			temp.expressions = expressions;
+		} else {
+			if (expressions.length > 1) {
+				temp.expression = new this.SequenceExpression(expressions);
+			} else if (expressions.length === 1) {
+				temp.expression = expressions[0];
+			} else {
+				temp.expression = null;
+			}
+		}
+
+		return i - 1;
+	};
+
+	// Parse Assignment expression {{{2
+	p.parse_assignment_expression = function (pieces, indices) {
+		for (var i = 0, j, left, right; i < indices.length; ++i) {
+			for (j = indices[i] - 1; j >= 0; --j) {
+				if (pieces[j]) {
+					left      = pieces[j];
+					pieces[j] = null;
+					break;
+				}
+			}
+
+			switch (left.parsed_token.type) {
+				case "Identifier" :
+				case "MemberExpression" :
+				case "AssignmentExpression" :
+					break;
+				default:
+					left.start_token.error("Assigning to rvalue");
+			}
+
+			for (j = indices[i] + 1; j < pieces.length; ++j) {
+				if (pieces[j]) {
+					right     = pieces[j];
+					pieces[j] = null;
+					break;
+				}
+			}
+
+			pieces[indices[i]].parsed_token = new this.AssignmentExpression(
+				left.start_token.start, right.end_token.end,
+				left.parsed_token, pieces[indices[i]].parsed_token.operator, right.parsed_token
+			);
+			pieces[indices[i]].start_token = left.start_token;
+			pieces[indices[i]].end_token   = right.end_token;
+		}
+	};
+
+	// Parse Conditional expression {{{2
+	p.parse_conditional_expression = function (pieces, indices) {
+		var i = 0, j, index, test, consequent, alternate;
+		for (; i < indices.length; ++i, test = null) {
+			for (j = indices[i] - 1; j >= 0; --j) {
+				if (pieces[j]) {
+					index = j;
+					test  = pieces[j];
+					break;
+				}
+			}
+
+			if (! test) {
+				throw Error("Fallback error");
+			} else if (test.parsed_token.type === "Operator") {
+				throw Error("Fallback error");
+			}
+
+			for (j = indices[i] + 1; j < pieces.length; ++j) {
+				if (pieces[j]) {
+					consequent = pieces[j];
+					pieces[j]  = null;
+					break;
+				}
+			}
+
+			for (j = indices[i] + 1; j < pieces.length; ++j) {
+				if (pieces[j]) {
+					if (pieces[j].parsed_token.type === "Operator") {
+						pieces[j] = null;
+					} else {
+						pieces[j].start_token.error_unexpected_token();
+					}
+					break;
+				}
+			}
+
+			for (j = indices[i] + 1; j < pieces.length; ++j) {
+				if (pieces[j]) {
+					alternate = pieces[j];
+					pieces[j] = null;
+					break;
+				}
+			}
+
+			pieces[indices[i]] = null;
+			pieces[index].parsed_token = new this.ConditionalExpression(
+				test.start_token.start, alternate.end_token.end,
+				test.parsed_token, consequent.parsed_token, alternate.parsed_token
+			);
+			pieces[index].start_token = test.start_token;
+			pieces[index].end_token   = alternate.end_token;
+		}
+	};
+	// }}}2
+
+	// Parse Array {{{2
+	p.parse_array = function (tokens) {
+		var i = 0, temp = new this.Temp(), elements = [];
+
+		for (; i < tokens.length; ++i) {
+			if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ',') {
+				if (temp.to_add) {
+					elements.push(temp.expression.parsed_token);
+					temp.to_add = false;
+				} else {
+					elements.push(null);
+				}
+			} else {
+				i = this.parse_expression(temp, tokens, i, tokens.length);
+				temp.to_add = true;
+			}
+		}
+
+		if (temp.to_add) {
+			elements.push(temp.expression.parsed_token);
+		}
+
+		return elements;
+	};
+
+	// Parse Switch case {{{2
+	p.parse_switch_cases = function (temp, tokens) {
+		var i = 0, body = [], index, j, test, statements;
+
+		TOP:
+		for (; i < tokens.length; ++i) {
+			switch (tokens[i].type) {
+				case "Comment":
+					body.push(new this.Comment(tokens[i]));
+					continue TOP;
+				case "Identifier" :
+					break;
+				default:
+					tokens[i].error_unexpected_token();
+			}
+
+			SWITCH:
+			switch (tokens[i].value) {
+				case "case" :
+					index = i;
+
+					if (tokens[i + 1]) {
+						if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
+							tokens[i + 1].error_unexpected_token();
+						} else {
+							i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length, false, ':');
+						}
+					} else {
+						throw new Error("Fallback error");
+					}
+
+					if (tokens[i]) {
+						if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ':') {
+							test       = temp.expression;
+							statements = [];
+
+							if (i + 1 === tokens.length) {
+								body.push(new this.SwitchCase(tokens[index].start, tokens[i].end, test, statements));
+								break;
+							}
+
+							CASE_SEARCH_NEXT_LOOP:
+							for (j = i + 1; j < tokens.length; ++j) {
+								switch (tokens[j].type) {
+									case "Comment":
+										break;
+									case "Identifier":
+										switch (tokens[j].value) {
+											case "case":
+											case "default":
+												body.push(new this.SwitchCase(tokens[index].start, tokens[i].end, test, statements));
+												break SWITCH;
+										}
+										break CASE_SEARCH_NEXT_LOOP;
+									default:
+										break CASE_SEARCH_NEXT_LOOP;
+								}
+							}
+
+							CASE_LOOP:
+							for (++i; i < tokens.length; ++i) {
+								i = this.parse_statement(temp, tokens, i);
+								statements.push(temp.statement);
+
+								if (tokens[i + 1] && tokens[i + 1].type === "Identifier") {
+									switch (tokens[i + 1].value) {
+										case "case" :
+										case "default" :
+											break CASE_LOOP;
+									}
+								} else {
+									break;
+								}
+							}
+
+							body.push(new this.SwitchCase(tokens[index].start, tokens[i].end, test, statements));
+						} else {
+							tokens[i].error_unexpected_token();
+						}
+					} else {
+						throw new Error("Fallback error");
+					}
+					break;
+				case "default" :
+					index = i;
+
+					if (tokens[i + 1]) {
+						if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
+							++i;
+							statements = [];
+
+							if (i + 1 === tokens.length) {
+								body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
+								break;
+							}
+
+							DEFAULT_SEARCH_NEXT_LOOP:
+							for (j = i + 1; j < tokens.length; ++j) {
+								switch (tokens[j].type) {
+									case "Comment":
+										break;
+									case "Identifier":
+										switch (tokens[j].value) {
+											case "case":
+											case "default":
+												body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
+												break SWITCH;
+										}
+										break DEFAULT_SEARCH_NEXT_LOOP;
+									default:
+										break DEFAULT_SEARCH_NEXT_LOOP;
+								}
+							}
+
+							DEFAULT_LOOP:
+							for (++i; i < tokens.length; ++i) {
+								i = this.parse_statement(temp, tokens, i);
+								statements.push(temp.statement);
+
+								if (tokens[i + 1] && tokens[i + 1].type === "Identifier") {
+									switch (tokens[i + 1].value) {
+										case "case" :
+										case "default" :
+											break DEFAULT_LOOP;
+									}
+								} else {
+									break;
+								}
+							}
+
+							body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
+						} else {
+							tokens[i].error_unexpected_token();
+						}
+					} else {
+						throw new Error("Fallback error");
+					}
+					break;
+				default:
+					tokens[i].error_unexpected_token();
+			}
+		}
+
+		return body;
+	};
+
+	// Parse Operators {{{2
+	p.parse_operators = function (temp, tokens, i) {
+		
+		switch (tokens[i].value) {
+			case '.':
+				temp.parsed_token = new this.Operator('.');
+				return i;
+			case '-':
+				if (tokens[i + 1].value === '-' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("--");
+					return i + 1;
+				} else if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("-=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('-');
+				return i;
+			case '+':
+				if (tokens[i + 1].value === '+' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("++");
+					return i + 1;
+				} else if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("+=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('+');
+				return i;
+			case '/':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("/=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('/');
+				return i;
+			case '*':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("*=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('*');
+				return i;
+			case '%':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("%=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('%');
+				return i;
+			case '=':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					if (tokens[i + 2].value === '=' && tokens[i + 2].start.index === tokens[i + 1].end.index) {
+						temp.parsed_token = new this.Operator("===");
+						return i + 2;
+					}
+
+					temp.parsed_token = new this.Operator("==");
+					return i + 1;
+				}
+
+				temp.parsed_token = new this.Operator('=');
+				return i;
+			case '&':
+				if (tokens[i + 1].value === '&' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("&&");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('&');
+				return i;
+			case '|':
+				if (tokens[i + 1].value === '|' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("||");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('|');
+				return i;
+			case '>':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator(">=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('>');
+				return i;
+			case '<':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					temp.parsed_token = new this.Operator("<=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('<');
+				return i;
+			case '!':
+				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
+					if (tokens[i + 2].value === '=' && tokens[i + 2].start.index === tokens[i + 1].end.index) {
+						temp.parsed_token = new this.Operator("!==");
+						return i + 2;
+					}
+
+					temp.parsed_token = new this.Operator("!=");
+					return i + 1;
+				}
+				temp.parsed_token = new this.Operator('!');
+				return i;
+			case '?':
+			case ':':
+				temp.parsed_token = new this.Operator(tokens[i].value);
+				return i;
+			default:
+				tokens[i].error_unexpected_token();
+		}
+	};
+
+	// Parse Identifier {{{2
+	p.parse_identifier = function (temp, tokens, index) {
+		var i          = index + 1,
+			token      = temp.token      = new Token(),
+			identifier = temp.identifier = new this.Identifier(tokens[index]);
+
+		LOOP:
+		for (; i < tokens.length; ++i) {
+			switch (tokens[i].type) {
+				case "Number":
+				case "Identifier":
+					if (tokens[i - 1].end.index === tokens[i].start.index) {
+						identifier.name = identifier.name + tokens[i].value;
+					} else {
+						break LOOP;
+					}
+					break;
+				case "SpecialCharacter":
+					switch (tokens[i].value) {
+						case '$':
+						case '_':
+							if (tokens[i - 1].end.index === tokens[i].start.index) {
+								identifier.name = identifier.name + tokens[i].value;
+							} else {
+								break LOOP;
+							}
+							break;
+						default:
+							break LOOP;
+					}
+					break;
+				default:
+					break LOOP;
+			}
+		}
+
+		identifier.end = tokens[i - 1].end;
+
+		token.type  = "Identifier";
+		token.value = identifier.name;
+		token.start = tokens[index].start;
+		token.end   = tokens[i - 1].end;
+
+		return i - 1;
+	};
+
+	// Parse Parenthesis {{{2
+	p.parse_parenthesis = function (pieces, indices) {
+		var i = 0, temp = pieces[indices[0]].parsed_token, j, args;
+
+		LOOP:
+		for (; i < indices.length; ++i) {
+			for (j = indices[i] - 1; j >= 0; --j) {
+				if (pieces[j]) {
+					if (pieces[j].parsed_token.type !== "Operator") {
+						args = this.parse_arguments(temp, pieces[indices[i]].start_token.children);
+
+						pieces[indices[i]].parsed_token = new this.CallExpression(
+							pieces[j].start_token.start,
+							pieces[indices[i]].end_token.end,
+							pieces[j].parsed_token,
+							args
+						);
+						pieces[indices[i]].start_token = pieces[j].start_token;
+						pieces[j] = null;
+					} else {
+						this.parse_sequence_expression(
+							temp, pieces[indices[i]].start_token.children,
+							0, pieces[indices[i]].start_token.children.length
+						);
+						pieces[indices[i]].parsed_token = temp.expression;
+					}
+
+					continue LOOP;
+				}
+			}
+		}
+	};
+
+	// Parse RegExp {{{2
+	p.REGEX_FLAGS = "gimuy";
+
+	p.parse_regex = function (piece, tokens, index) {
+		var next_index = index + 1, i = 0, flags = '', has_flags, value;
+
+		if (tokens[next_index] && tokens[index].end.index === tokens[next_index].start.index && tokens[next_index].type === "Identifier") {
+			value     = tokens[next_index].value;
+			has_flags = true;
+
+			for (i = value.length - 1; i >= 0; --i) {
+				if (this.REGEX_FLAGS.indexOf(value.charAt(i)) !== -1 && flags.indexOf(value.charAt(i)) === -1) {
+					flags = flags + value.charAt(i);
+				} else {
+					tokens[next_index].error("Invalid regular expression flags");
+				}
+			}
+		}
+
+		if (! has_flags) {
+			flags      = '';
+			next_index = index;
+		}
+
+		piece.parsed_token = new this.RegExpLiteral(
+			tokens[index].start, tokens[next_index].end,
+			tokens[index].value, flags
+		);
+
+		return next_index;
+	};
+
+	// Parse Arguments {{{2
+	p.parse_arguments = function (temp, tokens) {
+		this.parse_sequence_expression(temp, tokens, 0, tokens.length, true);
+		return temp.expressions;
+	};
+
+	// Parse For arguments {{{2
+	p.parse_for_arguments = function (temp, tokens) {
+		var is_var = (tokens[0] && tokens[0].type === "Identifier" && tokens[0].value === "var"),
+			i = is_var ? 1 : 0;
+
+		if (tokens[i]) {
+			temp.identifier = null;
+
+			if (this.is_identifier(tokens[i])) {
+				i = this.parse_identifier(temp, tokens, i);
+
+				// TODO: replace binary 'in' operator
+				temp.type = (tokens[i + 1] && tokens[i + 1].value === "in") ? "in" : "loop";
+			} else {
+				temp.type = "loop";
+			}
+
+			switch (temp.type) {
+				case "in":
+					if (is_var) {
+						temp.left = new this.VariableDeclaration(tokens[0].start, temp.identifier.end, [
+							new this.VariableDeclarator(temp.identifier)
+						]);
+					} else {
+						temp.left = temp.identifier;
+					}
+
+					i = this.parse_sequence_expression(temp, tokens, i + 2, tokens.length);
+					if (temp.expression) {
+						temp.right = temp.expression;
+					} else {
+						throw Error("error");
+					}
+					break;
+				case "loop":
+					if (is_var) {
+						i = this.parse_variable_declaration(temp, tokens, 0, tokens.length);
+						temp.init = temp.statement;
+					} else {
+						i = this.parse_sequence_expression(temp, tokens, 0, tokens.length);
+						temp.init = temp.expression;
+					}
+
+					if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';') {
+						i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length);
+						temp.test = temp.expression;
+					} else {
+						throw Error("ERROR");
+					}
+
+					if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';') {
+						i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length);
+						temp.update = temp.expression;
+					} else {
+						throw Error("ERROR");
+					}
+					break;
+			}
+		} else {
+			throw Error("error");
+		}
+	};
+
+	// Parse Parameters {{{2
+	p.parse_parameters = function (temp, tokens) {
+		var i = 0, params = [];
+
+		for (; i < tokens.length; ++i) {
+			if (this.is_identifier(tokens[i])) {
+				i = this.parse_identifier(temp, tokens, i);
+
+				if (tokens[i + 1]) {
+					if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ',') {
+						++i;
+					} else {
+						tokens[i + 1].error_unexpected_token();
+					}
+				}
+
+				params.push(temp.identifier);
+			} else {
+				tokens[i].error_unexpected_token();
+			}
+		}
+
+		return params;
+	};
+
+	// Parse Test {{{2
+	p.parse_test = function (temp, tokens) {
+		this.parse_sequence_expression(temp, tokens, 0, tokens.length);
+		if (temp.expression) {
+			return temp.expression;
+		}
+		throw Error("Fallback error");
+	};
+
+	// Parse Object literal {{{2
+	p.parse_object_literal = function (block_token) {
+		var i = 0, properties = [], temp = new this.Temp(), tokens = block_token.children, property, expect_value;
+
+		for (; i < tokens.length; ++i) {
+			if (! property && this.is_identifier(tokens[i])) {
+				i = this.parse_identifier(temp, tokens, i);
+				property = new this.Property(temp.identifier);
+				continue;
+			}
+
+			switch (tokens[i].type) {
+				case "Number":
+					if (property) {
+						tokens[i].error_unexpected_type();
+					}
+					property = new this.Property(new this.NumberLiteral(tokens[i]));
+					expect_value = true;
+					break;
+				case "String":
+					if (property) {
+						tokens[i].error_unexpected_type();
+					}
+					property = new this.Property(new this.StringLiteral(tokens[i]));
+					expect_value = true;
+					break;
+				case "Array":
+					break;
+				case "SpecialCharacter":
+					switch (tokens[i].value) {
+						case ':':
+							if (expect_value) {
+								i = this.parse_expression(temp, tokens, i + 1, tokens.length);
+								expect_value   = false;
+								property.value = temp.expression.parsed_token;
+							} else if (property) {
+								i = this.parse_expression(temp, tokens, i + 1, tokens.length);
+								property.value = temp.expression.parsed_token;
+							} else {
+								tokens[i].error_unexpected_token();
+							}
+
+							properties.push(property);
+							property = null;
+							break;
+						case ',':
+							if (expect_value) {
+								tokens[i].error_unexpected_token();
+							} else if (property) {
+								property.value = property.key;
+								property.end   = property.value.end;
+
+								properties.push(property);
+								property = null;
+							}
+							break;
+						default:
+							tokens[i].error_unexpected_token();
+					}
+					break;
+				case "Comment":
+					properties.push(new this.Comment(tokens[i]));
+					break;
+				default:
+					tokens[i].error_unexpected_token();
+			}
+		}
+
+		if (property) {
+			if (expect_value) {
+				throw Error("Fallback error");
+			}
+
+			property.value = property.key;
+			property.end   = property.value.end;
+			properties.push(property);
+		}
+
+		return new this.ObjectLiteral(block_token, properties);
+	};
+
+	p.parse_block = function (pieces, index) {
+		//var tokens = pieces[index], i = 0, is_object_literal = true;
+
+		//for (; i < tokens.length; ++i) { }
+		
+		pieces[index].parsed_token = this.parse_object_literal(pieces[index].start_token);
+	};
+	// }}}2
+
+	// Assemble pieces {{{2
+	// learned from : https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+	p.assemble_pieces = function (pieces, i, next_token, until) {
+
+		var member_operator_indices      = [],
+			parenthesis_indices          = [],
+			unary_operator_indices       = [],
+			high_math_operator_indices   = [],
+			medium_math_operator_indices = [],
+			low_math_operator_indices    = [],
+			conditional_operator_indices = [],
+			logical_operator_indices     = [], // fixme: less than or greater than is
+			ternary_operator_indices     = [],
+			assignment_operator_indices  = [];
+
+		for (; i < pieces.length; ++i) {
+			switch (pieces[i].parsed_token.type) {
+				case "Identifier":
+					switch (pieces[i].parsed_token.name) {
+						case "new" :
+							i = this.parse_new_expression(pieces, i);
+							break;
+						case "function" :
+							i = this.parse_function_expression(pieces, i);
+							break;
+					}
+					break;
+				case "Operator":
+					switch (pieces[i].parsed_token.operator) {
+						case '?':
+							ternary_operator_indices.unshift(i);
+							break;
+						case "&&":
+						case "||":
+							logical_operator_indices.push(i);
+							break;
+						case '.' :
+							member_operator_indices.push({ index : i });
+							break;
+						case '!'      :
+						case '~'      :
+						case "++"     :
+						case "--"     :
+						case "void"   :
+						case "delete" :
+						case "typeof" :
+							unary_operator_indices.unshift(i);
+							break;
+						case '<'   :
+						case '>'   :
+						case "<="  :
+						case ">="  :
+						case "=="  :
+						case "===" :
+						case "!="  :
+						case "!==" :
+							conditional_operator_indices.push(i);
+							break;
+						case '+'   :
+						case '-'   :
+							if (i === 0 || (pieces[i - 1] && pieces[i - 1].parsed_token.type === "Operator")) {
+								unary_operator_indices.unshift(i);
+							} else {
+								medium_math_operator_indices.push(i);
+							}
+							break;
+						case '*'   :
+						case '/'   :
+						case '%'   :
+							high_math_operator_indices.push(i);
+							break;
+						case "=":
+						case "+=":
+						case "-=":
+						case "*=":
+						case "/=":
+						case "%=":
+						case "&=":
+						case "^=":
+						case "|=":
+						case "**=":
+						case "<<=":
+						case ">>=":
+						case ">>>=":
+							assignment_operator_indices.push(i);
+							break;
+					}
+					break;
+				case "Parenthesis":
+					if (i === 0) {
+						this.parse_sequence_expression(
+							pieces[0], pieces[0].start_token.children,
+							0, pieces[0].start_token.children.length
+						);
+						pieces[0].parsed_token = pieces[0].expression;
+					} else {
+						parenthesis_indices.push(i);
+					}
+					break;
+				case "Array":
+					if (pieces[i - 1] && pieces[i - 1].parsed_token.type !== "Operator") {
+						member_operator_indices.push({ index : i });
+					} else {
+						pieces[i].parsed_token = new this.ArrayLiteral(
+							pieces[i].start_token,
+							this.parse_array(pieces[i].start_token.children)
+						);
+					}
+					break;
+				case "Block":
+					this.parse_block(pieces, i);
+					break;
+			}
+
+			if (until && pieces[i].parsed_token.type === until) {
+				break;
+			}
+		}
+
+		for (i = 0; i < member_operator_indices.length; ++i) {
+			member_operator_indices[i].is_parsed = this.parse_member_expression(pieces, member_operator_indices[i].index);
+		}
+		if (parenthesis_indices.length) {
+			this.parse_parenthesis(pieces, parenthesis_indices);
+		}
+		for (i = 0; i < member_operator_indices.length; ++i) {
+			if (! member_operator_indices[i].is_parsed) {
+				this.parse_member_expression(pieces, member_operator_indices[i].index);
+			}
+		}
+		this.parse_unary_expression(pieces, unary_operator_indices);
+		this.parse_binary_expression(pieces, high_math_operator_indices, this.BinaryExpression);
+		this.parse_binary_expression(pieces, medium_math_operator_indices, this.BinaryExpression);
+		this.parse_binary_expression(pieces, low_math_operator_indices, this.BinaryExpression);
+		this.parse_binary_expression(pieces, conditional_operator_indices, this.BinaryExpression);
+		this.parse_binary_expression(pieces, logical_operator_indices, this.LogicalExpression);
+		this.parse_conditional_expression(pieces, ternary_operator_indices);
+		this.parse_assignment_expression(pieces, assignment_operator_indices);
+	};
+	// }}}2
+
+	// Is Identifier {{{2
+	p.is_identifier = function (token) {
+		return token.type === "Identifier" || token.value === '$' || token.value === '_';
+	};
+
+	// Error End of file {{{2
+	p.error_end_of_file = function () {
+		this.raw_tokens[this.raw_tokens.length - 1].error("Unexpected end of file");
+	};
+	// }}}2
+
+	var JavascriptParserWrapper = function () {
+		this.statement_middlewares  = [];
+		this.expression_middlewares = [];
+	};
+	p = JavascriptParserWrapper.prototype;
+
+	p.JavascriptParser = JavascriptParser;
+	p.clone_middlewares = function (middlewares) {
+		var i = 0, clone = new Array(middlewares.length);
+
+		for (; i < clone.length; ++i) {
+			clone[i] = middlewares[i];
+		}
+
+		return clone;
+	};
+
+	p.statement = function (middleware) {
+		if (this.statement_middlewares) {
+			this.statement_middlewares.push(middleware);
+		} else {
+			this.statement_middlewares = [middleware];
+		}
+	};
+	p.expression = function (middleware) {
+		if (this.expression_middlewares) {
+			this.expression_middlewares.push(middleware);
+		} else {
+			this.expression_middlewares = [middleware];
+		}
+	};
+
+	p.parse = function (filename, source_code) {
+		var parser = new this.JavascriptParser(
+			this.statement_middlewares  && this.clone_middlewares(this.statement_middlewares),
+			this.expression_middlewares && this.clone_middlewares(this.expression_middlewares)
+		);
+		return parser.parse(filename, source_code);
+	};
+
+	return JavascriptParserWrapper;
+});
+// }}}1
+
+// Public API {{{1
+app.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Parser"], function (tokenizer, JavascriptParser) {
+	var parser = new JavascriptParser();
+
+	var ECMA6String = function () {};
+	var p = ECMA6String.prototype;
+
+	p.TemplateLiteral = function (token, body) {
+		this.type  = "TemplateLiteral";
+		this.body  = body;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.TemplateLiteralString = function (token) {
+		this.type  = "TemplateLiteralString";
+		this.value = token.value;
+		this.start = token.start;
+		this.end   = token.end;
+	};
+	p.TemplateLiteralExpression = function (token, expression) {
+		this.type       = "TemplateLiteralExpression";
+		this.expression = expression;
+		this.start      = token.start;
+		this.end        = token.end;
+	};
+
+	p.parse = function (parser, temp, tokens, i) {
+		if (tokens[i].type === "TemplateLiteral") {
+			var body = [], j = 0;
+
+			for (; j < tokens[i].children.length; ++j) {
+				switch (tokens[i].children[j].type) {
+					case "TemplateLiteral quasi string" :
+						body.push(new this.TemplateLiteralString(tokens[i].children[j]));
+						break;
+					case "TemplateLiteral expression" :
+						parser.parse_sequence_expression(
+							temp, tokens[i].children[j].children,
+							0, tokens[i].children[j].children.length
+						);
+						body.push(new this.TemplateLiteralExpression(
+							tokens[i].children[j],
+							temp.expression
+						));
+						break;
+					default:
+						tokens[i].error_unexpected_token();
+				}
+			}
+
+			temp.parsed_token = new this.TemplateLiteral(tokens[i], body);
+		}
+
+		return i;
+	};
+
+	var es6 = new ECMA6String();
+
+	parser.expression(function (p, temp, tokens, i) {
+		return es6.parse(p, temp, tokens, i);
+	});
+
+	return function (filename, source_code) {
+		try {
+			return parser.parse(filename, source_code);
+		} catch (error) {
+			error.fileName = filename;
+			error.$stack   = error.stack;
+			throw error;
+		}
+	};
+});
+// }}}1
+
+});
+
+return jeefo;
+
+};

@@ -20,6 +20,7 @@
   "keywords": [
     "jeefo",
     "token",
+    "parser",
     "tokenizer"
   ],
   "devDependencies": {
@@ -30,8 +31,8 @@
     "uglify-js": "^2.8.22"
   },
   "dependencies": {
-    "jeefo": "^0.0.8",
-    "jeefo_tokenizer": "^0.0.15"
+    "jeefo": "^0.0.9",
+    "jeefo_tokenizer": "^0.0.17"
   },
   "uglify_config": {
     "mangle": {
