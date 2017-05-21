@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : javascript_parser.js
+* File Name   : parser.js
 * Created at  : 2017-04-14
-* Updated at  : 2017-05-07
+* Updated at  : 2017-05-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,7 +9,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo    = require("./javascript_tokenizer"),
+var jeefo    = require("./tokenizer"),
 	_package = require("../package"),
 	app      = jeefo.module(_package.name);
 
@@ -24,8 +24,9 @@ var PP = {
 };
 
 //ignore:end
+
 // Javascript Parser {{{1
-app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
+app.namespace("javascript.Parser", ["javascript.es5_tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
 
 	var keywords = [
 		"break", "continue", "return",
@@ -345,8 +346,8 @@ app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], 
 	// }}}2
 
 	// Parse {{{2
-	p.parse = function (filename, source_code) {
-		this.raw_tokens = tokenizer(source_code);
+	p.parse = function (filename, source_code, tokenizer) {
+		this.raw_tokens = tokenizer.parse(source_code);
 		//console.log(888, this.raw_tokens);
 
 		var body    = this.parse_block_statement(this.raw_tokens);
@@ -2244,12 +2245,178 @@ pieces[j] = null;
 		}
 	};
 
+	var MySymbol = function (id, left_binding_power) {
+		this.id = this.value = id;
+		this.left_binding_power = left_binding_power;
+	};
+
+	var original_scope = {
+		define: function (n) {
+			var t = this.def[n.value];
+			if (typeof t === "object") {
+				n.error(t.reserved ? "Already reserved." : "Already defined.");
+			}
+			this.def[n.value] = n;
+			n.reserved = false;
+			n.nud	   = itself;
+			n.led	   = null;
+			n.std	   = null;
+			n.lbp	   = 0;
+			n.scope    = scope;
+			return n;
+		},
+		find: function (n) {
+			var e = this, o;
+			while (true) {
+				o = e.def[n];
+				if (o && typeof o !== "function") {
+					return e.def[n];
+				}
+				e = e.parent;
+				if (!e) {
+					o = symbol_table[n];
+					return o && typeof o !== "function" ? o : symbol_table["(name)"];
+				}
+			}
+		},
+		pop: function () {
+			scope = this.parent;
+		},
+		reserve: function (n) {
+			if (n.arity !== "name" || n.reserved) {
+				return;
+			}
+			var t = this.def[n.value];
+			if (t) {
+				if (t.reserved) {
+					return;
+				}
+				if (t.arity === "name") {
+					n.error("Already defined.");
+				}
+			}
+			this.def[n.value] = n;
+			n.reserved = true;
+		}
+	};
+
+	var Parser = function () {
+		this.symbols = {};
+	};
+
+	Parser.prototype = {
+		symbol : function (id, binding_power) {
+			var symbol = this.symbols[id];
+
+			if (arguments.length === 1) {
+				binding_power = 0;
+			}
+
+			if (symbol) {
+				if (binding_power >= symbol.left_binding_power) {
+					symbol.left_binding_power = binding_power;
+				}
+			} else {
+				symbol = new MySymbol(id, binding_power);
+				this.symbols[id] = symbol;
+			}
+
+			return this;
+		},
+	};
+	var pp = new Parser();
+
+	pp.
+	symbol(';').
+	symbol(":").
+	symbol(";").
+	symbol(")").
+	symbol("]").
+	symbol("}").
+	symbol(",").
+	symbol("else");
+
+	var identifier_handler = function (temp, tokens, index) {
+		var i          = index + 1,
+			token      = temp.token      = new Token(),
+			identifier = temp.identifier = new this.tokens[name](tokens[index]);
+
+		LOOP:
+		for (; i < tokens.length; ++i) {
+			switch (tokens[i].type) {
+				case "Number":
+				case "Identifier":
+					if (tokens[i - 1].end.index === tokens[i].start.index) {
+						identifier.name = identifier.name + tokens[i].value;
+					} else {
+						break LOOP;
+					}
+					break;
+				case "SpecialCharacter":
+					switch (tokens[i].value) {
+						case '$':
+						case '_':
+							if (tokens[i - 1].end.index === tokens[i].start.index) {
+								identifier.name = identifier.name + tokens[i].value;
+							} else {
+								break LOOP;
+							}
+							break;
+						default:
+							break LOOP;
+					}
+					break;
+				default:
+					break LOOP;
+			}
+		}
+
+		identifier.end = tokens[i - 1].end;
+
+		token.type  = "Identifier";
+		token.value = identifier.name;
+		token.start = tokens[index].start;
+		token.end   = tokens[i - 1].end;
+
+		this.pieces.push(token);
+
+		return i - 1;
+	};
+
+	pp.register("Identifier", identifier_handler);
+	pp.register("SpecialCharacter", function (temp, tokens, index) {
+		switch (tokens[index].value) {
+			case '_' :
+			case '$' :
+				return this.handlers.Identifier(temp, tokens, index);
+			case '+'   :
+			case '-'   :
+				if (i === 0 || (this.pieces[i - 1] && this.pieces[i - 1].type === "Operator")) {
+					unary_operator_indices.unshift(i);
+				} else {
+					if (this.operators[13]) {
+						this.operators[13].push(this.pieces.length);
+						this.pieces.push()
+					}
+					medium_math_operator_indices.push(i);
+				}
+				break;
+			case '*'   :
+			case '/'   :
+			case '%'   :
+				high_math_operator_indices.push(i);
+				break;
+		}
+	});
+
 	p.parse = function (filename, source_code) {
 		var parser = new this.JavascriptParser(
 			this.statement_middlewares  && this.clone_middlewares(this.statement_middlewares),
 			this.expression_middlewares && this.clone_middlewares(this.expression_middlewares)
 		);
-		return parser.parse(filename, source_code);
+		var t = pp.scan(tokenizer.parse(source_code), 0);
+		console.log(t);
+		//return parser.parse(filename, source_code, tokenizer);
 	};
 
 	return JavascriptParserWrapper;
@@ -2396,7 +2563,7 @@ case':':
 	});
 `;
 	source   = fs.readFileSync(filename, "utf8");
-	source   = "z = `abc${ zz }\nff`;";
+	source   = "a = 123;";
 
 	/*
 	*/
@@ -2416,8 +2583,10 @@ case':':
 		var result = parser(filename, source);
 		var end = Date.now();
 
-		var statements = result.program.body;
-		print(statements[0].expression.right.body[2]);
+		//console.log(result);
+
+		//var statements = result.program.body;
+		//print(statements[0].expression.right.body[2]);
 		/*
 		print(statements[0].expression.body[0]);
 		print(statements[0].expression.body[1]);

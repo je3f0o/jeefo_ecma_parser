@@ -1,187 +1,3 @@
-/**
- * jeefo_javascript_parser : v0.0.6
- * Author                  : je3f0o, <je3f0o@gmail.com>
- * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
- * License                 : The MIT License
- * Copyright               : 2017
- **/
-jeefo.use(function (jeefo) {
-
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : tokenizer.js
-* Created at  : 2017-04-08
-* Updated at  : 2017-05-14
-* Author      : jeefo
-* Purpose     :
-* Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
-var app      = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
-	LANGUAGE = "javascript";
-
-// Regions {{{1
-app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tokenizer) {
-	var javascript_tokenizer = new Tokenizer(LANGUAGE);
-
-	// Comment {{{2
-	javascript_tokenizer.regions.register({
-		type  : "Comment",
-		name  : "Inline comment",
-		start : "//",
-		end   : "\n",
-	}).
-	register({
-		type  : "Comment",
-		name  : "Multi line comment",
-		start : "/*",
-		end   : "*/",
-	}).
-
-	// String {{{2
-	register({
-		type        : "String",
-		name        : "Double quote string",
-		start       : '"',
-		escape_char : '\\',
-		end         : '"',
-	}).
-	register({
-		type        : "String",
-		name        : "Single quote string",
-		start       : "'",
-		escape_char : '\\',
-		end         : "'",
-	}).
-	register({
-		type        : "TemplateLiteral quasi string",
-		start       : null,
-		escape_char : '\\',
-		end         : '${',
-		until       : true,
-		contained   : true,
-	}).
-	register({
-		type  : "TemplateLiteral expression",
-		start : "${",
-		end   : '}',
-		contains : [
-			{ type : "Block"       } ,
-			{ type : "Array"       } ,
-			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
-			{ type : "Comment"     } ,
-			{ type : "Parenthesis" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-	register({
-		type  : "TemplateLiteral",
-		start : '`',
-		end   : '`',
-		contains : [
-			{ type : "TemplateLiteral quasi string" } ,
-			{ type : "TemplateLiteral expression"   } ,
-		],
-		keepend : true
-	}).
-
-	// Parenthesis {{{2
-	register({
-		type  : "Parenthesis",
-		name  : "Parenthesis",
-		start : '(',
-		end   : ')',
-		contains : [
-			{ type : "Block"           } ,
-			{ type : "Array"           } ,
-			{ type : "String"          } ,
-			{ type : "RegExp"          } ,
-			{ type : "Comment"         } ,
-			{ type : "Parenthesis"     } ,
-			{ type : "TemplateLiteral" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-
-	// Array {{{2
-	register({
-		type  : "Array",
-		name  : "Array literal",
-		start : '[',
-		end   : ']',
-		contains : [
-			{ type : "Block"       },
-			{ type : "Array"       },
-			{ type : "String"      },
-			{ type : "Comment"     },
-			{ type : "Parenthesis" },
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-
-	// Block {{{2
-	register({
-		type  : "Block",
-		name  : "Block",
-		start : '{',
-		end   : '}',
-		contains : [
-			{ type : "Block"           } ,
-			{ type : "Array"           } ,
-			{ type : "String"          } ,
-			{ type : "RegExp"          } ,
-			{ type : "Comment"         } ,
-			{ type : "Parenthesis"     } ,
-			{ type : "TemplateLiteral" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-
-	// RegExp {{{2
-	register({
-		type        : "RegExp",
-		name        : "RegExp",
-		start       : '/',
-		escape_char : '\\',
-		end         : '/',
-	});
-	// }}}2
-
-	return javascript_tokenizer;
-});
-// }}}1
-
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : pp.js
 * Created at  : 2017-05-11
@@ -190,6 +6,23 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
+// ignore:start
+"use strict";
+
+/* globals -PP */
+/* exported */
+
+var jeefo    = require("./tokenizer"),
+	_package = require("../package"),
+	app      = jeefo.module(_package.name);
+
+var PP = {
+	define : function (name, definition) { return definition; }
+};
+
+var COMMA_PRECEDENCE = 1;
+
+// ignore:end
 
 // SymbolsTable {{{1
 app.namespace("parser.SymbolsTable", [
@@ -2220,4 +2053,125 @@ app.namespace("javascript.ES6_parser", [
 });
 // }}}1
 
+// ignore:start
+// Debug {{{1
+if (require.main === module) {
+	
+app.run([
+	"javascript.ES6_parser",
+	"javascript.es5_tokenizer",
+], function (p, tokenizer) {
+	var print_substr = function (token) {
+		console.log("-----------------------");
+		console.log(source.slice(token.start.index, token.end.index));
+		console.log("----------------------------------------");
+	};
+	var print = function (token) {
+		console.log("----------------------------------------");
+		console.log(token);
+		print_substr(token);
+	};
+
+	var source;
+	var fs       = require("fs");
+	var path     = require("path");
+	var filename = path.join(__dirname, "./pp.js");
+	source       = fs.readFileSync(filename, "utf8");
+	/*
+	source = `
+	var core_module = jeefo.module("jeefo_core", []),
+	CAMEL_CASE_REGEXP = /[A-Z]/g,
+	dash_case = function (str) {
+		return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+			return (pos ? '-' : '') + letter.toLowerCase();
+		});
+	},
+	snake_case = function (str) {
+		return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+			return (pos ? '_' : '') + letter.toLowerCase();
+		});
+	};
+	delete ZZ.ff;
+	return zzz;
+	throw z,a,b;
+	function fn (param1, param2) {}
+	continue LABEL;
+	break LABEL;
+	switch (tokens[i].type) {
+		case "Number":
+		case "Identifier":
+			if (tokens[i - 1].end.index === tokens[i].start.index) {
+				this.name += tokens[i].value;
+			} else {
+				break LOOP;
+			}
+			break;
+		case "SpecialCharacter":
+			switch (tokens[i].value) {
+				case '$':
+				case '_':
+					if (tokens[i - 1].end.index === tokens[i].start.index) {
+						this.name += tokens[i].value;
+					} else {
+						break LOOP;
+					}
+					break;
+				default:
+					break LOOP;
+			}
+			break;
+		default:
+			break LOOP;
+	}
+	try {
+		return zzz;
+	} catch (e) {
+		return error;
+	} finally {
+		return final;
+	}
+	for () {
+		zz = as, gg = aa;
+	}
+	{
+		var a = c + b.c * d - f, z = rr; 
+	}
+	while (zzz) {}
+	if (true) {
+		;
+	} else if (qqq) {
+		var z = h;
+	} else {
+		var zzz = zzz;
+	}
+	z = aa || bb && cc;
+	z in f;
+	z instanceof f;
+	f ** f;
+	++a;
+	new Fn(1.2E2,2,3);
+	PP.define("IS_NULL", function (x) { return x === null;   }, true);
+	instance.define("IS_OBJECT" , function (x) { return x !== null && typeof x === "object"; } , true);
+	instance.define("ARRAY_EXISTS" , function (arr, x) { return arr.indexOf(x) >= 0; } , true);
+`;
+source += "namespace = namespace ? `${ namespace }.` : part;";
+*/
+
+	var r = p.parse(source);
+
+	//print(r[0].declarations[2].init.body.body[0].argument.arguments[1].body.body[0].argument);
+	//print(r[9].statement.body[0]);
+	//print(r[12].expression.arguments[2].body.body[0].declarations[0].init.body.body[3]);
+	print(r[2]);
+
+	//console.log(r);
+
+	//process.exit();
 });
+
+}
+// }}}1
+
+module.exports = jeefo;
+
+// ignore:end

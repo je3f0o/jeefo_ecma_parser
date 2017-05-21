@@ -13,9 +13,9 @@ module.exports = function (jeefo) {
 jeefo.use(function (jeefo) {
 
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : javascript_tokenizer.js
+* File Name   : tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-07
+* Updated at  : 2017-05-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,47 +24,47 @@ var app      = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
 	LANGUAGE = "javascript";
 
 // Regions {{{1
-app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) {
-	var javascript_regions = new Region(LANGUAGE);
+app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tokenizer) {
+	var javascript_tokenizer = new Tokenizer(LANGUAGE);
 
 	// Comment {{{2
-	javascript_regions.register({
+	javascript_tokenizer.regions.register({
 		type  : "Comment",
 		name  : "Inline comment",
 		start : "//",
 		end   : "\n",
-	});
-	javascript_regions.register({
+	}).
+	register({
 		type  : "Comment",
 		name  : "Multi line comment",
 		start : "/*",
 		end   : "*/",
-	});
+	}).
 
 	// String {{{2
-	javascript_regions.register({
+	register({
 		type        : "String",
 		name        : "Double quote string",
 		start       : '"',
 		escape_char : '\\',
 		end         : '"',
-	});
-	javascript_regions.register({
+	}).
+	register({
 		type        : "String",
 		name        : "Single quote string",
 		start       : "'",
 		escape_char : '\\',
 		end         : "'",
-	});
-	javascript_regions.register({
+	}).
+	register({
 		type        : "TemplateLiteral quasi string",
 		start       : null,
 		escape_char : '\\',
 		end         : '${',
 		until       : true,
 		contained   : true,
-	});
-	javascript_regions.register({
+	}).
+	register({
 		type  : "TemplateLiteral expression",
 		start : "${",
 		end   : '}',
@@ -85,8 +85,8 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 				]
 			},
 		]
-	});
-	javascript_regions.register({
+	}).
+	register({
 		type  : "TemplateLiteral",
 		start : '`',
 		end   : '`',
@@ -95,10 +95,10 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 			{ type : "TemplateLiteral expression"   } ,
 		],
 		keepend : true
-	});
+	}).
 
 	// Parenthesis {{{2
-	javascript_regions.register({
+	register({
 		type  : "Parenthesis",
 		name  : "Parenthesis",
 		start : '(',
@@ -121,10 +121,10 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 				]
 			},
 		]
-	});
+	}).
 
 	// Array {{{2
-	javascript_regions.register({
+	register({
 		type  : "Array",
 		name  : "Array literal",
 		start : '[',
@@ -145,10 +145,10 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 				]
 			},
 		]
-	});
+	}).
 
 	// Block {{{2
-	javascript_regions.register({
+	register({
 		type  : "Block",
 		name  : "Block",
 		start : '{',
@@ -171,1754 +171,228 @@ app.namespace("javascript.es5_regions", ["tokenizer.Region"], function (Region) 
 				]
 			},
 		]
-	});
+	}).
 
 	// RegExp {{{2
-	javascript_regions.register({
-		type  : "RegExp",
-		name  : "RegExp",
-		start : '/',
-		skip  : '\\/',
-		end   : '/',
+	register({
+		type        : "RegExp",
+		name        : "RegExp",
+		start       : '/',
+		escape_char : '\\',
+		end         : '/',
 	});
 	// }}}2
 
-	return javascript_regions;
+	return javascript_tokenizer;
 });
 // }}}1
 
-app.namespace("javascript.tokenizer", [
-	"tokenizer.TokenParser",
-	"javascript.es5_regions"
-], function (TokenParser, jeefo_js_regions) {
-	return function (source) {
-		var tokenizer = new TokenParser(LANGUAGE, jeefo_js_regions);
-		return tokenizer.parse(source);
-	};
-});
-
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : javascript_parser.js
-* Created at  : 2017-04-14
-* Updated at  : 2017-05-07
+* File Name   : pp.js
+* Created at  : 2017-05-11
+* Updated at  : 2017-05-22
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
-// Javascript Parser {{{1
-app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], function (tokenizer, Token) {
 
-	var keywords = [
-		"break", "continue", "return",
-		"do", "for", "while",
-		"switch", "case", "default",
-		"in", "typeof", "instanceof",
-		"try", "catch", "finally", "throw",
-		"var", "function", "this",
-		"new", "debugger",
-		"if", "else",
-		"with", "delete", "void",
-	];
+// SymbolsTable {{{1
+app.namespace("parser.SymbolsTable", [
+	"object.assign",
+	"JeefoObject",
+], function (assign, JeefoObject) {
 
-	var JavascriptParser = function (statement_middlewares, expression_middlewares) {
-		this.reserved               = keywords;
-		if (statement_middlewares)  { this.statement_middlewares  = statement_middlewares;  }
-		if (expression_middlewares) { this.expression_middlewares = expression_middlewares; }
-	},
-	p = JavascriptParser.prototype;
-
-	// Classes {{{2
-	// Statements {{{3
-	p.EmptyStatement = function (token) {
-		this.type  = "EmptyStatement";
-		this.start = token.start;
-		this.end   = token.end;
+	var HandlerInterface = function (handler) {
+		this.is    = handler.is;
+		this.Token = function () {};
 	};
-	p.IfStatement = function (start, end, test, statement, alternate) {
-		this.type       = "IfStatement";
-		this.test       = test;
-		this.statement  = statement;
-		this.alternate  = alternate || null;
-		this.start      = start;
-		this.end        = end;
-	};
-	p.ForStatement = function (start, end, init, test, update, statement) {
-		this.type      = "ForStatement";
-		this.init      = init;
-		this.test      = test;
-		this.update    = update;
-		this.statement = statement;
-		this.start     = start;
-		this.end       = end;
-	};
-	p.ForInStatement = function (start, end, left, right, statement) {
-		this.type      = "ForInStatement";
-		this.left      = left;
-		this.right     = right;
-		this.statement = statement;
-		this.start     = start;
-		this.end       = end;
-	};
-	p.WhileStatement = function (start, end, test, statement) {
-		this.type      = "WhileStatement";
-		this.test      = test;
-		this.statement = statement;
-		this.start     = start;
-		this.end       = end;
-	};
-	p.SwitchStatement = function (start, end, test, cases) {
-		this.type  = "SwitchStatement";
-		this.test  = test;
-		this.cases = cases;
-		this.start = start;
-		this.end   = end;
-	};
-	p.LabeledStatement = function (start, end, label, statement) {
-		this.type      = "LabeledStatement";
-		this.label     = label;
-		this.statement = statement;
-		this.start     = start;
-		this.end       = end;
-	};
-	p.TryStatement = function (start, end, block, handler, finalizer) {
-		this.type      = "TryStatement";
-		this.block     = block;
-		this.handler   = handler;
-		this.finalizer = finalizer;
-		this.start     = start;
-		this.end       = end;
-	};
-	p.ThrowStatement = function (start, end, argument) {
-		this.type     = "ThrowStatement";
-		this.argument = argument;
-		this.start    = start;
-		this.end      = end;
-	};
-	p.ReturnStatement = function (start, end, argument) {
-		this.type     = "ReturnStatement";
-		this.argument = argument;
-		this.start    = start;
-		this.end      = end;
-	};
-	p.BreakStatement = function (start, end, label) {
-		this.type  = "BreakStatement";
-		this.label = label;
-		this.start = start;
-		this.end   = end;
-	};
-	p.ContinueStatement = function (start, end, label) {
-		this.type  = "ContinueStatement";
-		this.label = label;
-		this.start = start;
-		this.end   = end;
-	};
-	p.ExpressionStatement = function (start, end, expression) {
-		this.type       = "ExpressionStatement";
-		this.expression = expression;
-		this.start      = start;
-		this.end        = end;
-	};
-	p.BlockStatement = function (token, body) {
-		this.type  = "BlockStatement";
-		this.body  = body;
-		this.start = token.start;
-		this.end   = token.end;
-	};
-	p.ProgramStatement = function (start, end, body) {
-		this.type  = "ProgramStatement";
-		this.body  = body;
-		this.start = start;
-		this.end   = end;
-	};
-	// Literals {{{3
-	p.NumberLiteral = function (token) {
-		this.type  = "NumberLiteral";
-		this.value = token.value;
-		this.start = token.start;
-		this.end   = token.end;
-	};
-	p.StringLiteral = function (token) {
-		this.type  = "StringLiteral";
-		this.value = token.value;
-		this.start = token.start;
-		this.end   = token.end;
-	};
-	p.ArrayLiteral = function (token, elements) {
-		this.type     = "ArrayLiteral";
-		this.elements = elements;
-		this.start    = token.start;
-		this.end      = token.end;
-	};
-	p.RegExpLiteral = function (start, end, pattern, flags) {
-		this.type  = "RegExpLiteral";
-		this.regex = {
-			pattern : pattern,
-			flags   : flags
-		};
-		this.start = start;
-		this.end   = end;
-	};
-	p.ObjectLiteral = function (token, properties) {
-		this.type       = "ObjectLiteral";
-		this.properties = properties;
-		this.start      = token.start;
-		this.end        = token.end;
-	};
-	// Expressions {{{3
-	p.MemberExpression = function (start, end, object, property, is_computed) {
-		this.type        = "MemberExpression";
-		this.object      = object;
-		this.property    = property;
-		this.is_computed = is_computed ? true : false;
-		this.start       = start;
-		this.end         = end;
-	};
-	p.CallExpression = function (start, end, callee, args) {
-		this.type         = "CallExpression";
-		this.callee       = callee;
-		this["arguments"] = args;
-		this.start        = start;
-		this.end          = end;
-	};
-	p.NewExpression = function (start, end, callee, args) {
-		this.type         = "NewExpression";
-		this.callee       = callee;
-		this["arguments"] = args;
-		this.start        = start;
-		this.end          = end;
-	};
-	p.UnaryExpression = function (start, end, operator, argument, is_prefix) {
-		this.type      = "UnaryExpression";
-		this.operator  = operator;
-		this.argument  = argument;
-		this.is_prefix = is_prefix ? true : false;
-		this.start     = start;
-		this.end       = end;
-	};
-	p.LogicalExpression = function (start, end, left, operator, right) {
-		this.type     = "LogicalExpression";
-		this.operator = operator;
-		this.left     = left;
-		this.right    = right;
-		this.start    = start;
-		this.end      = end;
-	};
-	p.BinaryExpression = function (start, end, left, operator, right) {
-		this.type     = "BinaryExpression";
-		this.operator = operator;
-		this.left     = left;
-		this.right    = right;
-		this.start    = start;
-		this.end      = end;
-	};
-	p.AssignmentExpression = function (start, end, left, operator, right) {
-		this.type     = "AssignmentExpression";
-		this.operator = operator;
-		this.left     = left;
-		this.right    = right;
-		this.start    = start;
-		this.end      = end;
-	};
-	p.ConditionalExpression = function (start, end, test, consequent, alternate) {
-		this.type       = "ConditionalExpression";
-		this.test       = test;
-		this.consequent = consequent;
-		this.alternate  = alternate;
-		this.start      = start;
-		this.end        = end;
-	};
-	p.SequenceExpression = function (expressions) {
-		this.type        = "SequenceExpression";
-		this.expressions = expressions;
-		this.start       = expressions[0].start;
-		this.end         = expressions[expressions.length - 1].end;
-	};
-	p.FunctionExpression = function (start, end, id, parameters, body) {
-		this.type       = "FunctionExpression";
-		this.id         = id;
-		this.parameters = parameters;
-		this.body       = body;
-		this.start      = start;
-		this.end        = end;
-	};
-	// Delcarations {{{3
-	p.VariableDeclaration = function (start, end, declarators) {
-		this.type         = "VariableDeclaration";
-		this.declarations = declarators;
-		this.start        = start;
-		this.end          = end;
-	};
-	p.VariableDeclarator = function (identifier) {
-		this.type  = "VariableDeclarator";
-		this.id    = identifier;
-		this.init  = null;
-		this.start = identifier.start;
-		this.end   = identifier.end;
-	};
-	p.FunctionDeclaration = function (start, end, id, parameters, body) {
-		this.type       = "FunctionDeclaration";
-		this.id         = id;
-		this.parameters = parameters;
-		this.body       = body;
-		this.start      = start;
-		this.end        = end;
-	};
-	// Others {{{3
-	p.Comment = function (token) {
-		this.type    = "Comment";
-		this.comment = token.value;
-		this.start   = token.start;
-		this.end     = token.end;
-	};
-	p.Property = function (key, is_computed) {
-		this.type        = "Property";
-		this.key         = key;
-		this.value       = null;
-		this.is_computed = is_computed ? true : false;
-		this.start       = key.start;
-	};
-	p.CatchClause = function (start, end, param, body) {
-		this.type  = "CatchClause";
-		this.param = param;
-		this.body  = body;
-		this.start = start;
-		this.end   = end;
-	};
-	p.SwitchCase = function (start, end, test, statements) {
-		this.type       = "SwitchCase";
-		this.test       = test;
-		this.statements = statements;
-		this.start      = start;
-		this.end        = end;
-	};
-	p.DefaultCase = function (start, end, statements) {
-		this.type       = "DefaultCase";
-		this.statements = statements;
-		this.start      = start;
-		this.end        = end;
-	};
-	p.Identifier = function (token) {
-		this.type  = "Identifier";
-		this.name  = token.value;
-		this.start = token.start;
-	};
-	p.Operator = function (operator) {
-		this.type     = "Operator";
-		this.operator = operator;
-	};
-	p.Piece = function (token) {
-		this.start_token = token;
-	};
-	p.Temp = function () {};
-	p.File = function (name, code, program) {
-		this.type    = "File";
-		this.name    = name;
-		this.code    = code;
-		this.program = program;
-	};
-	p.Program = function (body) {
-		this.type  = "Program";
-		this.body  = body;
-		this.start = body.length ? body[0].start             : { line : 1, column : 1, index : 0 };
-		this.end   = body.length ? body[body.length - 1].end : { line : 1, column : 1, index : 0 };
-	};
-	// }}}3
-	// }}}2
-
-	// Parse {{{2
-	p.parse = function (filename, source_code) {
-		this.raw_tokens = tokenizer(source_code);
-		//console.log(888, this.raw_tokens);
-
-		var body    = this.parse_block_statement(this.raw_tokens);
-		return new this.File(filename, source_code, new this.Program(body));
+	HandlerInterface.prototype = {
+		assign  : assign,
+		inherit : function (arg1, arg2) {
+			this.assign(this.Token.prototype, arg1, arg2);
+		},
 	};
 
-	// Parse statement {{{2
-	p.parse_statement = function (temp, tokens, start_index) {
-		var index = start_index, has_special_characters;
+	/**
+	 * @interface
+	 *
+	 * expression_default_prototype : {}
+	 * statement_default_prototype  : {}
+	 *
+	 * register_expression({
+	 *   precedence : number
+	 *   initialize(symbol_token, tokens, index, scope)
+	 *   suffix : any
+	 *   protos : {}
+	 * })
+	 * register_statement({
+	 *   precedence : number
+	 *   initialize(statement_token, symbol_token, tokens, index, scope)
+	 *   suffix : any
+	 *   protos : {}
+	 * })
+	 *
+	 * get_expression(scope, tokens, index)
+	 * get_statement(scope, tokens, index)
+	 */
+	var SymbolsTable = function (constructors, expression_symbols, statement_symbols) {
+		this.constructors       = constructors       || new JeefoObject();
+		this.statement_symbols  = statement_symbols  || new JeefoObject();
+		this.expression_symbols = expression_symbols || new JeefoObject();
+	};
 
-		for (; index < tokens.length; ++index) {
-			switch (tokens[index].type) {
-				case "Identifier":
-					if (index === start_index) {
-						index = this.parse_identifier(temp, tokens, index);
+	SymbolsTable.prototype = {
+		assign       : assign,
+		Handler      : HandlerInterface,
+		SymbolsTable : SymbolsTable,
 
-						switch (temp.identifier.name) {
-							case "function" :
-								return this.parse_function_declaration(temp, tokens, start_index);
-							case "var" :
-								return this.parse_variable_declaration(temp, tokens, start_index, tokens.length);
-							case "throw" :
-								return this.parse_statement_has_expression_argument(temp, tokens, start_index, this.ThrowStatement);
-							case "return" :
-								return this.parse_statement_has_expression_argument(temp, tokens, start_index, this.ReturnStatement);
-							case "if" :
-								return this.parse_if_statement(temp, tokens, start_index);
-							case "for" :
-								return this.parse_for_statement(temp, tokens, start_index);
-							case "while" :
-								return this.parse_while_statement(temp, tokens, start_index);
-							case "switch" :
-								return this.parse_switch_statement(temp, tokens, start_index);
-							case "try" :
-								return this.parse_try_statement(temp, tokens, start_index);
-							case "break" :
-								return this.parse_statement_has_label(temp, tokens, start_index, this.BreakStatement);
-							case "continue" :
-								return this.parse_statement_has_label(temp, tokens, start_index, this.ContinueStatement);
-						}
-					}
-					break;
-				case "Block":
-					if (index === start_index) {
-						temp.statement = new this.BlockStatement(
-							tokens[start_index],
-							this.parse_block_statement(tokens[start_index].children)
-						);
-						return index;
-					}
-					break;
-				case "Parenthesis":
-					if (index === start_index) {
-						this.parse_sequence_expression(temp, tokens[index].children, 0, tokens[index].children.length);
-						temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[index + 1].end, temp.expression);
-						return index + 1;
-					}
-					break;
-				case "SpecialCharacter":
-					switch (tokens[index].value) {
-						case ':':
-							if (! has_special_characters) {
-								return this.parse_labeled_statement(temp, tokens, start_index);
-							}
-							break;
-						case ';':
-							if (index === start_index) {
-								temp.statement = new this.EmptyStatement(tokens[index]);
-							} else {
-								this.parse_expression_statement(temp, tokens, start_index, index);
-							}
+		handler : function (handler) {
+			return new this.Handler(handler);
+		},
 
-							return index;
-						case '$':
-						case '_':
-							break;
-						default:
-							has_special_characters = true;
-					}
-					break;
-				case "Comment":
-					temp.statement = new this.Comment(tokens[index]);
-					return index;
+		sort_handler : function (a, b) {
+			return a.Token.prototype.precedence - b.Token.prototype.precedence;
+		},
+
+		copy : function () {
+			return new this.SymbolsTable(this.constructors.$copy(), this.expression_symbols.$copy(), this.statement_symbols.$copy());
+		},
+
+		register_constructor : function (type, Constructor, protos) {
+			this.constructors[type] = Constructor;
+			this.assign(Constructor.prototype, this.expression_default_prototypes, protos);
+			Constructor.prototype.type = type;
+
+			if (Constructor.prototype.on_register) {
+				Constructor.prototype.on_register(Constructor.prototype, this);
 			}
-		}
 
-		if (index > start_index) {
-			this.parse_expression_statement(temp, tokens, start_index, index);
-			return index;
-		}
+			return this;
+		},
 
-		throw Error("Executed unreachable code.");
-	};
+		register_expression : function (type, handler, suffix) {
+			var _handler = this.handler(handler);
+			_handler.inherit(this.expression_default_prototypes, handler.protos);
 
-	// Parse If statement {{{2
-	p.parse_if_statement = function (temp, tokens, index, next_token) {
-		var i = index + 1, test, statement, alternate;
+			if (suffix === void 0) {
+				_handler.Token.prototype.type += "Expression";
+			} else if (suffix) {
+				_handler.Token.prototype.type += suffix;
+			}
+			this.constructors[_handler.Token.prototype.type] = _handler.Token;
 
-		if (tokens[i]) {
-			if (tokens[i].type === "Parenthesis") {
-				test = this.parse_test(temp, tokens[i].children);
-				++i;
+			if (_handler.Token.prototype.on_register) {
+				_handler.Token.prototype.on_register(_handler.Token.prototype, this);
+			}
+
+			if (this.expression_symbols.hasOwnProperty(type)) {
+				this.expression_symbols[type].push(_handler);
+				this.expression_symbols[type].sort(this.sort_handler);
 			} else {
-				tokens[i].error_unexpected_token();
+				this.expression_symbols[type] = [_handler];
 			}
-		} else {
-			next_token.error_unexpected_token();
-		}
 
-		if (tokens[i]) {
-			i = this.parse_statement(temp, tokens, i);
-			if (temp.statement) {
-				statement = temp.statement;
+			return this;
+		},
+
+		register_statement : function (type, handler) {
+			var _handler = this.handler(handler);
+			_handler.inherit(this.statement_default_prototypes, handler.protos);
+
+			if (handler.suffix === void 0) {
+				_handler.Token.prototype.type += "Statement";
+			} else if (handler.suffix) {
+				_handler.Token.prototype.type += handler.suffix;
+			}
+			this.constructors[_handler.Token.prototype.type] = _handler.Token;
+
+			if (_handler.Token.prototype.on_register) {
+				_handler.Token.prototype.on_register(_handler.Token.prototype, this);
+			}
+
+			if (this.statement_symbols.hasOwnProperty(type)) {
+				this.statement_symbols[type].push(_handler);
+				this.statement_symbols[type].sort(this.sort_handler);
 			} else {
-				throw Error("Fallback error");
+				this.statement_symbols[type] = [_handler];
 			}
-		} else {
-			next_token.error_unexpected_token();
-		}
 
-		if (tokens[i + 1] && tokens[i + 1].type === "Identifier" && tokens[i + 1].value === "else") {
-			if (tokens[i + 2]) {
-				i = this.parse_statement(temp, tokens, i + 2);
-				alternate = temp.statement;
-			} else {
-				throw Error("Fallback error");
+			return this;
+		},
+
+		get_expression : function (scope, tokens, index) {
+			var symbols = this.expression_symbols[tokens[index].type];
+
+			if (! symbols) {
+				return;
 			}
-		}
 
-		temp.statement = new this.IfStatement(
-			tokens[index].start, tokens[i].end,
-			test, statement, alternate
-		);
+			for (var i = symbols.length - 1; i >= 0; --i) {
+				if (symbols[i].is && ! symbols[i].is(tokens[index], tokens, index)) {
+					continue;
+				}
 
-		return i;
+				var token = new symbols[i].Token();
+
+				if (token.initialize) {
+					token.initialize(tokens, index, scope);
+				}
+
+				return token;
+			}
+		},
+
+		get_statement : function (scope, tokens, index) {
+			var token   = scope.current_expression,
+				symbols = this.statement_symbols[token.type];
+
+			if (! symbols) {
+				return;
+			}
+
+			for (var i = symbols.length - 1; i >= 0; --i) {
+				if (symbols[i].is && ! symbols[i].is(token, tokens, index)) {
+					continue;
+				}
+
+				token = new symbols[i].Token();
+
+				if (token.initialize) {
+					token.initialize(tokens, index, scope);
+				}
+
+				return token;
+			}
+		},
+
+		expression_default_prototypes : {
+			type            : "Undefined",
+			precedence      : 0,
+			null_denotation : function () { return this; },
+			left_denotation : function () { return this; },
+		},
+
+		statement_default_prototypes : {
+			type       : "Undefined",
+			precedence : 3,
+		},
 	};
 
-	// Parse For statement {{{2
-	p.parse_for_statement = function (temp, tokens, index, next_token) {
-		var i = index + 1, type, init, test, update, left, right;
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Parenthesis") {
-				this.parse_for_arguments(temp, tokens[i].children);
-				type = temp.type;
-				switch (type) {
-					case "loop" :
-						init   = temp.init;
-						test   = temp.test;
-						update = temp.update;
-						break;
-					case "in" :
-						left  = temp.left;
-						right = temp.right;
-						break;
-					default:
-						throw Error("Fallback error");
-				}
-				++i;
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		if (tokens[i]) {
-			i = this.parse_statement(temp, tokens, i);
-
-			if (temp.statement) {
-				switch (type) {
-					case "loop" :
-						temp.statement = new this.ForStatement(
-							tokens[index].start, tokens[i].end,
-							init, test, update, temp.statement
-						);
-						break;
-					case "in" :
-						temp.statement = new this.ForInStatement(
-							tokens[index].start, tokens[i].end,
-							left, right, temp.statement
-						);
-						break;
-				}
-			} else {
-				throw Error("error");
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		return i;
-	};
-
-	// Parse While statement {{{2
-	p.parse_while_statement = function (temp, tokens, index, next_token) {
-		var i = index + 1, test;
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Parenthesis") {
-				test = this.parse_test(temp, tokens[i].children);
-				i = i + 1;
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		if (tokens[i]) {
-			i = this.parse_statement(temp, tokens, i);
-			if (temp.statement) {
-				temp.statement = new this.WhileStatement(tokens[index].start, tokens[i].end, test, temp.statement);
-			} else {
-				throw Error("Fallback error");
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		return i;
-	};
-
-	// Parse Switch statement {{{2
-	p.parse_switch_statement = function (temp, tokens, index, next_token) {
-		var i = index + 1, body, discriminant;
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Parenthesis") {
-				this.parse_sequence_expression(temp, tokens[i].children, 0, tokens[i].children.length);
-				if (temp.expression) {
-					discriminant = temp.expression;
-				} else {
-					throw Error("Fallback error");
-				}
-				i = i + 1;
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Block") {
-				body = this.parse_switch_cases(temp, tokens[i].children);
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		temp.statement = new this.SwitchStatement(tokens[index].start, tokens[i].end, discriminant, body);
-
-		return i;
-	};
-
-	// Parse Labeled statement {{{2
-	p.parse_labeled_statement = function (temp, tokens, index) {
-		var i, label;
-
-		i = this.parse_identifier(temp, tokens, index);
-		label = temp.identifier;
-
-		if (tokens[i + 1]) {
-			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
-				i = this.parse_statement(temp, tokens, i + 2, true);
-
-				temp.statement = new this.LabeledStatement(tokens[index].start, temp.statement.end, label, temp.statement);
-			} else {
-				tokens[i + 1].error_unexpected_token();
-			}
-		} else {
-			throw Error("Fallback error");
-		}
-
-		return i;
-	};
-
-	// Parse Try statement {{{2
-	p.parse_try_statement = function (temp, tokens, index, next_token) {
-		var i = index + 1, handler = null, finalizer = null, j, block, param, body;
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Block") {
-				block = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
-				++i;
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Identifier" && tokens[i].value === "catch") {
-				++i;
-
-				if (tokens[i]) {
-					if (tokens[i].type === "Parenthesis") {
-						j = this.parse_identifier(temp, tokens[i].children, 0);
-						if (temp.identifier) {
-							param = temp.identifier;
-
-							if (tokens[i].children.length > j + 1) {
-								tokens[i].children[j + 1].error_unexpected_token();
-							}
-						} else {
-							throw Error("error");
-						}
-
-						i = i + 1;
-					} else {
-						tokens[i].error_unexpected_token();
-					}
-				} else {
-					next_token.error_unexpected_token();
-				}
-
-				if (tokens[i]) {
-					if (tokens[i].type === "Block") {
-						body    = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
-						handler = new this.CatchClause(tokens[i - 2].start, tokens[i].end, param, body);
-					} else {
-						tokens[i].error_unexpected_token();
-					}
-				} else {
-					next_token.error_unexpected_token();
-				}
-			}
-		}
-
-		if (tokens[i + 1]) {
-			if (tokens[i + 1].type === "Identifier" && tokens[i + 1].value === "finally") {
-				i += 2;
-
-				if (tokens[i]) {
-					if (tokens[i].type === "Block") {
-						finalizer = new this.BlockStatement(tokens[i], this.parse_block_statement(tokens[i].children));
-					} else {
-						throw Error("error");
-					}
-				} else {
-					tokens[i].error_unexpected_token();
-				}
-			}
-		}
-
-		if (! handler && ! finalizer) {
-			throw Error("Error");
-		}
-
-		temp.statement = new this.TryStatement(tokens[index].start, tokens[i].end, block, handler, finalizer);
-
-		return i;
-	};
-
-	// Parse Block statement {{{2
-	p.parse_block_statement = function (tokens) {
-		var temp = new this.Temp(), i = 0, statements = [];
-
-		if (this.statement_middlewares) {
-			return this.parse_block_statement_with_middlewares(temp, tokens, statements);
-		} else {
-			for (; i < tokens.length; ++i) {
-				i = this.parse_statement(temp, tokens, i);
-				statements.push(temp.statement);
-			}
-		}
-
-		return statements;
-	};
-
-	// Parse Block statement with middlewares {{{2
-	p.parse_block_statement_with_middlewares = function (temp, tokens, statements) {
-		var i = 0, j, return_index;
-
-		LOOP:
-		for (; i < tokens.length; ++i) {
-			for (j = 0; j < this.statement_middlewares.length; ++j) {
-				return_index = this.statement_middlewares[i](this, temp, tokens, i);
-
-				if (return_index > i) {
-					i = return_index;
-					statements.push(temp.statement);
-					continue LOOP;
-				}
-			}
-
-			i = this.parse_statement(temp, tokens, i);
-			statements.push(temp.statement);
-		}
-
-		return statements;
-	};
-
-	// Parse Return, Throw statement {{{2
-	p.parse_statement_has_expression_argument = function (temp, tokens, index, Statement) {
-		var i = this.parse_sequence_expression(temp, tokens, index + 1, tokens.length);
-		temp.statement = new Statement(tokens[index].start, tokens[i].end, temp.expression);
-
-		return i;
-	};
-
-	// Parse Break, Continue statement {{{2
-	p.parse_statement_has_label = function (temp, tokens, index, Statement) {
-		var i = index, label = null;
-
-		if (tokens[i + 1]) {
-			if (this.is_identifier(tokens[i + 1])) {
-				i = this.parse_identifier(temp, tokens, i + 1);
-				label = temp.identifier;
-			}
-		}
-
-		if (tokens[i + 1]) {
-			if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ';') {
-				++i;
-			}
-		}
-
-		temp.statement = new Statement(tokens[index].start, tokens[i].end, label);
-		
-		return i;
-	};
-	
-	// Parse Expression statement {{{2
-	p.parse_expression_statement = function (temp, tokens, index, end_index) {
-		this.parse_sequence_expression(temp, tokens, index, end_index);
-		if (tokens[end_index]) {
-			temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index].end, temp.expression);
-		} else {
-			temp.statement = new this.ExpressionStatement(tokens[index].start, tokens[end_index - 1].end, temp.expression);
-		}
-	};
-	// }}}2
-
-	// Parse Number expression {{{2
-	p.parse_number_literal = function () {
-		//var 
-	};
-	// }}}2
-
-	// Parse Variable declaration {{{2
-	p.parse_variable_declaration = function (temp, tokens, index, end_index) {
-		var i = index + 1, vars = [], expect_identifer = true, declarator;
-
-		
-		for (; i < end_index; ++i) {
-			switch (tokens[i].type) {
-				// Number {{{3
-				case "Number":
-					tokens[i].error("Unexpected ILLEGAL token");
-					break;
-				// Identifier {{{3
-				case "Identifier":
-					if (declarator) {
-					tokens[i].error_unexpected_type();
-				}
-				i = this.parse_identifier(temp, tokens, i);
-				declarator = new this.VariableDeclarator(temp.identifier);
-				expect_identifer = false;;
-					break;
-				// Special characters {{{3
-				case "SpecialCharacter":
-					switch (tokens[i].value) {
-						case '=':
-							if (declarator) {
-								if (tokens[i + 1]) {
-									i = this.parse_expression(temp, tokens, i + 1, end_index);
-									declarator.end  = temp.expression.end_token.end;
-									declarator.init = temp.expression.parsed_token;
-
-									vars.push(declarator);
-									declarator = null;
-								} else {
-									throw new Error("Fallback error");
-								}
-							} else {
-								tokens[i].error_unexpected_token();
-							}
-							break;
-						case '$':
-						case '_':
-							if (declarator) {
-							tokens[i].error_unexpected_type();
-						}
-						i = this.parse_identifier(temp, tokens, i);
-						declarator = new this.VariableDeclarator(temp.identifier);
-						expect_identifer = false;;
-							break;
-						case ',':
-							if (declarator) {
-								vars.push(declarator);
-								declarator = null;
-							} else if (expect_identifer) {
-								tokens[i].error_unexpected_token();
-							}
-							expect_identifer = true;
-							break;
-						case ';':
-							if (expect_identifer) {
-								tokens[i].error_unexpected_token();
-							}
-							if (declarator) {
-								vars.push(declarator);
-							}
-
-							temp.statement = new this.VariableDeclaration(tokens[index].start, tokens[i].end, vars);
-							return i;
-						default:
-							tokens[i].error_unexpected_token();
-					}
-					break;
-				// Comment {{{3
-				case "Comment":
-					break;
-				// Unexpected token {{{3
-				default:
-					tokens[i].error_unexpected_token();
-				// }}}3
-			}
-		}
-
-		// some kind of error...
-		//if (! declarator) { }
-
-		vars.push(declarator);
-		temp.statement = new this.VariableDeclaration(tokens[index].start, tokens[i - 1].end, vars);
-
-		return i - 1;
-	};
-
-	// Parse Function declaration {{{2
-	p.parse_function_declaration = function (temp, tokens, index) {
-		var i = index + 1, parameters, id, body;
-
-		if (tokens[i]) {
-			if (this.is_identifier(tokens[i])) {
-				i  = this.parse_identifier(temp, tokens, i) + 1;
-				id = temp.identifier;
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-			// some kind of error
-			//} else {
-		}
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Parenthesis") {
-				parameters = this.parse_parameters(temp, tokens[i].children);
-				++i;
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-			// some kind of error
-			//} else {
-		}
-
-		if (tokens[i]) {
-			if (tokens[i].type === "Block") {
-				body = new this.BlockStatement(
-					tokens[i],
-					this.parse_block_statement(tokens[i].children)
-				);
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-			// some kind of error
-			//} else {
-		}
-
-		temp.statement = new this.FunctionDeclaration(tokens[index].start, body.end, id, parameters, body);
-
-		return i;
-	};
-	// }}}2
-
-	// Parse expression {{{2
-	p.parse_expression = function (temp, tokens, i, end_index, delimiter) {
-		var j = 0, pieces = [];
-
-		LOOP:
-		for (; i < end_index; ++i) {
-			if (tokens[i].type === "SpecialCharacter") {
-				switch (tokens[i].value) {
-					case ',':
-					case ';':
-					case delimiter:
-						if (pieces.length === 0) {
-							temp.expression = null;
-							return i;
-						}
-						break LOOP;
-				}
-			}
-			i = this.parse_expression_piece(temp, tokens, i);
-
-			if (temp.piece.parsed_token) {
-				pieces.push(temp.piece);
-			}
-		}
-
-		this.assemble_pieces(pieces, 0);
-
-		for (; j < pieces.length; ++j) {
-			if (pieces[j]) {
-				temp.expression = pieces[j];
-				break;
-			}
-		}
-		/*
-		var c = 0;
-		for (j = 0; j < pieces.length; ++j) {
-			if (pieces[j]) {
-				c += 1;
-			}
-		}
-		if (c > 1) {
-			console.log("HERE", pieces);
-			process.exit()
-		}
-		*/
-		
-		return i - 1;
-	};
-
-	// Parse expression pieces {{{2
-	p.parse_expression_piece = function (temp, tokens, i) {
-		temp.piece = new this.Piece(tokens[i]);
-
-		if (this.expression_middlewares) {
-			for (var j = 0; j < this.expression_middlewares.length; ++j) {
-				i = this.expression_middlewares[j](this, temp.piece, tokens, i);
-
-				if (temp.piece.parsed_token) {
-					temp.piece.end_token = tokens[i];
-					return i;
-				}
-			}
-		}
-
-		switch (tokens[i].type) {
-			// Number literal {{{3
-			case "Number":
-				temp.piece.parsed_token = new this.NumberLiteral(tokens[i]);
-				break;
-			// String literal {{{3
-			case "String":
-				temp.piece.parsed_token = new this.StringLiteral(tokens[i]);
-				break;
-			// Regex literal {{{3
-			case "RegExp":
-				i = this.parse_regex(temp.piece, tokens, i);
-				break;
-			// Identifier {{{3
-			case "Identifier":
-				i = this.parse_identifier(temp, tokens, i);
-
-				switch (temp.identifier.name) {
-					case "in"         :
-					case "void"       :
-					case "delete"     :
-					case "typeof"     :
-					case "instanceof" :
-						temp.piece.parsed_token = new this.Operator(temp.identifier.name);
-						break;
-					default:
-						temp.piece.parsed_token = temp.identifier;
-				}
-
-				temp.piece.start_token = temp.piece.end_token = temp.token;
-				break;
-			// Parenthesis, Square bracket, Curly bracket {{{3
-			case "Array":
-			case "Block":
-			case "Parenthesis":
-				temp.piece.parsed_token = { type : tokens[i].type };
-				break;
-			// Special characters {{{3
-			case "SpecialCharacter":
-				switch (tokens[i].value) {
-					case '_' :
-					case '$' :
-						i = this.parse_identifier(temp, tokens, i);
-						temp.piece.parsed_token = temp.identifier;
-						temp.piece.start_token  = temp.piece.end_token = temp.token;
-						break;
-					default:
-						i = this.parse_operators(temp.piece, tokens, i);
-				}
-				break;
-			// Comment {{{3
-			case "Comment":
-				temp.piece.parsed_token = null;
-			// }}}3
-		}
-
-		if (! temp.piece.end_token) {
-			temp.piece.end_token = tokens[i];
-		}
-
-		return i;
-	};
-
-	// Parse New expression {{{2
-	p.parse_new_expression = function (pieces, index, next_token) {
-		var i = index + 1, callee;
-
-		this.assemble_pieces(pieces, i, next_token, "Parenthesis");
-
-		for (; i < pieces.length; ++i) {
-			if (pieces[i]) {
-				callee    = pieces[i];
-				pieces[i] = null;
-				break;
-			}
-		}
-
-		if (callee.parsed_token.type === "CallExpression") {
-			pieces[index].parsed_token = new this.NewExpression(
-				pieces[index].start_token.start, callee.end_token.end,
-				callee.parsed_token.callee, callee.parsed_token["arguments"]
-			);
-		} else {
-			pieces[index].parsed_token = new this.NewExpression(
-				pieces[index].start_token.start, callee.end_token.end,
-				callee.parsed_token, []
-			);
-		}
-		pieces[index].end_token = callee.end_token;
-
-		return i;
-	};
-
-	// Parse Unary expression {{{2
-	p.parse_unary_expression = function (pieces, indices, next_token) {
-		for (var j = 0, i, index, operand; j < indices.length; ++j) {
-			index = indices[j];
-
-			switch (pieces[index].parsed_token.operator) {
-				case "--" :
-				case "++" :
-					if (pieces[index - 1] && pieces[index - 1].parsed_token &&
-						pieces[index - 1].parsed_token.type !== "Operator" &&
-						pieces[index - 1].parsed_token.type !== "NumberLiteral") {
-
-						pieces[index - 1].parsed_token = new this.UnaryExpression(
-							pieces[index - 1].start_token.start,
-							pieces[index].end_token.end,
-							pieces[index].parsed_token.operator,
-							pieces[index - 1].parsed_token
-						);
-						pieces[index - 1].end_token = pieces[index].end_token;
-					} else if (
-						pieces[index + 1] && pieces[index + 1].parsed_token &&
-						pieces[index + 1].parsed_token.type !== "Operator" &&
-						pieces[index + 1].parsed_token.type !== "NumberLiteral") {
-
-						pieces[index + 1].parsed_token = new this.UnaryExpression(
-							pieces[index].start_token.start,
-							pieces[index + 1].end_token.end,
-							pieces[index].parsed_token.operator,
-							pieces[index + 1].parsed_token,
-							true
-						);
-						pieces[index + 1].start_token = pieces[index].start_token;
-					}
-					pieces[index] = null;
-					return;
-				case '+'      :
-				case '-'      :
-				case '!'      :
-				case '~'      :
-				case "void"   :
-				case "delete" :
-				case "typeof" :
-					i = index + 1;
-
-					for (; i < pieces.length; ++i) {
-						if (pieces[i]) {
-							operand   = pieces[i];
-							pieces[i] = null;
-							break;
-						}
-					}
-
-					if (! operand) {
-						next_token.error_unexpected_token();
-					}
-
-					if (operand.parsed_token && operand.parsed_token.type === "Operator") {
-						operand.start_token.error_unexpected_token();
-					}
-
-					if (operand) {
-						pieces[index].parsed_token = new this.UnaryExpression(
-							pieces[index].start_token.start,
-							operand.end_token.end,
-							pieces[index].parsed_token.operator,
-							operand.parsed_token,
-							true
-						);
-						pieces[index].end_token = operand.end_token;
-					}
-					break;
-			}
-		}
-	};
-
-	// Parse Binary expression {{{2
-	p.parse_binary_expression = function (pieces, indices, Expression) {
-		for (var i = 0, j, left, right; i < indices.length; ++i) {
-			for (j = indices[i] - 1; j >= 0; --j) {
-				if (pieces[j]) {
-					left      = pieces[j];
-					pieces[j] = null;
-					break;
-				}
-			}
-
-			for (j = indices[i] + 1; j < pieces.length; ++j) {
-				if (pieces[j]) {
-					right     = pieces[j];
-					pieces[j] = null;
-					break;
-				}
-			}
-
-			pieces[indices[i]].parsed_token = new Expression(
-				left.start_token.start, right.end_token.end,
-				left.parsed_token, pieces[indices[i]].parsed_token.operator, right.parsed_token
-			);
-			pieces[indices[i]].start_token = left.start_token;
-			pieces[indices[i]].end_token   = right.end_token;
-		}
-	};
-
-	// Parse Member expression {{{2
-	p.parse_member_expression = function (pieces, index) {
-		var i, object, property;
-
-		switch (pieces[index].parsed_token.type) {
-			case "Operator":
-				for (i = index - 1; i >= 0; --i) {
-					if (pieces[i]) {
-						object = pieces[i];
-
-						if (object.parsed_token.type === "Parenthesis") {
-							return false;
-						}
-
-						pieces[i] = null;
-						break;
-					}
-				}
-
-				for (i = index + 1; i >= 0; ++i) {
-					if (pieces[i]) {
-						property  = pieces[i];
-						pieces[i] = null;
-						break;
-					}
-				}
-
-
-				pieces[index].parsed_token = new this.MemberExpression(
-					object.start_token.start, property.end_token.end,
-					object.parsed_token     , property.parsed_token
-				);
-				pieces[index].start_token = object.start_token;
-				pieces[index].end_token   = property.end_token;
-				break;
-			case "Array":
-				for (i = index - 1; i >= 0; --i) {
-					if (pieces[i] && pieces[i].parsed_token.type !== "Operator") {
-						object    = pieces[i];
-
-						if (object.parsed_token.type === "Parenthesis") {
-							return false;
-						}
-
-						pieces[i] = null;
-						break;
-					}
-				}
-
-				property = pieces[index].parsed_token;
-				this.parse_sequence_expression(
-					property, pieces[index].start_token.children,
-					0, pieces[index].start_token.children.length
-				);
-
-				if (property.expression) {
-					pieces[index].parsed_token = new this.MemberExpression(
-						object.start_token.start, pieces[index].end_token.end,
-						object.parsed_token, property.expression, true
-					);
-				} else {
-					throw Error("Fallback error");
-				}
-				pieces[index].start_token = object.start_token;
-
-				break;
-		}
-
-		return true;
-	};
-
-	// Parse Function expression {{{2
-	p.parse_function_expression = function (pieces, index, next_token) {
-		var id = null, i = index + 1, parameters, body;
-
-		if (pieces[i]) {
-			if (pieces[i].parsed_token.type === "Identifier") {
-				id        = pieces[i].parsed_token;
-				pieces[i] = null;
-				++i;
-			} else if (pieces[i].parsed_token.type !== "Parenthesis") {
-				pieces[i].start_token.error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		if (pieces[i]) {
-			if (pieces[i].parsed_token.type === "Parenthesis") {
-				parameters = this.parse_parameters(pieces[i], pieces[i].start_token.children);
-				pieces[i]  = null;
-				++i;
-			} else {
-				pieces[i].start_token.error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		if (pieces[i]) {
-			if (pieces[i].parsed_token.type === "Block") {
-				body = new this.BlockStatement(
-					pieces[i].start_token,
-					this.parse_block_statement(pieces[i].start_token.children)
-				);
-				pieces[i] = null;
-			} else {
-				pieces[i].start_token.error_unexpected_token();
-			}
-		} else {
-			next_token.error_unexpected_token();
-		}
-
-		pieces[index].parsed_token = new this.FunctionExpression(pieces[index].start_token.start, body.end, id, parameters, body);
-
-		return i;
-	};
-
-	// Parse Sequence expression {{{2
-	p.parse_sequence_expression = function (temp, tokens, i, end_index, is_raw, delimiter) {
-		var expressions = [];
-
-		if (tokens.length === 0 || i >= tokens.length || (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';')) {
-			if (is_raw) {
-				temp.expressions = expressions;
-			} else {
-				temp.expression = null;
-			}
-			return i;
-		}
-
-		LOOP:
-		for (; i < end_index; ++i) {
-			i = this.parse_expression(temp, tokens, i, end_index, delimiter);
-
-			if (temp.expression) {
-				expressions.push(temp.expression.parsed_token);
-			}
-
-			if (tokens[i + 1]) {
-				if (tokens[i + 1].type === "SpecialCharacter") {
-					switch (tokens[i + 1].value) {
-						case ';':
-						case delimiter :
-							i += 2;
-							break LOOP;
-						case ',':
-							++i;
-							break;
-						default:
-							tokens[i + 1].error_unexpected_token();
-					}
-				} else {
-					tokens[i + 1].error_unexpected_token();
-				}
-			}
-		}
-
-		if (is_raw) {
-			temp.expressions = expressions;
-		} else {
-			if (expressions.length > 1) {
-				temp.expression = new this.SequenceExpression(expressions);
-			} else if (expressions.length === 1) {
-				temp.expression = expressions[0];
-			} else {
-				temp.expression = null;
-			}
-		}
-
-		return i - 1;
-	};
-
-	// Parse Assignment expression {{{2
-	p.parse_assignment_expression = function (pieces, indices) {
-		for (var i = 0, j, left, right; i < indices.length; ++i) {
-			for (j = indices[i] - 1; j >= 0; --j) {
-				if (pieces[j]) {
-					left      = pieces[j];
-					pieces[j] = null;
-					break;
-				}
-			}
-
-			switch (left.parsed_token.type) {
-				case "Identifier" :
-				case "MemberExpression" :
-				case "AssignmentExpression" :
-					break;
-				default:
-					left.start_token.error("Assigning to rvalue");
-			}
-
-			for (j = indices[i] + 1; j < pieces.length; ++j) {
-				if (pieces[j]) {
-					right     = pieces[j];
-					pieces[j] = null;
-					break;
-				}
-			}
-
-			pieces[indices[i]].parsed_token = new this.AssignmentExpression(
-				left.start_token.start, right.end_token.end,
-				left.parsed_token, pieces[indices[i]].parsed_token.operator, right.parsed_token
-			);
-			pieces[indices[i]].start_token = left.start_token;
-			pieces[indices[i]].end_token   = right.end_token;
-		}
-	};
-
-	// Parse Conditional expression {{{2
-	p.parse_conditional_expression = function (pieces, indices) {
-		var i = 0, j, index, test, consequent, alternate;
-		for (; i < indices.length; ++i, test = null) {
-			for (j = indices[i] - 1; j >= 0; --j) {
-				if (pieces[j]) {
-					index = j;
-					test  = pieces[j];
-					break;
-				}
-			}
-
-			if (! test) {
-				throw Error("Fallback error");
-			} else if (test.parsed_token.type === "Operator") {
-				throw Error("Fallback error");
-			}
-
-			for (j = indices[i] + 1; j < pieces.length; ++j) {
-				if (pieces[j]) {
-					consequent = pieces[j];
-					pieces[j]  = null;
-					break;
-				}
-			}
-
-			for (j = indices[i] + 1; j < pieces.length; ++j) {
-				if (pieces[j]) {
-					if (pieces[j].parsed_token.type === "Operator") {
-						pieces[j] = null;
-					} else {
-						pieces[j].start_token.error_unexpected_token();
-					}
-					break;
-				}
-			}
-
-			for (j = indices[i] + 1; j < pieces.length; ++j) {
-				if (pieces[j]) {
-					alternate = pieces[j];
-					pieces[j] = null;
-					break;
-				}
-			}
-
-			pieces[indices[i]] = null;
-			pieces[index].parsed_token = new this.ConditionalExpression(
-				test.start_token.start, alternate.end_token.end,
-				test.parsed_token, consequent.parsed_token, alternate.parsed_token
-			);
-			pieces[index].start_token = test.start_token;
-			pieces[index].end_token   = alternate.end_token;
-		}
-	};
-	// }}}2
-
-	// Parse Array {{{2
-	p.parse_array = function (tokens) {
-		var i = 0, temp = new this.Temp(), elements = [];
-
-		for (; i < tokens.length; ++i) {
-			if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ',') {
-				if (temp.to_add) {
-					elements.push(temp.expression.parsed_token);
-					temp.to_add = false;
-				} else {
-					elements.push(null);
-				}
-			} else {
-				i = this.parse_expression(temp, tokens, i, tokens.length);
-				temp.to_add = true;
-			}
-		}
-
-		if (temp.to_add) {
-			elements.push(temp.expression.parsed_token);
-		}
-
-		return elements;
-	};
-
-	// Parse Switch case {{{2
-	p.parse_switch_cases = function (temp, tokens) {
-		var i = 0, body = [], index, j, test, statements;
-
-		TOP:
-		for (; i < tokens.length; ++i) {
-			switch (tokens[i].type) {
-				case "Comment":
-					body.push(new this.Comment(tokens[i]));
-					continue TOP;
-				case "Identifier" :
-					break;
-				default:
-					tokens[i].error_unexpected_token();
-			}
-
-			SWITCH:
-			switch (tokens[i].value) {
-				case "case" :
-					index = i;
-
-					if (tokens[i + 1]) {
-						if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
-							tokens[i + 1].error_unexpected_token();
-						} else {
-							i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length, false, ':');
-						}
-					} else {
-						throw new Error("Fallback error");
-					}
-
-					if (tokens[i]) {
-						if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ':') {
-							test       = temp.expression;
-							statements = [];
-
-							if (i + 1 === tokens.length) {
-								body.push(new this.SwitchCase(tokens[index].start, tokens[i].end, test, statements));
-								break;
-							}
-
-							CASE_SEARCH_NEXT_LOOP:
-							for (j = i + 1; j < tokens.length; ++j) {
-								switch (tokens[j].type) {
-									case "Comment":
-										break;
-									case "Identifier":
-										switch (tokens[j].value) {
-											case "case":
-											case "default":
-												body.push(new this.SwitchCase(tokens[index].start, tokens[i].end, test, statements));
-												break SWITCH;
-										}
-										break CASE_SEARCH_NEXT_LOOP;
-									default:
-										break CASE_SEARCH_NEXT_LOOP;
-								}
-							}
-
-							CASE_LOOP:
-							for (++i; i < tokens.length; ++i) {
-								i = this.parse_statement(temp, tokens, i);
-								statements.push(temp.statement);
-
-								if (tokens[i + 1] && tokens[i + 1].type === "Identifier") {
-									switch (tokens[i + 1].value) {
-										case "case" :
-										case "default" :
-											break CASE_LOOP;
-									}
-								} else {
-									break;
-								}
-							}
-
-							body.push(new this.SwitchCase(tokens[index].start, tokens[i].end, test, statements));
-						} else {
-							tokens[i].error_unexpected_token();
-						}
-					} else {
-						throw new Error("Fallback error");
-					}
-					break;
-				case "default" :
-					index = i;
-
-					if (tokens[i + 1]) {
-						if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ':') {
-							++i;
-							statements = [];
-
-							if (i + 1 === tokens.length) {
-								body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
-								break;
-							}
-
-							DEFAULT_SEARCH_NEXT_LOOP:
-							for (j = i + 1; j < tokens.length; ++j) {
-								switch (tokens[j].type) {
-									case "Comment":
-										break;
-									case "Identifier":
-										switch (tokens[j].value) {
-											case "case":
-											case "default":
-												body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
-												break SWITCH;
-										}
-										break DEFAULT_SEARCH_NEXT_LOOP;
-									default:
-										break DEFAULT_SEARCH_NEXT_LOOP;
-								}
-							}
-
-							DEFAULT_LOOP:
-							for (++i; i < tokens.length; ++i) {
-								i = this.parse_statement(temp, tokens, i);
-								statements.push(temp.statement);
-
-								if (tokens[i + 1] && tokens[i + 1].type === "Identifier") {
-									switch (tokens[i + 1].value) {
-										case "case" :
-										case "default" :
-											break DEFAULT_LOOP;
-									}
-								} else {
-									break;
-								}
-							}
-
-							body.push(new this.DefaultCase(tokens[index].start, tokens[i].end, statements));
-						} else {
-							tokens[i].error_unexpected_token();
-						}
-					} else {
-						throw new Error("Fallback error");
-					}
-					break;
-				default:
-					tokens[i].error_unexpected_token();
-			}
-		}
-
-		return body;
-	};
-
-	// Parse Operators {{{2
-	p.parse_operators = function (temp, tokens, i) {
-		
-		switch (tokens[i].value) {
-			case '.':
-				temp.parsed_token = new this.Operator('.');
-				return i;
-			case '-':
-				if (tokens[i + 1].value === '-' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("--");
-					return i + 1;
-				} else if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("-=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('-');
-				return i;
-			case '+':
-				if (tokens[i + 1].value === '+' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("++");
-					return i + 1;
-				} else if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("+=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('+');
-				return i;
-			case '/':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("/=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('/');
-				return i;
-			case '*':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("*=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('*');
-				return i;
-			case '%':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("%=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('%');
-				return i;
-			case '=':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					if (tokens[i + 2].value === '=' && tokens[i + 2].start.index === tokens[i + 1].end.index) {
-						temp.parsed_token = new this.Operator("===");
-						return i + 2;
-					}
-
-					temp.parsed_token = new this.Operator("==");
-					return i + 1;
-				}
-
-				temp.parsed_token = new this.Operator('=');
-				return i;
-			case '&':
-				if (tokens[i + 1].value === '&' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("&&");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('&');
-				return i;
-			case '|':
-				if (tokens[i + 1].value === '|' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("||");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('|');
-				return i;
-			case '>':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator(">=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('>');
-				return i;
-			case '<':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					temp.parsed_token = new this.Operator("<=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('<');
-				return i;
-			case '!':
-				if (tokens[i + 1].value === '=' && tokens[i + 1].start.index === tokens[i].end.index) {
-					if (tokens[i + 2].value === '=' && tokens[i + 2].start.index === tokens[i + 1].end.index) {
-						temp.parsed_token = new this.Operator("!==");
-						return i + 2;
-					}
-
-					temp.parsed_token = new this.Operator("!=");
-					return i + 1;
-				}
-				temp.parsed_token = new this.Operator('!');
-				return i;
-			case '?':
-			case ':':
-				temp.parsed_token = new this.Operator(tokens[i].value);
-				return i;
-			default:
-				tokens[i].error_unexpected_token();
-		}
-	};
-
-	// Parse Identifier {{{2
-	p.parse_identifier = function (temp, tokens, index) {
-		var i          = index + 1,
-			token      = temp.token      = new Token(),
-			identifier = temp.identifier = new this.Identifier(tokens[index]);
+	return SymbolsTable;
+});
+
+// Javascript SymbolsTable {{{1
+app.namespace("javascript.SymbolsTable", [
+	"JeefoObject",
+	"object.assign",
+	"parser.SymbolsTable",
+], function (JeefoObject, assign, SymbolsTable) {
+
+	var initialize_identifier = function (tokens, index, scope) {
+		var i = index + 1;
+
+		this.type = this.type;
+		this.name = tokens[index].value;
 
 		LOOP:
 		for (; i < tokens.length; ++i) {
@@ -1926,7 +400,7 @@ app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], 
 				case "Number":
 				case "Identifier":
 					if (tokens[i - 1].end.index === tokens[i].start.index) {
-						identifier.name = identifier.name + tokens[i].value;
+						this.name += tokens[i].value;
 					} else {
 						break LOOP;
 					}
@@ -1936,7 +410,7 @@ app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], 
 						case '$':
 						case '_':
 							if (tokens[i - 1].end.index === tokens[i].start.index) {
-								identifier.name = identifier.name + tokens[i].value;
+								this.name += tokens[i].value;
 							} else {
 								break LOOP;
 							}
@@ -1950,541 +424,1804 @@ app.namespace("javascript.Parser", ["javascript.tokenizer", "tokenizer.Token"], 
 			}
 		}
 
-		identifier.end = tokens[i - 1].end;
+		this.start = tokens[index].start;
+		this.end   = tokens[i - 1].end;
 
-		token.type  = "Identifier";
-		token.value = identifier.name;
-		token.start = tokens[index].start;
-		token.end   = tokens[i - 1].end;
-
-		return i - 1;
+		scope.token_index = i - 1;
 	};
 
-	// Parse Parenthesis {{{2
-	p.parse_parenthesis = function (pieces, indices) {
-		var i = 0, temp = pieces[indices[0]].parsed_token, j, args;
+	var JavascriptSymbolsTable = function (constructors, expression_symbols, statement_symbols, named_symbols) {
+		var i;
 
-		LOOP:
-		for (; i < indices.length; ++i) {
-			for (j = indices[i] - 1; j >= 0; --j) {
-				if (pieces[j]) {
-					if (pieces[j].parsed_token.type !== "Operator") {
-						args = this.parse_arguments(temp, pieces[indices[i]].start_token.children);
+		this.constructors       = constructors       || new JeefoObject();
+		this.named_symbols      = named_symbols      || new JeefoObject();
+		this.statement_symbols  = statement_symbols  || new JeefoObject();
+		this.expression_symbols = expression_symbols || new JeefoObject();
 
-						pieces[indices[i]].parsed_token = new this.CallExpression(
-							pieces[j].start_token.start,
-							pieces[indices[i]].end_token.end,
-							pieces[j].parsed_token,
-							args
-						);
-						pieces[indices[i]].start_token = pieces[j].start_token;
-						pieces[j] = null;
-					} else {
-						this.parse_sequence_expression(
-							temp, pieces[indices[i]].start_token.children,
-							0, pieces[indices[i]].start_token.children.length
-						);
-						pieces[indices[i]].parsed_token = temp.expression;
-					}
-
-					continue LOOP;
-				}
-			}
-		}
-	};
-
-	// Parse RegExp {{{2
-	p.REGEX_FLAGS = "gimuy";
-
-	p.parse_regex = function (piece, tokens, index) {
-		var next_index = index + 1, i = 0, flags = '', has_flags, value;
-
-		if (tokens[next_index] && tokens[index].end.index === tokens[next_index].start.index && tokens[next_index].type === "Identifier") {
-			value     = tokens[next_index].value;
-			has_flags = true;
-
-			for (i = value.length - 1; i >= 0; --i) {
-				if (this.REGEX_FLAGS.indexOf(value.charAt(i)) !== -1 && flags.indexOf(value.charAt(i)) === -1) {
-					flags = flags + value.charAt(i);
-				} else {
-					tokens[next_index].error("Invalid regular expression flags");
+		if (this.expression_symbols.Identifier) {
+			for (i = this.expression_symbols.Identifier.length - 1; i >= 0; --i) {
+				if (this.expression_symbols.Identifier[i].precedence === 21) {
+					this.expression_symbols.Identifier.splice(i, 1);
+					break;
 				}
 			}
 		}
 
-		if (! has_flags) {
-			flags      = '';
-			next_index = index;
-		}
-
-		piece.parsed_token = new this.RegExpLiteral(
-			tokens[index].start, tokens[next_index].end,
-			tokens[index].value, flags
-		);
-
-		return next_index;
-	};
-
-	// Parse Arguments {{{2
-	p.parse_arguments = function (temp, tokens) {
-		this.parse_sequence_expression(temp, tokens, 0, tokens.length, true);
-		return temp.expressions;
-	};
-
-	// Parse For arguments {{{2
-	p.parse_for_arguments = function (temp, tokens) {
-		var is_var = (tokens[0] && tokens[0].type === "Identifier" && tokens[0].value === "var"),
-			i = is_var ? 1 : 0;
-
-		if (tokens[i]) {
-			temp.identifier = null;
-
-			if (this.is_identifier(tokens[i])) {
-				i = this.parse_identifier(temp, tokens, i);
-
-				// TODO: replace binary 'in' operator
-				temp.type = (tokens[i + 1] && tokens[i + 1].value === "in") ? "in" : "loop";
-			} else {
-				temp.type = "loop";
-			}
-
-			switch (temp.type) {
-				case "in":
-					if (is_var) {
-						temp.left = new this.VariableDeclaration(tokens[0].start, temp.identifier.end, [
-							new this.VariableDeclarator(temp.identifier)
-						]);
-					} else {
-						temp.left = temp.identifier;
-					}
-
-					i = this.parse_sequence_expression(temp, tokens, i + 2, tokens.length);
-					if (temp.expression) {
-						temp.right = temp.expression;
-					} else {
-						throw Error("error");
-					}
+		if (this.expression_symbols.SpecialCharacter) {
+			for (i = this.expression_symbols.SpecialCharacter.length - 1; i >= 0; --i) {
+				if (this.expression_symbols.SpecialCharacter[i].precedence === 21) {
+					this.expression_symbols.SpecialCharacter.splice(i, 1);
 					break;
-				case "loop":
-					if (is_var) {
-						i = this.parse_variable_declaration(temp, tokens, 0, tokens.length);
-						temp.init = temp.statement;
-					} else {
-						i = this.parse_sequence_expression(temp, tokens, 0, tokens.length);
-						temp.init = temp.expression;
-					}
-
-					if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';') {
-						i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length);
-						temp.test = temp.expression;
-					} else {
-						throw Error("ERROR");
-					}
-
-					if (tokens[i].type === "SpecialCharacter" && tokens[i].value === ';') {
-						i = this.parse_sequence_expression(temp, tokens, i + 1, tokens.length);
-						temp.update = temp.expression;
-					} else {
-						throw Error("ERROR");
-					}
-					break;
-			}
-		} else {
-			throw Error("error");
-		}
-	};
-
-	// Parse Parameters {{{2
-	p.parse_parameters = function (temp, tokens) {
-		var i = 0, params = [];
-
-		for (; i < tokens.length; ++i) {
-			if (this.is_identifier(tokens[i])) {
-				i = this.parse_identifier(temp, tokens, i);
-
-				if (tokens[i + 1]) {
-					if (tokens[i + 1].type === "SpecialCharacter" && tokens[i + 1].value === ',') {
-						++i;
-					} else {
-						tokens[i + 1].error_unexpected_token();
-					}
-				}
-
-				params.push(temp.identifier);
-			} else {
-				tokens[i].error_unexpected_token();
-			}
-		}
-
-		return params;
-	};
-
-	// Parse Test {{{2
-	p.parse_test = function (temp, tokens) {
-		this.parse_sequence_expression(temp, tokens, 0, tokens.length);
-		if (temp.expression) {
-			return temp.expression;
-		}
-		throw Error("Fallback error");
-	};
-
-	// Parse Object literal {{{2
-	p.parse_object_literal = function (block_token) {
-		var i = 0, properties = [], temp = new this.Temp(), tokens = block_token.children, property, expect_value;
-
-		for (; i < tokens.length; ++i) {
-			if (! property && this.is_identifier(tokens[i])) {
-				i = this.parse_identifier(temp, tokens, i);
-				property = new this.Property(temp.identifier);
-				continue;
-			}
-
-			switch (tokens[i].type) {
-				case "Number":
-					if (property) {
-						tokens[i].error_unexpected_type();
-					}
-					property = new this.Property(new this.NumberLiteral(tokens[i]));
-					expect_value = true;
-					break;
-				case "String":
-					if (property) {
-						tokens[i].error_unexpected_type();
-					}
-					property = new this.Property(new this.StringLiteral(tokens[i]));
-					expect_value = true;
-					break;
-				case "Array":
-					break;
-				case "SpecialCharacter":
-					switch (tokens[i].value) {
-						case ':':
-							if (expect_value) {
-								i = this.parse_expression(temp, tokens, i + 1, tokens.length);
-								expect_value   = false;
-								property.value = temp.expression.parsed_token;
-							} else if (property) {
-								i = this.parse_expression(temp, tokens, i + 1, tokens.length);
-								property.value = temp.expression.parsed_token;
-							} else {
-								tokens[i].error_unexpected_token();
-							}
-
-							properties.push(property);
-							property = null;
-							break;
-						case ',':
-							if (expect_value) {
-								tokens[i].error_unexpected_token();
-							} else if (property) {
-								property.value = property.key;
-								property.end   = property.value.end;
-
-								properties.push(property);
-								property = null;
-							}
-							break;
-						default:
-							tokens[i].error_unexpected_token();
-					}
-					break;
-				case "Comment":
-					properties.push(new this.Comment(tokens[i]));
-					break;
-				default:
-					tokens[i].error_unexpected_token();
-			}
-		}
-
-		if (property) {
-			if (expect_value) {
-				throw Error("Fallback error");
-			}
-
-			property.value = property.key;
-			property.end   = property.value.end;
-			properties.push(property);
-		}
-
-		return new this.ObjectLiteral(block_token, properties);
-	};
-
-	p.parse_block = function (pieces, index) {
-		//var tokens = pieces[index], i = 0, is_object_literal = true;
-
-		//for (; i < tokens.length; ++i) { }
-		
-		pieces[index].parsed_token = this.parse_object_literal(pieces[index].start_token);
-	};
-	// }}}2
-
-	// Assemble pieces {{{2
-	// learned from : https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
-	p.assemble_pieces = function (pieces, i, next_token, until) {
-
-		var member_operator_indices      = [],
-			parenthesis_indices          = [],
-			unary_operator_indices       = [],
-			high_math_operator_indices   = [],
-			medium_math_operator_indices = [],
-			low_math_operator_indices    = [],
-			conditional_operator_indices = [],
-			logical_operator_indices     = [], // fixme: less than or greater than is
-			ternary_operator_indices     = [],
-			assignment_operator_indices  = [];
-
-		for (; i < pieces.length; ++i) {
-			switch (pieces[i].parsed_token.type) {
-				case "Identifier":
-					switch (pieces[i].parsed_token.name) {
-						case "new" :
-							i = this.parse_new_expression(pieces, i);
-							break;
-						case "function" :
-							i = this.parse_function_expression(pieces, i);
-							break;
-					}
-					break;
-				case "Operator":
-					switch (pieces[i].parsed_token.operator) {
-						case '?':
-							ternary_operator_indices.unshift(i);
-							break;
-						case "&&":
-						case "||":
-							logical_operator_indices.push(i);
-							break;
-						case '.' :
-							member_operator_indices.push({ index : i });
-							break;
-						case '!'      :
-						case '~'      :
-						case "++"     :
-						case "--"     :
-						case "void"   :
-						case "delete" :
-						case "typeof" :
-							unary_operator_indices.unshift(i);
-							break;
-						case '<'   :
-						case '>'   :
-						case "<="  :
-						case ">="  :
-						case "=="  :
-						case "===" :
-						case "!="  :
-						case "!==" :
-							conditional_operator_indices.push(i);
-							break;
-						case '+'   :
-						case '-'   :
-							if (i === 0 || (pieces[i - 1] && pieces[i - 1].parsed_token.type === "Operator")) {
-								unary_operator_indices.unshift(i);
-							} else {
-								medium_math_operator_indices.push(i);
-							}
-							break;
-						case '*'   :
-						case '/'   :
-						case '%'   :
-							high_math_operator_indices.push(i);
-							break;
-						case "=":
-						case "+=":
-						case "-=":
-						case "*=":
-						case "/=":
-						case "%=":
-						case "&=":
-						case "^=":
-						case "|=":
-						case "**=":
-						case "<<=":
-						case ">>=":
-						case ">>>=":
-							assignment_operator_indices.push(i);
-							break;
-					}
-					break;
-				case "Parenthesis":
-					if (i === 0) {
-						this.parse_sequence_expression(
-							pieces[0], pieces[0].start_token.children,
-							0, pieces[0].start_token.children.length
-						);
-						pieces[0].parsed_token = pieces[0].expression;
-					} else {
-						parenthesis_indices.push(i);
-					}
-					break;
-				case "Array":
-					if (pieces[i - 1] && pieces[i - 1].parsed_token.type !== "Operator") {
-						member_operator_indices.push({ index : i });
-					} else {
-						pieces[i].parsed_token = new this.ArrayLiteral(
-							pieces[i].start_token,
-							this.parse_array(pieces[i].start_token.children)
-						);
-					}
-					break;
-				case "Block":
-					this.parse_block(pieces, i);
-					break;
-			}
-
-			if (until && pieces[i].parsed_token.type === until) {
-				break;
-			}
-		}
-
-		for (i = 0; i < member_operator_indices.length; ++i) {
-			member_operator_indices[i].is_parsed = this.parse_member_expression(pieces, member_operator_indices[i].index);
-		}
-		if (parenthesis_indices.length) {
-			this.parse_parenthesis(pieces, parenthesis_indices);
-		}
-		for (i = 0; i < member_operator_indices.length; ++i) {
-			if (! member_operator_indices[i].is_parsed) {
-				this.parse_member_expression(pieces, member_operator_indices[i].index);
-			}
-		}
-		this.parse_unary_expression(pieces, unary_operator_indices);
-		this.parse_binary_expression(pieces, high_math_operator_indices, this.BinaryExpression);
-		this.parse_binary_expression(pieces, medium_math_operator_indices, this.BinaryExpression);
-		this.parse_binary_expression(pieces, low_math_operator_indices, this.BinaryExpression);
-		this.parse_binary_expression(pieces, conditional_operator_indices, this.BinaryExpression);
-		this.parse_binary_expression(pieces, logical_operator_indices, this.LogicalExpression);
-		this.parse_conditional_expression(pieces, ternary_operator_indices);
-		this.parse_assignment_expression(pieces, assignment_operator_indices);
-	};
-	// }}}2
-
-	// Is Identifier {{{2
-	p.is_identifier = function (token) {
-		return token.type === "Identifier" || token.value === '$' || token.value === '_';
-	};
-
-	// Error End of file {{{2
-	p.error_end_of_file = function () {
-		this.raw_tokens[this.raw_tokens.length - 1].error("Unexpected end of file");
-	};
-	// }}}2
-
-	var JavascriptParserWrapper = function () {
-		this.statement_middlewares  = [];
-		this.expression_middlewares = [];
-	};
-	p = JavascriptParserWrapper.prototype;
-
-	p.JavascriptParser = JavascriptParser;
-	p.clone_middlewares = function (middlewares) {
-		var i = 0, clone = new Array(middlewares.length);
-
-		for (; i < clone.length; ++i) {
-			clone[i] = middlewares[i];
-		}
-
-		return clone;
-	};
-
-	p.statement = function (middleware) {
-		if (this.statement_middlewares) {
-			this.statement_middlewares.push(middleware);
-		} else {
-			this.statement_middlewares = [middleware];
-		}
-	};
-	p.expression = function (middleware) {
-		if (this.expression_middlewares) {
-			this.expression_middlewares.push(middleware);
-		} else {
-			this.expression_middlewares = [middleware];
-		}
-	};
-
-	p.parse = function (filename, source_code) {
-		var parser = new this.JavascriptParser(
-			this.statement_middlewares  && this.clone_middlewares(this.statement_middlewares),
-			this.expression_middlewares && this.clone_middlewares(this.expression_middlewares)
-		);
-		return parser.parse(filename, source_code);
-	};
-
-	return JavascriptParserWrapper;
-});
-// }}}1
-
-// Public API {{{1
-app.namespace("javascript.ES5_parser", ["javascript.tokenizer", "javascript.Parser"], function (tokenizer, JavascriptParser) {
-	var parser = new JavascriptParser();
-
-	var ECMA6String = function () {};
-	var p = ECMA6String.prototype;
-
-	p.TemplateLiteral = function (token, body) {
-		this.type  = "TemplateLiteral";
-		this.body  = body;
-		this.start = token.start;
-		this.end   = token.end;
-	};
-	p.TemplateLiteralString = function (token) {
-		this.type  = "TemplateLiteralString";
-		this.value = token.value;
-		this.start = token.start;
-		this.end   = token.end;
-	};
-	p.TemplateLiteralExpression = function (token, expression) {
-		this.type       = "TemplateLiteralExpression";
-		this.expression = expression;
-		this.start      = token.start;
-		this.end        = token.end;
-	};
-
-	p.parse = function (parser, temp, tokens, i) {
-		if (tokens[i].type === "TemplateLiteral") {
-			var body = [], j = 0;
-
-			for (; j < tokens[i].children.length; ++j) {
-				switch (tokens[i].children[j].type) {
-					case "TemplateLiteral quasi string" :
-						body.push(new this.TemplateLiteralString(tokens[i].children[j]));
-						break;
-					case "TemplateLiteral expression" :
-						parser.parse_sequence_expression(
-							temp, tokens[i].children[j].children,
-							0, tokens[i].children[j].children.length
-						);
-						body.push(new this.TemplateLiteralExpression(
-							tokens[i].children[j],
-							temp.expression
-						));
-						break;
-					default:
-						tokens[i].error_unexpected_token();
 				}
 			}
-
-			temp.parsed_token = new this.TemplateLiteral(tokens[i], body);
 		}
 
-		return i;
+		this.declaration_expression("Identifier", {
+			suffix : false,
+			protos : {
+				type       : "Identifier",
+				names      : this.named_symbols,
+				precedence : 21,
+				initialize : initialize_identifier,
+				null_denotation : function (scope) {
+					if (this.names.hasOwnProperty(this.name)) {
+						return this.names[this.name].null_denotation(this, scope);
+					}
+					return this;
+				},
+				left_denotation : function (left, scope) {
+					if (this.names.hasOwnProperty(this.name)) {
+						return this.names[this.name].left_denotation(left, scope);
+					}
+					return this;
+				}
+			},
+		}).
+
+		declaration_expression("SpecialCharacter", {
+			is     : function (token) { return token.value === '$' || token.value === '_'; },
+			suffix : false,
+			protos : {
+				type       : "Identifier",
+				precedence : 21,
+				initialize : initialize_identifier,
+			},
+		});
 	};
 
-	var es6 = new ECMA6String();
-
-	parser.expression(function (p, temp, tokens, i) {
-		return es6.parse(p, temp, tokens, i);
+	assign(JavascriptSymbolsTable.prototype, SymbolsTable.prototype, {
+		SymbolsTable : JavascriptSymbolsTable,
+		copy : function () {
+			return new this.SymbolsTable(
+				this.constructors.$copy(),
+				this.expression_symbols.$copy(),
+				this.statement_symbols.$copy(),
+				this.named_symbols.$copy()
+			);
+		},
+		named_expression : function (name, handler) {
+			this.named_symbols[name] = JeefoObject.create(handler);
+			if (handler.on_register) {
+				handler.on_register(this.named_symbols[name], this);
+			}
+			return this;
+		},
+		declaration_expression : function (token_type, handler) {
+			return this.register_expression(token_type, handler, handler.suffix);
+		},
+		literal_expression : function (token_type, handler) {
+			return this.register_expression(token_type, handler, "Literal");
+		},
+		binary_expression : function (token_type, handler) {
+			return this.register_expression(token_type, handler, handler.suffix);
+		},
+		unary_expression : function (token_type, handler) {
+			return this.register_expression(token_type, handler);
+		},
 	});
 
-	return function (filename, source_code) {
-		try {
-			return parser.parse(filename, source_code);
-		} catch (error) {
-			error.fileName = filename;
-			error.$stack   = error.stack;
-			throw error;
+	return JavascriptSymbolsTable;
+});
+
+// Javascript ES5 Symbols {{{1
+app.namespace("javascript.es5_symbols", [
+	"javascript.SymbolsTable",
+], function (JavascriptSymbolsTable) {
+
+	// Registering predefined constructors {{{2
+	var symbols = new JavascriptSymbolsTable();
+
+	var return_left = function (left) { return left; };
+
+	symbols.register_constructor("VariableDeclarator", function (token) {
+		this.type  = this.type;
+		this.id    = token;
+		this.init  = null;
+		this.start = token.start;
+	}).
+	register_constructor("CatchClause", function () {
+		this.type = this.type;
+	}).
+	register_constructor("SwitchCase", function () {
+		this.type = this.type;
+	}).
+	register_constructor("DefaultCase", function () {
+		this.type       = this.type;
+		this.statements = [];
+	}).
+	register_constructor("GroupingExpression", function (token) {
+		this.type       = this.type;
+		this.expression = token.scope.expression(0);
+		this.start      = token.start;
+		this.end        = token.end;
+	}, { precedence : 20 }).
+	register_constructor("EmptyStatement", function (token) {
+		this.type  = this.type;
+		this.start = token.start;
+		this.end   = token.end;
+	}).
+	register_constructor("ExpressionStatement", function (token) {
+		this.type       = this.type;
+		this.expression = token;
+		this.start      = token.start;
+	});
+	// }}}2
+
+	// TODO: think about reserve, keywords...
+
+	// Registering declaration expression symbols {{{2
+	// Comment declaration symbol {{{3
+	symbols.declaration_expression("Comment", {
+		suffix : false,
+		protos : {
+			type       : "Comment",
+			precedence : 1,
+			initialize : function (tokens, index) {
+				this.type    = this.type;
+				this.comment = tokens[index].value;
+				this.start   = tokens[index].start;
+				this.end     = tokens[index].end;
+			},
+		},
+	}).
+
+	// Number literal {{{
+	literal_expression("Number", {
+		protos : {
+			type              : "Number",
+			precedence        : 21,
+			EXPONENTIAL_REGEX : /^e|E\d+$/,
+			initialize : function (tokens, index, scope) {
+				this.type  = this.type;
+				this.value = tokens[index].value;
+				this.start = tokens[index].start;
+
+				if (tokens[index + 1]                              &&
+					tokens[index + 1].type  === "SpecialCharacter" &&
+					tokens[index + 1].value === '.'                &&
+					tokens[index + 1].start.index === tokens[index].end.index) {
+
+					this.value += '.';
+					scope.token_index = (index += 1);
+				}
+
+				if (tokens[index + 1]                          &&
+					tokens[index + 1].type        === "Number" &&
+					tokens[index + 1].start.index === tokens[index].end.index) {
+
+					this.value += tokens[index + 1].value;
+					scope.token_index = (index += 1);
+				}
+
+				if (tokens[index + 1]                                    &&
+					tokens[index + 1].type        === "Identifier"       &&
+					this.EXPONENTIAL_REGEX.test(tokens[index + 1].value) &&
+					tokens[index + 1].start.index === tokens[index].end.index) {
+
+					this.value += tokens[index + 1].value;
+					scope.token_index = (index += 1);
+				}
+
+				this.end = tokens[index].end;
+			},
+		}
+	}).
+
+	// NULL literal {{{3
+	register_constructor("NullLiteral", function (token) {
+		this.type  = this.type;
+		this.start = token.start;
+		this.end   = token.end;
+	}, { precedence : 21 }).
+
+	named_expression("null", {
+		on_register : function (handler, symbols) {
+			handler.NullLiteral = symbols.constructors.NullLiteral;
+		},
+		null_denotation : function (token) {
+			return new this.NullLiteral(token);
+		},
+		left_denotation : return_left,
+	}).
+
+	// String literal symbol {{{3
+	literal_expression("String", {
+		protos : {
+			type       : "String",
+			precedence : 21,
+			initialize : function (tokens, index) {
+				this.type  = this.type;
+				this.value = tokens[index].value;
+				this.start = tokens[index].start;
+				this.end   = tokens[index].end;
+			},
+		},
+	}).
+
+	// Boolean literal symbols {{{3
+	register_constructor("BooleanLiteral", function (token) {
+		this.type  = this.type;
+		this.value = token.name;
+		this.start = token.start;
+		this.end   = token.end;
+	});
+
+	var bool = {
+		on_register : function (handler, symbols) {
+			handler.BooleanLiteral = symbols.constructors.BooleanLiteral;
+		},
+		null_denotation : function (token) {
+			return new this.BooleanLiteral(token);
+		},
+		left_denotation : return_left,
+	};
+
+	symbols.
+		named_expression("true"  , bool).
+		named_expression("false" , bool).
+
+	// RegExp literal symbols {{{3
+	literal_expression("RegExp", {
+		protos : {
+			type        : "RegExp",
+			precedence  : 21,
+			REGEX_FLAGS : "gimuy",
+			initialize  : function (tokens, index, scope) {
+				var next_index = index + 1, i = 0, flags = '', flags_value;
+
+				this.type  = this.type;
+
+				if (tokens[next_index] && tokens[index].end.index === tokens[next_index].start.index && tokens[next_index].type === "Identifier") {
+					flags_value = tokens[next_index].value;
+
+					for (i = flags_value.length - 1; i >= 0; --i) {
+						if (this.REGEX_FLAGS.indexOf(flags_value.charAt(i)) !== -1 && flags.indexOf(flags_value.charAt(i)) === -1) {
+							flags += flags_value.charAt(i);
+						} else {
+							flags = '';
+							tokens[next_index].error("Invalid regular expression flags");
+						}
+					}
+
+					if (flags) {
+						scope.token_index += 1;
+					}
+				}
+
+				this.regex = {
+					pattern : tokens[index].value,
+					flags   : flags
+				};
+
+				this.start = tokens[index].start;
+				this.end   = tokens[scope.token_index].end;
+			},
+		},
+	}).
+
+	// Delimiter characters {{{3
+	// Terminator {{{4
+	declaration_expression("SpecialCharacter", {
+		is     : function (token) { return token.value === ';'; },
+		suffix : false,
+		protos : {
+			type       : "Terminator",
+			initialize : function (tokens, index) {
+				this.type     = this.type;
+				this.operator = tokens[index].value;
+				this.start    = tokens[index].start;
+				this.end      = tokens[index].end;
+			},
+		},
+	}).
+
+	// Delimiter {{{4
+	register_constructor("SequenceExpression", function (start, expressions) {
+		this.type        = this.type;
+		this.expressions = expressions;
+		this.start       = start;
+		this.end         = expressions[expressions.length - 1].end;
+	}, { precedence : 20 }).
+
+	declaration_expression("SpecialCharacter", {
+		is     : function (token) { return token.value === ':'; },
+		suffix : false,
+		protos : {
+			type       : "Delimiter",
+			initialize : function (tokens, index) {
+				this.type     = this.type;
+				this.operator = tokens[index].value;
+				this.start    = tokens[index].start;
+				this.end      = tokens[index].end;
+			},
+		},
+	}).
+
+	// Comma {{{4
+	declaration_expression("SpecialCharacter", {
+		is     : function (token) { return token.value === ','; },
+		suffix : false,
+		protos : {
+			type       : "Comma",
+			precedence : COMMA_PRECEDENCE,
+			initialize : function (tokens, index) {
+				this.type  = this.type;
+				this.start = tokens[index].start;
+				this.end   = tokens[index].end;
+			},
+			on_register : function (handler, symbols) {
+				handler.SequenceExpression = symbols.constructors.SequenceExpression;
+			},
+			left_denotation : function (left, scope) {
+				var expressions = [left];
+
+				LOOP:
+				while (scope.current_expression) {
+					expressions.push(scope.expression(COMMA_PRECEDENCE));
+
+					if (scope.current_expression) {
+						switch (scope.current_expression.type) {
+							case "Comma" :
+								scope.advance();
+								break;
+							case "Delimiter":
+							case "Terminator":
+								break LOOP;
+							default:
+								scope.advance();
+						}
+					}
+				}
+
+				return new this.SequenceExpression(left.start, expressions);
+			},
+		},
+	});
+	// }}}4
+
+	// Grouping expression declarations {{{3
+	var initialize_groups = function (tokens, index, scope) {
+		this.type  = this.type;
+		this.scope = scope.$new(tokens[index].children);
+		this.start = tokens[index].start;
+		this.end   = tokens[index].end;
+	};
+
+	symbols.
+
+	// Curly Brackets {{{3
+	register_constructor("ObjectLiteral", function (token, properties) {
+		this.type       = this.type;
+		this.properties = properties;
+		this.start      = token.start;
+		this.end        = token.end;
+	}, { precedence : 21 }).
+
+	register_constructor("Property", function (key, value, is_computed) {
+		this.type        = this.type;
+		this.key         = key;
+		this.value       = value;
+		this.is_computed = is_computed;
+		this.start       = key.start;
+	}, { type : "Property", precedence : 21 }).
+
+	declaration_expression("Block", {
+		protos : {
+			type        : "Block",
+			precedence  : 21,
+			initialize  : initialize_groups,
+			on_register : function (handler, symbols) {
+				handler.Property      = symbols.constructors.Property;
+				handler.ObjectLiteral = symbols.constructors.ObjectLiteral;
+			},
+			null_denotation : function (scope) {
+				var properties = [], i = 0, key, is_computed;
+				scope = this.scope;
+
+				scope.advance();
+
+				while (scope.current_expression) {
+					key = scope.expression(0);
+					is_computed = key.type !== "Identifier";
+
+					if (scope.current_expression.type === "Delimiter") {
+						scope.advance();
+					}
+
+					properties[i++] = new this.Property(key, scope.expression(COMMA_PRECEDENCE), is_computed);
+					if (scope.current_expression) {
+						if (scope.current_expression.type === "Comma") {
+							scope.advance();
+						} else {
+							scope.advance("Comma");
+							scope.advance();
+						}
+					}
+				}
+
+				return new this.ObjectLiteral(this, properties);
+			},
+			left_denotation : function (left) {
+				switch (left.type) {
+					case "ObjectLiteral" :
+					case "FunctionExpression" :
+						return left;
+				}
+				console.log(111, left.type);
+				return this;
+			}
+		},
+	}).
+
+	// Parenthesis {{{3
+	register_constructor("CallExpression", function (callee, end) {
+		this.type         = this.type;
+		this.callee       = callee;
+		this["arguments"] = [];
+		this.start        = callee.start;
+		this.end          = end;
+	}).
+	declaration_expression("Parenthesis", {
+		protos : {
+			type       : "Parenthesis",
+			precedence : 19,
+			initialize : initialize_groups,
+			call_expression : function (callee) {
+				var call = new this.CallExpression(callee, this.end);
+				this.get_arguments(this.scope, call["arguments"], callee);
+
+				return call;
+			},
+			get_arguments : function (scope, args) {
+				var i = 0;
+
+				scope.advance();
+				while (scope.current_expression) {
+					args[i++] = scope.expression(COMMA_PRECEDENCE);
+					// TODO: Error check for arguments
+
+					if (scope.current_expression) {
+						if (scope.current_expression.type === "Comma") {
+							scope.advance();
+							if (! scope.current_expression) {
+								console.error("ERRORRR", scope.current_expression); 
+							}
+						} else {
+							console.error("ERRORRR", scope.current_expression);
+						}
+					}
+				}
+			},
+			on_register : function (protos, symbols) {
+				protos.CallExpression     = symbols.constructors.CallExpression;
+				protos.GroupingExpression = symbols.constructors.GroupingExpression;
+			},
+			null_denotation : function () {
+				this.scope.advance();
+				return new this.GroupingExpression(this);
+			},
+			left_denotation : function (left) {
+				switch (left.type) {
+					case "Identifier" :
+					case "MemberExpression" :
+					case "FunctionExpression" :
+						return this.call_expression(left);
+					case "NewExpression" :
+						this.get_arguments(this.scope, left["arguments"]);
+						left.end = this.end;
+						return left;
+				}
+				return this;
+			},
+		},
+	}).
+	
+	// New expression with args (19) {{{3
+	register_constructor("NewExpression", function (start, callee) {
+		this.type         = this.type;
+		this.callee       = callee;
+		this["arguments"] = [];
+		this.start        = start;
+		this.end          = callee.end;
+	}, { precedence : 19 }).
+	
+	named_expression("new", {
+		on_register : function (handler, symbols) {
+			handler.NewExpression = symbols.constructors.NewExpression;
+		},
+		null_denotation : function (token, scope) {
+			var start = token.start;
+			scope.advance();
+
+			var left = scope.current_expression.null_denotation(scope);
+
+			LOOP:
+			while (true) {
+				token = scope.current_expression;
+
+				if (! token) {
+					break;
+				}
+
+				switch (token.type) {
+					case "Identifier":
+					case "MemberExpression":
+						scope.advance();
+						left = token.left_denotation(left, scope);
+						break;
+					case "ParenthesisExpression":
+						return scope.current_expression.left_denotation(new this.NewExpression(start, left), scope);
+					default:
+						left.precedence = 18;
+						break LOOP;
+				}
+			}
+
+			return left;
+		},
+	}).
+
+	// Member declaration expression (19) {{{3
+	declaration_expression("SpecialCharacter", {
+		is     : function (token) { return token.value === '.'; },
+		protos : {
+			type       : "Member",
+			precedence : 19,
+			initialize : function () {
+				this.type = this.type;
+			},
+			left_denotation : function (left, scope) {
+				this.object      = left;
+				this.property    = scope.expression(this.precedence);
+				this.is_computed = false;
+				this.start       = left.start;
+				this.end         = this.property.end;
+				return this;
+			},
+		},
+	}).
+
+	// Square Brackets {{{3
+	register_constructor("ArrayLiteral", function (token, elements) {
+		this.type     = this.type;
+		this.elements = elements;
+		this.start    = token.start;
+		this.end      = token.end;
+	}, { precedence : 21 }).
+
+	declaration_expression("Array", {
+		protos : {
+			type        : "SquareBracket",
+			precedence  : 19,
+			initialize  : initialize_groups,
+			on_register : function (handler, symbols) {
+				handler.ArrayLiteral     = symbols.constructors.ArrayLiteral;
+				handler.MemberExpression = symbols.constructors.MemberExpression;
+			},
+			null_denotation : function (scope) {
+				var elements = [];
+				scope = this.scope;
+				scope.advance();
+
+				while (scope.current_expression) {
+					if (scope.current_expression.type === "Comma") {
+						elements.push(null);
+					} else {
+						elements.push(scope.expression(COMMA_PRECEDENCE));
+					}
+					scope.advance();
+				}
+
+				return new this.ArrayLiteral(this, elements);
+			},
+			left_denotation : function (left) {
+				if (left.type === "ArrayLiteral") {
+					return left;
+				}
+				var member = new this.MemberExpression();
+
+				member.type   = member.type;
+				member.object = left;
+
+				this.scope.advance();
+				member.property    = this.scope.expression(0);
+				member.is_computed = true;
+
+				member.start = left.start;
+				member.end   = this.end;
+
+				return member;
+			},
+		},
+	});
+
+	// Binary expression symbols {{{3
+	var binary = {
+		protos : {
+			initialize : function (tokens, index) {
+				this.type     = this.type;
+				this.operator = tokens[index].value;
+			},
+			left_denotation : function (left, scope) {
+				this.left  = left;
+				this.right = scope.expression(this.precedence);
+				this.start = left.start;
+				this.end   = this.right.end;
+
+				return this;
+			},
+		},
+		make : function (arity, precedence) {
+			this.protos.type       = arity;
+			this.protos.precedence = precedence;
+			return this.protos;
+		},
+	};
+
+	// Unary expressions (16) {{{3
+	symbols.unary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			switch (token.value) {
+				case '!' :
+					if (! tokens[index + 1]                            ||
+						tokens[index + 1].type  !== "SpecialCharacter" ||
+						tokens[index + 1].value !== '='                ||
+						tokens[index + 1].start.index > token.end.index) {
+
+						token.op    = '!';
+						token.index = index;
+						return true;
+					}
+					break;
+				case '~' :
+					if (! tokens[index + 1]                            ||
+						tokens[index + 1].type  !== "SpecialCharacter" ||
+						tokens[index + 1].value !== '='                ||
+						tokens[index + 1].start.index > token.end.index) {
+
+						token.op    = '~';
+						token.index = index;
+						return true;
+					}
+					break;
+				case '+' :
+					if (tokens[index + 1]                              &&
+						tokens[index + 1].type  === "SpecialCharacter" &&
+						tokens[index + 1].value === '+'                &&
+						tokens[index + 1].start.index === token.end.index) {
+
+						token.op    = "++";
+						token.index = index + 1;
+						return true;
+					}
+					break;
+				case '-' :
+					if (tokens[index + 1]                              &&
+						tokens[index + 1].type  === "SpecialCharacter" &&
+						tokens[index + 1].value === '-'                &&
+						tokens[index + 1].start.index === token.end.index) {
+
+						token.op    = "--";
+						token.index = index + 1;
+						return true;
+					}
+					break;
+			}
+		},
+		protos : {
+			type       : "Unary",
+			precedence : 16,
+			initialize : function (tokens, index, scope) {
+				this.type      = this.type;
+				this.operator  = tokens[index].op;
+				this.argument  = null;
+				this.is_prefix = true;
+				this.start     = tokens[index].start;
+				this.end       = tokens[index].end;
+
+				scope.token_index = tokens[index].index;
+			},
+			null_denotation : function (scope) {
+				scope.advance();
+				this.argument = scope.expression(this.precedence);
+				this.end      = this.argument.end;
+
+				return this;
+			},
+			left_denotation : function (left) {
+				switch (this.operator) {
+					case "--" :
+					case "++":
+						this.start      = left.start;
+						this.argument   = left;
+						this.is_prefix  = false;
+						this.precedence = 17;
+						return this;
+					default:
+						console.error("ERROR");
+				}
+			}
+		}
+	});
+
+	// Void, Typeof and Delete unary expressions (16) {{{3
+	var prefix_unary = {
+		on_register : function (handler, symbols) {
+			handler.UnaryExpression = symbols.constructors.UnaryExpression;
+		},
+		null_denotation : function (token, scope) {
+			var unary = {};
+
+			unary.type      = unary.type;
+			unary.operator  = token.name;
+			scope.advance();
+			unary.argument  = scope.expression(unary.precedence);
+			unary.is_prefix = true;
+			unary.start     = token.start;
+			unary.end       = unary.argument.end;
+
+			return unary;
 		}
 	};
+
+	symbols.
+		named_expression("void"   , prefix_unary).
+		named_expression("typeof" , prefix_unary).
+		named_expression("delete" , prefix_unary);
+
+	// Exponentiation expression (15) {{{3
+	symbols.binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			return  token.value === '*'                               &&
+					tokens[index + 1]                                 &&
+					tokens[index + 1].type  === "SpecialCharacter"    &&
+					tokens[index + 1].value === '*'                   &&
+					tokens[index + 1].start.index === token.end.index;
+		},
+		protos : {
+			type       : "Exponentiation",
+			precedence : 15,
+			initialize : function (tokens, index, scope) {
+				this.type = this.type;
+				scope.token_index += 1;
+			},
+			left_denotation : binary.protos.left_denotation,
+		}
+	}).
+
+	// Multiply, Division and Remainder expressions (14) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			switch (token.value) {
+				case '*':
+				case '/':
+				case '%':
+					if (tokens[index + 1]) {
+						return tokens[index + 1].type  !== "SpecialCharacter" ||
+							tokens[index + 1].value !== '=' ||
+							tokens[index + 1].start.index > token.end.index;
+					}
+					return true;
+			}
+		},
+		protos : binary.make("Binary", 14),
+	}).
+
+	// Addition and Subtraction expressions (13) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			switch (token.value) {
+				case '+' :
+					if (tokens[index + 1]) {
+						return tokens[index + 1].type  !== "SpecialCharacter" ||
+							(tokens[index + 1].value !== '=' && tokens[index + 1].value !== '+') ||
+							tokens[index + 1].start.index > token.end.index;
+					}
+					return true;
+				case '-' :
+					if (tokens[index + 1]) {
+						return tokens[index + 1].type  !== "SpecialCharacter" ||
+							(tokens[index + 1].value !== '=' && tokens[index + 1].value !== '-') ||
+							tokens[index + 1].start.index > token.end.index;
+					}
+					return true;
+			}
+		},
+		protos : binary.make("Binary", 13),
+	}).
+
+	// Comparition expressions (11) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			switch (token.value) {
+				case '<' :
+				case '>' :
+					if (tokens[index + 1]                               &&
+						tokens[index + 1].type  === "SpecialCharacter"  &&
+						tokens[index + 1].value === '='                 &&
+						tokens[index + 1].start.index === token.end.index) {
+
+						token.op    = token.value + "=";
+						token.index = index + 1;
+						return true;
+					}
+					token.op    = token.value;
+					token.index = index;
+					return true;
+			}
+		},
+		protos : {
+			type       : "Comparision",
+			precedence : 11,
+			initialize : function (tokens, index, scope) {
+				this.type         = this.type;
+				this.operator     = tokens[index].op;
+				scope.token_index = tokens[index].index;
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// In expression (11) {{{3
+	register_constructor("InExpression", function () {
+		this.type = this.type;
+	}, { precedence : 11, left_denotation : binary.protos.left_denotation }).
+
+	named_expression("in", {
+		on_register : function (handler, symbols) {
+			handler.InExpression = symbols.constructors.InExpression;
+		},
+		left_denotation : function (left, scope) {
+			var in_expression = new this.InExpression();
+			return in_expression.left_denotation(left, scope);
+		},
+	}).
+
+	// Instanceof expression (11) {{{3
+	register_constructor("InstanceofExpression", function () {
+		this.type = this.type;
+	}, { precedence : 11, left_denotation : binary.protos.left_denotation }).
+
+	named_expression("instanceof", {
+		on_register : function (handler, symbols) {
+			handler.InstanceofExpression = symbols.constructors.InstanceofExpression;
+		},
+		left_denotation : function (left, scope) {
+			var instanceof_expression = new this.InstanceofExpression();
+			return instanceof_expression.left_denotation(left, scope);
+		},
+	}).
+
+	// Equality expressions (10) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			switch (token.value) {
+				case '=' :
+					if (tokens[index + 1]                               &&
+						tokens[index + 1].type  === "SpecialCharacter"  &&
+						tokens[index + 1].value === '='                 &&
+						tokens[index + 1].start.index === token.end.index) {
+
+						if (tokens[index + 2]                              &&
+							tokens[index + 2].type  === "SpecialCharacter" &&
+							tokens[index + 2].value === '='                &&
+							tokens[index + 2].start.index === tokens[index + 1].end.index) {
+							token.op    = "===";
+							token.index = index + 2;
+							return true;
+						}
+
+						token.op    = "==";
+						token.index = index + 1;
+						return true;
+					}
+					break;
+				case '!' :
+					if (tokens[index + 1]                               &&
+						tokens[index + 1].type  === "SpecialCharacter"  &&
+						tokens[index + 1].value === '='                 &&
+						tokens[index + 1].start.index === token.end.index) {
+
+						if (tokens[index + 2]                              &&
+							tokens[index + 2].type  === "SpecialCharacter" &&
+							tokens[index + 2].value === '='                &&
+							tokens[index + 2].start.index === tokens[index + 1].end.index) {
+							token.op    = "!==";
+							token.index = index + 2;
+							return true;
+						}
+
+						token.op    = "!=";
+						token.index = index + 1;
+						return true;
+					}
+			}
+		},
+		protos : {
+			type       : "Equality",
+			precedence : 10,
+			initialize : function (tokens, index, scope) {
+				this.type         = this.type;
+				this.operator     = tokens[index].op;
+				scope.token_index = tokens[index].index;
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// Bitwise And expression (9) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			return token.value === '&' &&
+				(!  tokens[index + 1]                              ||
+					tokens[index + 1].type  !== "SpecialCharacter" ||
+					tokens[index + 1].value !== '&'                ||
+					tokens[index + 1].start.index > token.end.index);
+		},
+		protos : {
+			type       : "BitwiseAnd",
+			precedence : 9,
+			initialize : function () {
+				this.type = this.type;
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// Bitwise Xor expression (8) {{{3
+	binary_expression("SpecialCharacter", {
+		is     : function (token, tokens, index) { return token.value === '^'; },
+		protos : {
+			type       : "BitwiseXor",
+			precedence : 8,
+			initialize : function () {
+				this.type     = this.type;
+				this.operator = '^';
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// Bitwise Or expression (7) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			return token.value === '|' &&
+				(!  tokens[index + 1]                              ||
+					tokens[index + 1].type  !== "SpecialCharacter" ||
+					tokens[index + 1].value !== '|'                ||
+					tokens[index + 1].start.index > token.end.index);
+		},
+		protos : {
+			type       : "BitwiseOr",
+			precedence : 7,
+			initialize : function () {
+				this.type     = this.type;
+				this.operator = '|';
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// Logical And expression (6) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			return token.value === '&' &&
+				tokens[index + 1] &&
+				tokens[index + 1].type        === "SpecialCharacter" &&
+				tokens[index + 1].value       === '&'                &&
+				tokens[index + 1].start.index === token.end.index;
+		},
+		protos : {
+			type       : "LogicalAnd",
+			precedence : 6,
+			initialize : function (tokens, index, scope) {
+				this.type = this.type;
+				scope.token_index += 1;
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// Logical Or expression (5) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			return token.value === '|' &&
+				tokens[index + 1] &&
+				tokens[index + 1].type        === "SpecialCharacter" &&
+				tokens[index + 1].value       === '|'                &&
+				tokens[index + 1].start.index === token.end.index;
+		},
+		protos : {
+			type       : "LogicalOr",
+			precedence : 5,
+			initialize : function (tokens, index, scope) {
+				this.type          = this.type;
+				this.operator      = "||";
+				scope.token_index += 1;
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	}).
+
+	// Condition expression (4) {{{3
+	binary_expression("SpecialCharacter", {
+		is     : function (token) { return token.value === '?'; },
+		protos : {
+			type       : "Conditional",
+			precedence : 4,
+			initialize : function () {
+				this.type = this.type;
+			},
+			left_denotation : function (left, scope) {
+				this.test       = left;
+				this.consequent = scope.expression(0);
+
+				if (scope.current_expression.type === "Delimiter") {
+					scope.advance();
+				}
+				this.alternate = scope.expression(0);
+
+				this.start = left.start;
+				this.end   = this.alternate.end;
+
+				return this;
+			}
+		}
+	}).
+
+	// Assignment expression (3) {{{3
+	binary_expression("SpecialCharacter", {
+		is : function (token, tokens, index) {
+			switch (token.value) {
+				case '=' :
+					if (! tokens[index + 1]                            ||
+						tokens[index + 1].type  !== "SpecialCharacter" ||
+						tokens[index + 1].value !== '='                ||
+						tokens[index + 1].start.index > token.end.index) {
+
+						token.op    = '=';
+						token.index = index;
+						return true;
+					}
+					break;
+				case '+' :
+				case '-' :
+				case '*' :
+				case '/' :
+				case '%' :
+				case '&' :
+				case '^' :
+				case '|' :
+					if (tokens[index + 1]                              &&
+						tokens[index + 1].type  === "SpecialCharacter" &&
+						tokens[index + 1].value === '='                &&
+						tokens[index + 1].start.index === token.end.index) {
+
+						token.op    = token.value + '=';
+						token.index = index + 1;
+						return true;
+					}
+					break;
+				case "**="  :
+				case "<<="  :
+				case ">>="  :
+				case ">>>=" :
+					return true;
+			}
+		},
+		protos : {
+			type       : "Assignment",
+			precedence : 3,
+			initialize : function (tokens, index, scope) {
+				this.type         = this.type;
+				this.operator     = tokens[index].op;
+				this.start        = tokens[index].start;
+				scope.token_index = tokens[index].index;
+			},
+			left_denotation : binary.protos.left_denotation,
+		},
+	});
+
+	// Function expression {{{3
+	symbols.declaration_expression("Identifier", {
+		is : function (token, tokens, index) {
+			return token.value === "function" && (tokens[index + 1] && tokens[index + 1].start.index > token.end.index);
+		},
+		protos : {
+			type       : "Function",
+			precedence : 22,
+			initialize : function (tokens, index) {
+				this.type       = this.type;
+				this.id         = null;
+				this.parameters = [];
+				this.body       = null;
+				this.start      = tokens[index].start;
+				this.end        = tokens[index].end;
+			},
+			null_denotation : function (scope) {
+				scope.advance();
+
+				if (scope.current_expression.type === "Identifier") {
+					this.id = scope.current_expression;
+					scope.advance("ParenthesisExpression");
+				}
+
+				if (scope.current_expression.type === "ParenthesisExpression") {
+					var params      = this.parameters,
+						parenthesis = scope.current_expression.scope;
+
+					parenthesis.advance();
+					while (parenthesis.current_expression) {
+						if (parenthesis.current_expression.type === "Identifier") {
+							params.push(parenthesis.current_expression);
+						} else {
+							parenthesis.current_expression.error();
+						}
+
+						parenthesis.advance();
+						if (parenthesis.current_expression) {
+							if (parenthesis.current_expression.type === "Comma") {
+								parenthesis.advance();
+
+								if (! parenthesis.current_expression) {
+									parenthesis.current_expression.error();
+								}
+							} else {
+								parenthesis.current_expression.error();
+							}
+						}
+					}
+				}
+
+				scope.advance("BlockExpression");
+				this.body = scope.statement();
+				this.end  = this.body.end;
+		
+				return this;
+			},
+		},
+	});
+	// }}}3
+	// }}}2
+
+	// Registering statements symbols {{{2
+	// Variable declaration statement {{{3
+	symbols.register_statement("Identifier", {
+		is     : function (token) { return token.name === "var"; },
+		suffix : false,
+		protos : {
+			type       : "VariableDeclaration",
+			initialize : function (tokens, index, scope) {
+				this.type         = this.type;
+				this.declarations = [];
+				this.start        = scope.current_expression.start;
+
+				// init
+				scope.advance();
+				var declarator;
+
+				while (scope.current_expression) {
+					if (scope.current_expression.type !== "Identifier") {
+						scope.current_expression.error();
+					}
+
+					declarator = this.declare(scope.current_expression);
+
+					scope.advance();
+					if (scope.current_expression.operator === '=') {
+						scope.advance();
+						declarator.init = scope.expression(COMMA_PRECEDENCE);
+					}
+					declarator.end = declarator.init ? declarator.init.end : declarator.id.end;
+
+					switch (scope.current_expression.type) {
+						case "Comma" :
+							scope.advance();
+							break;
+						case "Terminator" :
+							this.end = scope.current_expression.end;
+							return this;
+						default:
+							scope.current_expression.error();
+					}
+				}
+			},
+
+			on_register : function (protos, symbols) {
+				protos.VariableDeclarator = symbols.constructors.VariableDeclarator;
+			},
+
+			declare : function (token) {
+				token = new this.VariableDeclarator(token);
+				this.declarations.push(token);
+				return token;
+			},
+		}
+	}).
+
+	// Comment statement {{{3
+	register_statement("Comment", {
+		suffix : false,
+		protos : {
+			type : "Comment",
+			initialize : function (tokens, index, scope) {
+				this.type    = this.type;
+				this.comment = scope.current_expression.comment;
+				this.start   = scope.current_expression.start;
+				this.end     = scope.current_expression.end;
+			},
+		}
+	}).
+
+	// Function declaration {{{3
+	register_statement("FunctionExpression", {
+		suffix : false,
+		protos : {
+			type                 : "FunctionDeclaration",
+			statement_denotation : function (scope) {
+				var expression  = scope.current_expression.null_denotation(scope);
+				expression.type = "FunctionDeclaration";
+				return expression;
+			}
+		},
+	});
+
+	// General Expression statement {{{3
+	var expression_statement = {
+		protos : {
+			precedence : 0,
+
+			on_register : function (protos, symbols) {
+				protos.EmptyStatement      = symbols.constructors.EmptyStatement;
+				protos.ExpressionStatement = symbols.constructors.ExpressionStatement;
+			},
+
+			statement_denotation : function (scope) {
+				if (scope.current_expression.type === "Terminator" && ! scope.current_expression.left) {
+					return new this.EmptyStatement(scope.current_expression);
+				}
+
+				var left = scope.current_expression, token;
+				while (scope.current_expression && 0 < scope.current_expression.precedence) {
+					token = scope.current_expression;
+					scope.advance();
+					left = token.left_denotation(left, scope);
+				}
+
+				if (scope.current_expression.type === "Terminator") {
+					if (left !== scope.current_expression) {
+						var _statement = new this.ExpressionStatement(left);
+						_statement.end = scope.current_expression.end;
+						return _statement;
+					}
+
+					return new this.EmptyStatement(scope.current_expression);
+				}
+			},
+		},
+	};
+
+	symbols.
+		register_statement("Identifier"           , expression_statement).
+		register_statement("Terminator"           , expression_statement).
+		register_statement("NumberLiteral"        , expression_statement).
+		register_statement("StringLiteral"        , expression_statement).
+		register_statement("BooleanLiteral"       , expression_statement).
+		register_statement("UnaryExpression"      , expression_statement).
+		register_statement("MemberExpression"     , expression_statement).
+		register_statement("SequenceExpression"   , expression_statement).
+		register_statement("AssignmentExpression" , expression_statement);
+	
+	// Block statement {{{3
+	symbols.register_statement("BlockExpression", {
+		protos : {
+			type       : "Block",
+			initialize : function (tokens, index, scope) {
+				this.type  = this.type;
+				this.body  = scope.current_expression.scope.parse();
+				this.start = scope.current_expression.start;
+				this.end   = scope.current_expression.end;
+			},
+		},
+	});
+
+	// If statement {{{3
+	symbols.register_statement("Identifier", {
+		is     : function (token) { return token.name === "if"; },
+		protos : {
+			type       : "If",
+			initialize : function (tokens, index, scope) {
+				var start = scope.current_expression.start;
+				this.type = this.type;
+
+				scope.advance("ParenthesisExpression");
+				scope.current_expression.scope.advance();
+				this.test = scope.current_expression.scope.expression(0);
+
+				scope.advance();
+				this.statement = scope.statement();
+
+				index = scope.token_index;
+				scope.advance();
+
+				if (scope.current_expression && scope.current_expression.name === "else") {
+					scope.advance();
+					this.alternate = scope.statement();
+				} else {
+					this.alternate    = null;
+					scope.token_index = index;
+				}
+
+				this.start = start;
+				this.end   = (this.alternate || this.statement).end;
+			},
+		},
+	}).
+
+	// For statement {{{3
+	register_statement("Identifier", {
+		is     : function (token) { return token.name === "for"; },
+		protos : {
+			type       : "For",
+			initialize : function (tokens, index, scope) {
+				var start = scope.current_expression.start;
+				this.type = this.type;
+
+				scope.advance("ParenthesisExpression");
+				// TODO: init, test, update
+				this.init      = null;
+				this.test      = null;
+				this.update    = null;
+
+				scope.advance();
+				this.statement = scope.statement();
+
+				this.start = start;
+				this.end   = this.statement.end;
+			},
+		},
+	}).
+
+	// While statement {{{3
+	register_statement("Identifier", {
+		is     : function (token) { return token.name === "while"; },
+		protos : {
+			type       : "While",
+			initialize : function (tokens, index, scope) {
+				var start = scope.current_expression.start;
+				this.type = this.type;
+
+				scope.advance("ParenthesisExpression");
+				scope.current_expression.scope.advance();
+				this.test = scope.current_expression.scope.expression(0);
+
+				scope.advance();
+				this.statement = scope.statement();
+
+				this.start = start;
+				this.end   = this.statement.end;
+			},
+		},
+	}).
+
+	// Switch statement {{{3
+	register_statement("Identifier", {
+		is     : function (token) { return token.name === "switch"; },
+		protos : {
+			type       : "Switch",
+			initialize : function (tokens, index, scope) {
+				var start = scope.current_expression.start;
+				this.type = this.type;
+
+				scope.advance("ParenthesisExpression");
+				scope.current_expression.scope.advance();
+				this.discriminant = scope.current_expression.scope.expression(0);
+
+				this.cases = [];
+				scope.advance("BlockExpression");
+				this.parse_cases(scope.current_expression.scope, this.cases);
+
+				this.start = start;
+				this.end   = scope.current_expression.end;
+			},
+			on_register : function (protos, symbols) {
+				this.SwitchCase  = symbols.constructors.SwitchCase;
+				this.DefaultCase = symbols.constructors.DefaultCase;
+			},
+			parse_cases : function (scope, cases) {
+				var _case, start;
+
+				scope.advance("Identifier");
+
+				while (scope.current_expression) {
+					switch (scope.current_expression.name) {
+						case "case"    :
+						case "default" :
+							start = scope.current_expression.start;
+
+							if (scope.current_expression.name === "case") {
+								_case = new this.SwitchCase();
+								scope.advance();
+								_case.test = scope.expression(0);
+								// error check
+							} else {
+								_case = new this.DefaultCase();
+								scope.advance();
+							}
+
+							if (scope.current_expression.type !== "Delimiter") {
+								scope.current_expression.error();
+							}
+
+							_case.statements = [];
+							_case.start      = start;
+							_case.end        = scope.current_expression.end;
+
+							while (scope.current_expression) {
+								scope.advance();
+
+								if (! scope.current_expression ||
+									scope.current_expression.name === "case" ||
+									scope.current_expression.name === "default") {
+									break;
+								}
+
+								_case.statements.push(scope.statement());
+							}
+
+							if (_case.statements.length) {
+								_case.end = _case.statements[_case.statements.length - 1].end;
+							}
+
+							cases.push(_case);
+
+							break;
+						default:
+							scope.current_expression.error();
+					}
+				}
+			}
+		}
+	}).
+
+	// Labeled statement {{{3
+	register_statement("Identifier", {
+		is : function (token, tokens, index) {
+			return tokens[index].type === "SpecialCharacter" && tokens[index].value === ':';
+		},
+		protos : {
+			type       : "Labeled",
+			precedence : 2,
+			initialize : function (tokens, index, scope) {
+				var start = scope.current_expression.start;
+				this.type = this.type;
+
+				this.label = scope.current_expression.name;
+
+				scope.token_index += 1;
+				scope.advance();
+				this.statement = scope.statement();
+
+				this.start = start;
+				this.end   = this.statement.end;
+			}
+		},
+	}).
+
+	// Try statement {{{3
+	register_statement("Identifier", {
+		is     : function (token) { return token.name === "try"; },
+		protos : {
+			type       : "Try",
+			initialize : function (tokens, index, scope) {
+				var start = scope.current_expression.start;
+				this.type = this.type;
+
+				scope.advance("BlockExpression");
+				this.block = scope.statement();
+
+				scope.advance("Identifier");
+				if (scope.current_expression.name === "catch") {
+					this._catch(scope);
+					scope.advance();
+				} else {
+					this.handler = null;
+				}
+
+				if (scope.current_expression.name === "finally") {
+					scope.advance("BlockExpression");
+					this.finalizer = scope.statement();
+				} else {
+					this.finalizer = null;
+				}
+
+				if (! this.handler && ! this.finalizer) {
+					console.error("Missing catch or finally after try");
+				}
+
+				this.start = start;
+				this.end   = scope.current_expression.end;
+			},
+			on_register : function (protos, symbols) {
+				this.CatchClause = symbols.constructors.CatchClause;
+			},
+			_catch : function (scope) {
+				var _catch = new this.CatchClause(),
+					start  = scope.current_expression.start;
+
+				scope.advance("ParenthesisExpression");
+
+				scope.current_expression.scope.advance();
+				_catch.param = scope.current_expression.scope.expression(1);
+
+				scope.advance("BlockExpression");
+				_catch.block = scope.statement();
+				_catch.start = start;
+				_catch.end   = _catch.block.end;
+
+				this.handler = _catch;
+			},
+		},
+	});
+
+	// Return, Throw statement {{{3
+	var initialize_argument = function (tokens, index, scope) {
+		var start = scope.current_expression.start;
+		this.type = this.type;
+
+		scope.advance();
+		this.argument = scope.current_expression.type === "Terminator" ? null : scope.expression(0);
+
+		this.start = start;
+		this.end   = scope.current_expression.end;
+	};
+
+	symbols.register_statement("Identifier", {
+		is     : function (token) { return token.name === "throw"; },
+		protos : {
+			type       : "Throw",
+			initialize : initialize_argument,
+		}
+	}).
+	register_statement("Identifier", {
+		is     : function (token) { return token.name === "return"; },
+		protos : {
+			type       : "Return",
+			initialize : initialize_argument,
+		}
+	});
+
+	// Continue, Break statement {{{3
+	var initialize_label = function (tokens, index, scope) {
+		var start = scope.current_expression.start;
+		this.type = this.type;
+
+		scope.advance();
+		if (scope.current_expression.type === "Identifier") {
+			this.label = scope.current_expression;
+			scope.advance("Terminator");
+		} else {
+			this.label = null;
+		}
+
+		this.start = start;
+		this.end   = scope.current_expression.end;
+	};
+
+	symbols.register_statement("Identifier", {
+		is     : function (token) { return token.name === "break"; },
+		protos : {
+			type       : "Break",
+			initialize : initialize_label,
+		}
+	}).
+	register_statement("Identifier", {
+		is     : function (token) { return token.name === "continue"; },
+		protos : {
+			type       : "Continue",
+			initialize : initialize_label,
+		}
+	});
+	// }}}3
+	// }}}2
+
+	return symbols;
+});
+
+// Javascript Scope {{{1
+app.namespace("javascript.Scope", function () {
+	var Scope = function (tokens, symbols) {
+		this.tokens        = tokens;
+		this.symbols       = symbols;
+		this.token_index   = 0;
+		this.tokens_length = tokens.length;
+	};
+
+	Scope.prototype = {
+		Scope : Scope,
+
+		$new : function (tokens) {
+			return new this.Scope(tokens, this.symbols);
+		},
+
+		parse : function () {
+			var statements = [];
+
+			for (this.advance(); this.current_expression; this.advance()) {
+				statements.push(this.statement());
+			}
+
+			return statements;
+		},
+
+		advance : function (expect_type) {
+			if (this.token_index < this.tokens_length) {
+				this.current_expression = this.symbols.get_expression(this, this.tokens, this.token_index);
+
+				if (expect_type && expect_type !== this.current_expression.type) {
+					this.current_expression.error();
+				}
+
+				this.token_index += 1;
+			} else {
+				this.last_expression    = this.current_expression;
+				this.current_expression = null;
+			}
+		},
+
+		statement : function () {
+			var statement = this.symbols.get_statement(this, this.tokens, this.token_index);
+
+			if (statement.statement_denotation) {
+				return statement.statement_denotation(this);
+			}
+
+			return statement;
+		},
+
+		expression : function (right_precedence) {
+			var left, token;
+			if (! this.current_expression) {
+				left = this.last_expression;
+			} else {
+				left = this.current_expression.null_denotation(this);
+			}
+
+			while (this.current_expression && right_precedence < this.current_expression.precedence) {
+				token = this.current_expression;
+				this.advance();
+				left = token.left_denotation(left, this);
+			}
+
+			return left;
+		},
+
+	};
+
+	return Scope;
+});
+
+// Javascript Parser {{{1
+app.namespace("javascript.Parser", function () {
+	var Parser = function (tokenizer, symbols, Scope) {
+		this.Scope     = Scope;
+		this.symbols   = symbols;
+		this.tokenizer = tokenizer;
+	};
+
+	Parser.prototype = {
+		Parser : Parser,
+		copy   : function () {
+			return new this.Parser(this.tokenizer.inherit(), this.symbols.copy(), this.Scope);
+		},
+		parse : function (source_code) {
+			var tokens = this.tokenizer.parse(source_code),
+				scope  = new this.Scope(tokens, this.symbols);
+
+			return scope.parse(tokens);
+		},
+	};
+
+	return Parser;
+});
+
+// ES5 parser {{{1
+app.namespace("javascript.ES5_parser", [
+	"javascript.Scope",
+	"javascript.Parser",
+	"javascript.es5_tokenizer",
+	"javascript.es5_symbols",
+], function (Scope, Parser, tokenizer, symbols) {
+	return new Parser(tokenizer, symbols, Scope);
+});
+
+// ES6 parser {{{1
+app.namespace("javascript.ES6_parser", [
+	"javascript.ES5_parser",
+], function (parser) {
+	var contained_null_regions = parser.tokenizer.regions.contained_null_regions;
+
+	parser = parser.copy();
+
+	parser.symbols.literal_expression("TemplateLiteral", {
+		protos : {
+			type       : "Template",
+			precedence : 21,
+			initialize : function (tokens, index, scope) {
+				this.type  = this.type;
+				this.value = tokens[index].value;
+				this.body  = scope.$new(tokens[index].children);
+				this.start = tokens[index].start;
+				this.end   = tokens[index].end;
+			},
+			null_denotation : function () {
+				var body       = new Array(this.body.tokens.length),
+					body_scope = this.body;
+
+				for (var i = 0; i < body.length; ++i) {
+					body_scope.advance();
+					body[i] = body_scope.current_expression;
+				}
+				this.body = body;
+
+				return this;
+			},
+		}
+	}).
+
+	declaration_expression("TemplateLiteral expression", {
+		protos : {
+			type       : "TemplateLiteral",
+			precedence : 21,
+			initialize : function (tokens, index, scope) {
+				this.type       = this.type;
+				this.expression = scope.$new(tokens[index].children);
+
+				this.expression.advance();
+				this.expression = this.expression.expression(0);
+
+				this.start      = tokens[index].start;
+				this.end        = tokens[index].end;
+			},
+		}
+	}).
+
+	declaration_expression("TemplateLiteral quasi string", {
+		suffix : false,
+		protos : {
+			type       : "TemplateLiteralString",
+			precedence : 21,
+			initialize : function (tokens, index) {
+				this.type  = this.type;
+				this.value = tokens[index].value;
+				this.start = tokens[index].start;
+				this.end   = tokens[index].end;
+			},
+		}
+	});
+	parser.tokenizer.regions.contained_null_regions = contained_null_regions;
+
+	return parser;
 });
 // }}}1
 

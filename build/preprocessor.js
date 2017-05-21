@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preprocessor.js
 * Created at  : 2017-04-26
-* Updated at  : 2017-05-07
+* Updated at  : 2017-05-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,11 +9,8 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo = require("jeefo").create();
+var jeefo = require("../src/parser.js");
 
-jeefo.use(require("jeefo_core"));
-jeefo.use(require("jeefo_tokenizer"));
-jeefo.use(require("../index"));
 jeefo.use(require("jeefo_javascript_beautifier"));
 
 var pp = jeefo.module("jeefo.preprocessor", ["jeefo_javascript_beautifier"]);
@@ -106,6 +103,10 @@ pp.namespace("javascript.Preprocessor", [
 			case "Identifier":
 				def = scope.defs[args[0].name] = new this.Def(args[1], args[2]);
 				break;
+		}
+
+		if (! def) {
+			console.log(def, args);
 		}
 
 		switch (def.token.type) {
@@ -271,7 +272,7 @@ pp.namespace("javascript.Preprocessor", [
 			}
 		}
 
-		for (i = scope.level - 1; i >= 1; --i) {
+		for (i = scope.level - 1; i >= 0; --i) {
 			this.compiler.current_indent = this.compiler.current_indent + this.compiler.indentation;
 		}
 		
@@ -316,9 +317,17 @@ pp.namespace("javascript.Preprocessor", [
 		}
 	};
 
+	var z, c = 0, l;
+
 	// Expression {{{2
 	p.expression = function (expression, scope) {
 		var i = 0;
+
+		if (z === expression) {
+			console.log(222, expression, c); 
+			console.log(333, l);
+			process.exit();
+		}
 
 		switch (expression.type) {
 			case "Comment" :
@@ -365,7 +374,9 @@ pp.namespace("javascript.Preprocessor", [
 				this.expression(expression.right, scope);
 				break;
 			case "BinaryExpression":
-			case "LogicalExpression":
+			case "EqualityExpression":
+			case "LogicalAndExpression":
+			case "LogicalOrExpression":
 				this.expression(expression.left, scope);
 				this.expression(expression.right, scope);
 				break;
@@ -373,6 +384,9 @@ pp.namespace("javascript.Preprocessor", [
 				this.process(expression.body.body, scope.$new());
 				break;
 			case "MemberExpression" :
+				if (! expression.property) {
+					console.log(3333, expression);
+				}
 				this.expression(expression.object, scope);
 				this.expression(expression.property, scope);
 				break;
@@ -383,7 +397,11 @@ pp.namespace("javascript.Preprocessor", [
 				}
 				break;
 			case "UnaryExpression" :
+				z = expression;
+				++c;
 				this.expression(expression.argument, scope);
+				break;
+			case "NullLiteral" :
 				break;
 			case "ArrayLiteral" :
 				break;
@@ -430,8 +448,11 @@ pp.namespace("javascript.Preprocessor", [
 				});
 				break;
 			default:
-				console.log("UNIMPLEMENTED expression", expression.type);
+			//console.log(expression);
+				console.log("UNIMPLEMENTED expression", expression.type, expression.start);
 		}
+
+		l = expression;
 	};
 
 	// Handler arguments {{{2
@@ -464,6 +485,7 @@ pp.namespace("javascript.Preprocessor", [
 				this.process([statement], scope);
 				break;
 			case "EmptyStatement" :
+			console.log(statement);
 				break;
 			default:
 				console.log("UNIMPLEMENTED statement", statement.type);
@@ -475,6 +497,9 @@ pp.namespace("javascript.Preprocessor", [
 	p.process = function (tokens, scope) {
 		for (var i = 0; i < tokens.length; ++i) {
 
+if (! tokens[i]) {
+	console.log(i, tokens);
+}
 			SWITCH:
 			switch (tokens[i].type) {
 				// Comment {{{3
@@ -586,7 +611,7 @@ pp.namespace("javascript.Preprocessor", [
 
 // Public funciton {{{1
 pp.namespace("javascript.ES5_preprocessor", [
-	"javascript.ES5_parser",
+	"javascript.ES6_parser",
 	"javascript.Preprocessor",
 ], function (parser, JavascriptPreprocessor) {
 	var PublicJavascriptPreprocessor = function (defs, middlewares) {
@@ -601,7 +626,11 @@ pp.namespace("javascript.ES5_preprocessor", [
 
 	p.define = function (name, definition, is_return) {
 		var code = `PP.define(${ name }, ${ definition.toString() }, ${ is_return });`;
-		var file = parser("[IN MEMORY]", code);
+		var file = {
+			program : {
+				body : parser.parse(code)
+			}
+		};
 
 		this.pp.compiler.current_indent = '';
 
@@ -622,8 +651,14 @@ pp.namespace("javascript.ES5_preprocessor", [
 	};
 
 	p.process = function (filename, source_code, defs, indent, indentation) {
+		console.log(882131, filename);
 		var i    = 0,
-			file = this.parser(filename, source_code),
+			file = {
+				code : source_code,
+				program : {
+					body : parser.parse(source_code)
+				}
+			},
 			pp   = new this.JavascriptPreprocessor(file, this.get_defs(defs), indent, indentation);
 
 		for (; i < this.middlewares.length; ++i) {

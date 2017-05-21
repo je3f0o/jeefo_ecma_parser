@@ -238,18 +238,22 @@ jeefo@^0.0.13:
   version "0.0.13"
   resolved "https://registry.yarnpkg.com/jeefo/-/jeefo-0.0.13.tgz#6174a3e47a3f90175969950c49f0eb48503caa41"
 
-jeefo_core@^0.0.10:
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/jeefo_core/-/jeefo_core-0.0.10.tgz#ece31c290ed47b266ffe78d5f6fc930c6df62178"
+jeefo@^0.0.18:
+  version "0.0.18"
+  resolved "https://registry.yarnpkg.com/jeefo/-/jeefo-0.0.18.tgz#9990035d4c7cc8058f08908004db3688fb3a2961"
+
+jeefo_core@^0.0.12:
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/jeefo_core/-/jeefo_core-0.0.12.tgz#2c553c393824cfc7119fc74d700f5a4e1b7757ea"
   dependencies:
     jeefo "^0.0.13"
 
-jeefo_tokenizer@^0.0.21:
-  version "0.0.21"
-  resolved "https://registry.yarnpkg.com/jeefo_tokenizer/-/jeefo_tokenizer-0.0.21.tgz#a5079b59185a61ea88296a0214027137f80de9f3"
+jeefo_tokenizer@^0.0.24:
+  version "0.0.24"
+  resolved "https://registry.yarnpkg.com/jeefo_tokenizer/-/jeefo_tokenizer-0.0.24.tgz#e5cba35a5b7a0043f6138127cf6a3a62fad2c0c0"
   dependencies:
-    jeefo "^0.0.13"
-    jeefo_core "^0.0.10"
+    jeefo "^0.0.18"
+    jeefo_core "^0.0.12"
 
 json3@3.3.2:
   version "3.3.2"

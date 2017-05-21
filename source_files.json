@@ -1,4 +1,4 @@
 [
-	"src/javascript_tokenizer.js",
-	"src/javascript_parser.js"
+	"src/tokenizer.js",
+	"src/parser.js"
 ]
