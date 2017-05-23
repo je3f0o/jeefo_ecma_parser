@@ -1,4 +1,7 @@
 [
-	"src/tokenizer.js",
-	"src/parser.js"
+	"src/parser.js",
+	"src/es5_tokenizer.js",
+	"src/es5_parser.js",
+	"src/es6_tokenizer.js",
+	"src/es6_parser.js"
 ]

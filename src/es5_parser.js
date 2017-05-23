@@ -1,583 +1,3 @@
-/**
- * jeefo_javascript_parser : v0.0.7
- * Author                  : je3f0o, <je3f0o@gmail.com>
- * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
- * License                 : The MIT License
- * Copyright               : 2017
- **/
-jeefo.use(function (jeefo) {
-
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : parser.js
-* Created at  : 2017-05-11
-* Updated at  : 2017-05-24
-* Author      : jeefo
-* Purpose     :
-* Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
-
-var app = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]);
-
-// SymbolsTable {{{1
-app.namespace("parser.SymbolsTable", [
-	"object.assign",
-	"JeefoObject",
-], function (assign, JeefoObject) {
-
-	var HandlerInterface = function (handler) {
-		this.is    = handler.is;
-		this.Token = function () {};
-	};
-	HandlerInterface.prototype = {
-		assign  : assign,
-		inherit : function (arg1, arg2) {
-			this.assign(this.Token.prototype, arg1, arg2);
-		},
-	};
-
-	/**
-	 * @interface
-	 *
-	 * expression_default_prototype : {}
-	 * statement_default_prototype  : {}
-	 *
-	 * register_expression({
-	 *   precedence : number
-	 *   initialize(symbol_token, tokens, index, scope)
-	 *   suffix : any
-	 *   protos : {}
-	 * })
-	 * register_statement({
-	 *   precedence : number
-	 *   initialize(statement_token, symbol_token, tokens, index, scope)
-	 *   suffix : any
-	 *   protos : {}
-	 * })
-	 *
-	 * get_expression(scope, tokens, index)
-	 * get_statement(scope, tokens, index)
-	 */
-	var SymbolsTable = function (constructors, expression_symbols, statement_symbols) {
-		this.constructors       = constructors       || new JeefoObject();
-		this.statement_symbols  = statement_symbols  || new JeefoObject();
-		this.expression_symbols = expression_symbols || new JeefoObject();
-	};
-
-	SymbolsTable.prototype = {
-		assign       : assign,
-		Handler      : HandlerInterface,
-		SymbolsTable : SymbolsTable,
-
-		handler : function (handler) {
-			return new this.Handler(handler);
-		},
-
-		sort_handler : function (a, b) {
-			return a.Token.prototype.precedence - b.Token.prototype.precedence;
-		},
-
-		copy : function () {
-			return new this.SymbolsTable(this.constructors.$copy(), this.expression_symbols.$copy(), this.statement_symbols.$copy());
-		},
-
-		register_constructor : function (type, Constructor, protos) {
-			this.constructors[type] = Constructor;
-			this.assign(Constructor.prototype, this.expression_default_prototypes, protos);
-			Constructor.prototype.type = type;
-
-			if (Constructor.prototype.on_register) {
-				Constructor.prototype.on_register(Constructor.prototype, this);
-			}
-
-			return this;
-		},
-
-		register_expression : function (type, handler, suffix) {
-			var _handler = this.handler(handler);
-			_handler.inherit(this.expression_default_prototypes, handler.protos);
-
-			if (suffix === void 0) {
-				_handler.Token.prototype.type += "Expression";
-			} else if (suffix) {
-				_handler.Token.prototype.type += suffix;
-			}
-			this.constructors[_handler.Token.prototype.type] = _handler.Token;
-
-			if (_handler.Token.prototype.on_register) {
-				_handler.Token.prototype.on_register(_handler.Token.prototype, this);
-			}
-
-			if (this.expression_symbols.hasOwnProperty(type)) {
-				this.expression_symbols[type].push(_handler);
-				this.expression_symbols[type].sort(this.sort_handler);
-			} else {
-				this.expression_symbols[type] = [_handler];
-			}
-
-			return this;
-		},
-
-		register_statement : function (type, handler) {
-			var _handler = this.handler(handler);
-			_handler.inherit(this.statement_default_prototypes, handler.protos);
-
-			if (handler.suffix === void 0) {
-				_handler.Token.prototype.type += "Statement";
-			} else if (handler.suffix) {
-				_handler.Token.prototype.type += handler.suffix;
-			}
-			this.constructors[_handler.Token.prototype.type] = _handler.Token;
-
-			if (_handler.Token.prototype.on_register) {
-				_handler.Token.prototype.on_register(_handler.Token.prototype, this);
-			}
-
-			if (this.statement_symbols.hasOwnProperty(type)) {
-				this.statement_symbols[type].push(_handler);
-				this.statement_symbols[type].sort(this.sort_handler);
-			} else {
-				this.statement_symbols[type] = [_handler];
-			}
-
-			return this;
-		},
-
-		get_expression : function (scope, tokens, index) {
-			var symbols = this.expression_symbols[tokens[index].type];
-
-			if (! symbols) {
-				return;
-			}
-
-			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(tokens[index], tokens, index)) {
-					continue;
-				}
-
-				var token = new symbols[i].Token();
-
-				if (token.initialize) {
-					token.initialize(tokens, index, scope);
-				}
-
-				return token;
-			}
-		},
-
-		get_statement : function (scope, tokens, index) {
-			var token   = scope.current_expression,
-				symbols = this.statement_symbols[token.type];
-
-			if (! symbols) {
-				return;
-			}
-
-			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(token, tokens, index)) {
-					continue;
-				}
-
-				token = new symbols[i].Token();
-
-				if (token.initialize) {
-					token.initialize(tokens, index, scope);
-				}
-
-				return token;
-			}
-		},
-
-		expression_default_prototypes : {
-			type            : "Undefined",
-			precedence      : 0,
-			null_denotation : function () { return this; },
-			left_denotation : function () { return this; },
-		},
-
-		statement_default_prototypes : {
-			type       : "Undefined",
-			precedence : 3,
-		},
-	};
-
-	return SymbolsTable;
-});
-
-// Javascript SymbolsTable {{{1
-app.namespace("javascript.SymbolsTable", [
-	"JeefoObject",
-	"object.assign",
-	"parser.SymbolsTable",
-], function (JeefoObject, assign, SymbolsTable) {
-
-	var initialize_identifier = function (tokens, index, scope) {
-		var i = index + 1;
-
-		this.type = this.type;
-		this.name = tokens[index].value;
-
-		LOOP:
-		for (; i < tokens.length; ++i) {
-			switch (tokens[i].type) {
-				case "Number":
-				case "Identifier":
-					if (tokens[i - 1].end.index === tokens[i].start.index) {
-						this.name += tokens[i].value;
-					} else {
-						break LOOP;
-					}
-					break;
-				case "SpecialCharacter":
-					switch (tokens[i].value) {
-						case '$':
-						case '_':
-							if (tokens[i - 1].end.index === tokens[i].start.index) {
-								this.name += tokens[i].value;
-							} else {
-								break LOOP;
-							}
-							break;
-						default:
-							break LOOP;
-					}
-					break;
-				default:
-					break LOOP;
-			}
-		}
-
-		this.start = tokens[index].start;
-		this.end   = tokens[i - 1].end;
-
-		scope.token_index = i - 1;
-	};
-
-	var JavascriptSymbolsTable = function (constructors, expression_symbols, statement_symbols, named_symbols) {
-		var i;
-
-		this.constructors       = constructors       || new JeefoObject();
-		this.named_symbols      = named_symbols      || new JeefoObject();
-		this.statement_symbols  = statement_symbols  || new JeefoObject();
-		this.expression_symbols = expression_symbols || new JeefoObject();
-
-		if (this.expression_symbols.Identifier) {
-			for (i = this.expression_symbols.Identifier.length - 1; i >= 0; --i) {
-				if (this.expression_symbols.Identifier[i].precedence === 21) {
-					this.expression_symbols.Identifier.splice(i, 1);
-					break;
-				}
-			}
-		}
-
-		if (this.expression_symbols.SpecialCharacter) {
-			for (i = this.expression_symbols.SpecialCharacter.length - 1; i >= 0; --i) {
-				if (this.expression_symbols.SpecialCharacter[i].precedence === 21) {
-					this.expression_symbols.SpecialCharacter.splice(i, 1);
-					break;
-				}
-			}
-		}
-
-		this.declaration_expression("Identifier", {
-			suffix : false,
-			protos : {
-				type       : "Identifier",
-				names      : this.named_symbols,
-				precedence : 21,
-				initialize : initialize_identifier,
-				null_denotation : function (scope) {
-					if (this.names.hasOwnProperty(this.name)) {
-						return this.names[this.name].null_denotation(this, scope);
-					}
-					return this;
-				},
-				left_denotation : function (left, scope) {
-					if (this.names.hasOwnProperty(this.name)) {
-						if (! this.names[this.name].left_denotation) {
-							//console.log(this.name, this.names);
-						}
-						return this.names[this.name].left_denotation(left, scope);
-					}
-					return this;
-				}
-			},
-		}).
-
-		declaration_expression("SpecialCharacter", {
-			is     : function (token) { return token.value === '$' || token.value === '_'; },
-			suffix : false,
-			protos : {
-				type       : "Identifier",
-				precedence : 21,
-				initialize : initialize_identifier,
-			},
-		});
-	};
-
-	assign(JavascriptSymbolsTable.prototype, SymbolsTable.prototype, {
-		SymbolsTable : JavascriptSymbolsTable,
-		copy : function () {
-			return new this.SymbolsTable(
-				this.constructors.$copy(),
-				this.expression_symbols.$copy(),
-				this.statement_symbols.$copy(),
-				this.named_symbols.$copy()
-			);
-		},
-		named_expression : function (name, handler) {
-			this.named_symbols[name] = JeefoObject.create(handler);
-			if (handler.on_register) {
-				handler.on_register(this.named_symbols[name], this);
-			}
-			return this;
-		},
-		declaration_expression : function (token_type, handler) {
-			return this.register_expression(token_type, handler, handler.suffix);
-		},
-		literal_expression : function (token_type, handler) {
-			return this.register_expression(token_type, handler, "Literal");
-		},
-		binary_expression : function (token_type, handler) {
-			return this.register_expression(token_type, handler, handler.suffix);
-		},
-		unary_expression : function (token_type, handler) {
-			return this.register_expression(token_type, handler);
-		},
-	});
-
-	return JavascriptSymbolsTable;
-});
-
-
-// Javascript Scope {{{1
-app.namespace("javascript.Scope", function () {
-	var Scope = function (tokens, symbols) {
-		this.tokens        = tokens;
-		this.symbols       = symbols;
-		this.token_index   = 0;
-		this.tokens_length = tokens.length;
-	};
-
-	Scope.prototype = {
-		Scope : Scope,
-
-		$new : function (tokens) {
-			return new this.Scope(tokens, this.symbols);
-		},
-
-		parse : function () {
-			var statements = [];
-
-			for (this.advance(); this.current_expression; this.advance()) {
-				statements.push(this.statement());
-			}
-
-			return statements;
-		},
-
-		advance : function (expect_type) {
-			if (this.token_index < this.tokens_length) {
-				this.current_expression = this.symbols.get_expression(this, this.tokens, this.token_index);
-
-				if (expect_type && expect_type !== this.current_expression.type) {
-					this.current_expression.error();
-				}
-
-				this.token_index += 1;
-			} else {
-				this.last_expression    = this.current_expression;
-				this.current_expression = null;
-			}
-		},
-
-		statement : function () {
-			var statement = this.symbols.get_statement(this, this.tokens, this.token_index);
-
-			if (statement.statement_denotation) {
-				return statement.statement_denotation(this);
-			}
-
-			return statement;
-		},
-
-		expression : function (right_precedence) {
-			var left, token;
-			if (! this.current_expression) {
-				left = this.last_expression;
-			} else {
-				left = this.current_expression.null_denotation(this);
-			}
-
-			while (this.current_expression && right_precedence < this.current_expression.precedence) {
-				token = this.current_expression;
-				this.advance();
-				left = token.left_denotation(left, this);
-			}
-
-			return left;
-		},
-
-	};
-
-	return Scope;
-});
-
-// Javascript Parser {{{1
-app.namespace("javascript.Parser", function () {
-	var Parser = function (tokenizer, symbols, Scope) {
-		this.Scope     = Scope;
-		this.symbols   = symbols;
-		this.tokenizer = tokenizer;
-	};
-
-	Parser.prototype = {
-		Parser : Parser,
-		copy   : function () {
-			return new this.Parser(this.tokenizer.copy(), this.symbols.copy(), this.Scope);
-		},
-		parse : function (source_code) {
-			var tokens = this.tokenizer.parse(source_code),
-				scope  = new this.Scope(tokens, this.symbols);
-
-			return scope.parse(tokens);
-		},
-	};
-
-	return Parser;
-});
-// }}}1
-
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : es5_tokenizer.js
-* Created at  : 2017-04-08
-* Updated at  : 2017-05-24
-* Author      : jeefo
-* Purpose     :
-* Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
-
-// ES5 Tokenizer {{{1
-app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tokenizer) {
-	var javascript_tokenizer = new Tokenizer("ECMA Script 5");
-
-	// Comment {{{2
-	javascript_tokenizer.regions.register({
-		type  : "Comment",
-		name  : "Inline comment",
-		start : "//",
-		end   : "\n",
-	}).
-	register({
-		type  : "Comment",
-		name  : "Multi line comment",
-		start : "/*",
-		end   : "*/",
-	}).
-
-	// String {{{2
-	register({
-		type        : "String",
-		name        : "Double quote string",
-		start       : '"',
-		escape_char : '\\',
-		end         : '"',
-	}).
-	register({
-		type        : "String",
-		name        : "Single quote string",
-		start       : "'",
-		escape_char : '\\',
-		end         : "'",
-	}).
-
-	// Parenthesis {{{2
-	register({
-		type  : "Parenthesis",
-		name  : "Parenthesis",
-		start : '(',
-		end   : ')',
-		contains : [
-			{ type : "Block"       } ,
-			{ type : "Array"       } ,
-			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
-			{ type : "Comment"     } ,
-			{ type : "Parenthesis" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-
-	// Array {{{2
-	register({
-		type  : "Array",
-		name  : "Array literal",
-		start : '[',
-		end   : ']',
-		contains : [
-			{ type : "Block"       },
-			{ type : "Array"       },
-			{ type : "String"      },
-			{ type : "Comment"     },
-			{ type : "Parenthesis" },
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-
-	// Block {{{2
-	register({
-		type  : "Block",
-		name  : "Block",
-		start : '{',
-		end   : '}',
-		contains : [
-			{ type : "Block"       } ,
-			{ type : "Array"       } ,
-			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
-			{ type : "Comment"     } ,
-			{ type : "Parenthesis" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-
-	// RegExp {{{2
-	register({
-		type        : "RegExp",
-		name        : "RegExp",
-		start       : '/',
-		escape_char : '\\',
-		end         : '/',
-	});
-	// }}}2
-
-	return javascript_tokenizer;
-});
-// }}}1
-
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
@@ -586,6 +6,19 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
+// ignore:start
+"use strict";
+
+var jeefo    = require("./parser"),
+	_package = require("../package"),
+	app      = jeefo.module(_package.name);
+
+require("./es5_tokenizer");
+
+/* globals */
+/* exported */
+
+// ignore:end
 
 var COMMA_PRECEDENCE = 1;
 
@@ -2296,202 +1729,126 @@ namespace("javascript.ES5_parser", [
 });
 // }}}1
 
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : es6_tokenizer.js
-* Created at  : 2017-05-23
-* Updated at  : 2017-05-24
-* Author      : jeefo
-* Purpose     :
-* Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
-
-// ES6 Tokenizer {{{1
-app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function (es5_tokenizer) {
-	var es6_tokenizer = es5_tokenizer.copy(),
-		hash          = es6_tokenizer.regions.hash;
+//ignore:start
+// Debug {{{1
+if (require.main === module) {
 	
-	es6_tokenizer.language = "ECMA Script 6";
-	
-	// TODO: think about matchgroup
+app.run("javascript.ES5_parser", function (p) {
+	var print_substr = function (token) {
+		console.log("-----------------------");
+		console.log(source.slice(token.start.index, token.end.index));
+		console.log("----------------------------------------");
+	};
+	var print = function (token) {
+		console.log("----------------------------------------");
+		console.log(token);
+		print_substr(token);
+	};
 
-	es6_tokenizer.regions.
-	// TemplateLiteral {{{2
-	register({
-		type        : "TemplateLiteral quasi string",
-		start       : null,
-		escape_char : '\\',
-		end         : '${',
-		until       : true,
-		contained   : true,
-	}).
-	register({
-		type  : "TemplateLiteral expression",
-		start : "${",
-		end   : '}',
-		contains : [
-			{ type : "Block"       } ,
-			{ type : "Array"       } ,
-			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
-			{ type : "Comment"     } ,
-			{ type : "Parenthesis" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-	register({
-		type  : "TemplateLiteral",
-		start : '`',
-		end   : '`',
-		contains : [
-			{ type : "TemplateLiteral quasi string" } ,
-			{ type : "TemplateLiteral expression"   } ,
-		],
-		keepend : true
-	});
-	// }}}2
-
-	hash['{'][0].contains.push({ type : "TemplateLiteral" });
-	hash['('][0].contains.push({ type : "TemplateLiteral" });
-	hash['['][0].contains.push({ type : "TemplateLiteral" });
-
-	return es6_tokenizer;
-});
-// }}}1
-
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : es6_parser.js
-* Created at  : 2017-05-23
-* Updated at  : 2017-05-23
-* Author      : jeefo
-* Purpose     :
-* Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
-
-// ES6 parser {{{1
-app.namespace("javascript.ES6_parser", [
-	"javascript.ES5_parser",
-	"javascript.es6_tokenizer",
-], function (parser, tokenizer) {
-
-	parser = parser.copy();
-	parser.tokenizer = tokenizer;
-
-	parser.symbols.
-	// Template literal {{{2
-	literal_expression("TemplateLiteral", {
-		protos : {
-			type       : "Template",
-			precedence : 21,
-			initialize : function (tokens, index, scope) {
-				this.type  = this.type;
-				this.value = tokens[index].value;
-				this.body  = scope.$new(tokens[index].children);
-				this.start = tokens[index].start;
-				this.end   = tokens[index].end;
-			},
-			null_denotation : function () {
-				var body       = new Array(this.body.tokens.length),
-					body_scope = this.body;
-
-				for (var i = 0; i < body.length; ++i) {
-					body_scope.advance();
-					body[i] = body_scope.current_expression;
-				}
-				this.body = body;
-
-				return this;
-			},
-		}
-	}).
-
-	declaration_expression("TemplateLiteral expression", {
-		protos : {
-			type       : "TemplateLiteral",
-			precedence : 21,
-			initialize : function (tokens, index, scope) {
-				this.type       = this.type;
-				this.expression = scope.$new(tokens[index].children);
-
-				this.expression.advance();
-				this.expression = this.expression.expression(0);
-
-				this.start      = tokens[index].start;
-				this.end        = tokens[index].end;
-			},
-		}
-	}).
-
-	declaration_expression("TemplateLiteral quasi string", {
-		suffix : false,
-		protos : {
-			type       : "TemplateLiteralString",
-			precedence : 21,
-			initialize : function (tokens, index) {
-				this.type  = this.type;
-				this.value = tokens[index].value;
-				this.start = tokens[index].start;
-				this.end   = tokens[index].end;
-			},
-		}
-	}).
-
-	// Export default {{{2
-	register_constructor("ExportDefaultDeclaration", function (start, end, declaration) {
-		this.type        = this.type;
-		this.declaration = declaration;
-		this.start       = start;
-		this.end         = end;
-	}).
-
-	register_statement("Identifier", {
-		is     : function (token) { return token.name === "export"; },
-		protos : {
-			type       : "Export",
-			initialize : function () {
-				this.type = this.type;
-			},
-			on_register : function (handler, symbols) {
-				handler.ExportDefaultDeclaration = symbols.constructors.ExportDefaultDeclaration;
-			},
-			statement_denotation : function (scope) {
-				var start = scope.current_expression.start, declaration;
-				scope.advance();
-
-				if (scope.current_expression && scope.current_expression.name === "default") {
-					scope.advance();
-
-					if (scope.current_expression) {
-						if (scope.current_expression.type === "FunctionExpression") {
-							declaration      = scope.current_expression.null_denotation(scope);
-							declaration.type = "FunctionDeclaration";
-							return new this.ExportDefaultDeclaration(start, declaration.end, declaration);
-						}
-
-						declaration = scope.expression(0);
-						if (scope.current_expression.type === "Terminator") {
-							return new this.ExportDefaultDeclaration(start, scope.current_expression.end, declaration);
-						}
-
-						console.error("Unexpected delimiter");
+	var source;
+	var fs       = require("fs");
+	var path     = require("path");
+	var filename = path.join(__dirname, "./parser.js");
+	source       = fs.readFileSync(filename, "utf8");
+	/*
+*/
+	source = `
+	var core_module = jeefo.module("jeefo_core", []),
+	CAMEL_CASE_REGEXP = /[A-Z]/g,
+	dash_case = function (str) {
+		return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+			return (pos ? '-' : '') + letter.toLowerCase();
+		});
+	},
+	snake_case = function (str) {
+		return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+			return (pos ? '_' : '') + letter.toLowerCase();
+		});
+	};
+	delete ZZ.ff;
+	typeof x;
+	return zzz;
+	throw z,a,b;
+	function fn (param1, param2) {}
+	continue LABEL;
+	break LABEL;
+	switch (tokens[i].type) {
+		case "Number":
+		case "Identifier":
+			if (tokens[i - 1].end.index === tokens[i].start.index) {
+				this.name += tokens[i].value;
+			} else {
+				break LOOP;
+			}
+			break;
+		case "SpecialCharacter":
+			switch (tokens[i].value) {
+				case '$':
+				case '_':
+					if (tokens[i - 1].end.index === tokens[i].start.index) {
+						this.name += tokens[i].value;
 					} else {
-						console.error("ERRRRRRRRRRR export expression");
+						break LOOP;
 					}
-				}
-			},
-		}
-	});
-	// }}}2
+					break;
+				default:
+					break LOOP;
+			}
+			break;
+		default:
+			break LOOP;
+	}
+	try {
+		return zzz;
+	} catch (e) {
+		return error;
+	} finally {
+		return final;
+	}
+	for (var i = 0; i < 5; ++i) {
+		zz = as, gg = aa;
+	}
+	for (var a in b) {
+		zz = as, gg = aa;
+	}
+	{
+		var a = c + b.c * d - f, z = rr; 
+	}
+	while (zzz) {}
+	if (true) {
+		;
+	} else if (qqq) {
+		var z = h;
+	} else {
+		var zzz = zzz;
+	}
+	z = aa || bb && cc;
+	z in f;
+	z instanceof f;
+	f ** f;
+	++a;
+	a++;
+	new Fn(1.2E2,2,3);
+	PP.define("IS_NULL", function (x) { return x === null;   }, true);
+	instance.define("IS_OBJECT" , function (x) { return x !== null && typeof x === "object"; } , true);
+	instance.define("ARRAY_EXISTS" , function (arr, x) { return arr.indexOf(x) >= 0; } , true);
+`;
 
-	return parser;
+	var r = p.parse(source);
+
+	//print(r[0].declarations[2].init.body.body[0].argument.arguments[1].body.body[0].argument);
+	//print(r[9].statement.body[0]);
+	//print(r[12].expression.arguments[2].body.body[0].declarations[0].init.body.body[3]);
+	print(r[19]);
+
+	//console.log(r);
+
+	//process.exit();
 });
+
+}
 // }}}1
 
-});
+module.exports = jeefo;
+
+//ignore:end

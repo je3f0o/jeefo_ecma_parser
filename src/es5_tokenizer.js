@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : tokenizer.js
+* File Name   : es5_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-14
+* Updated at  : 2017-05-24
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,21 +9,19 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo = require("jeefo/dist/jeefo.node").create();
-jeefo.use(require("jeefo_core"));
-jeefo.use(require("jeefo_tokenizer"));
+var jeefo    = require("./parser"),
+	_package = require("../package"),
+	app      = jeefo.module(_package.name);
 
 /* global */
 /* exported */
 /* exported */
 
 //ignore:end
-var app      = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]),
-	LANGUAGE = "javascript";
 
-// Regions {{{1
+// ES5 Tokenizer {{{1
 app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tokenizer) {
-	var javascript_tokenizer = new Tokenizer(LANGUAGE);
+	var javascript_tokenizer = new Tokenizer("ECMA Script 5");
 
 	// Comment {{{2
 	javascript_tokenizer.regions.register({
@@ -54,46 +52,6 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 		escape_char : '\\',
 		end         : "'",
 	}).
-	register({
-		type        : "TemplateLiteral quasi string",
-		start       : null,
-		escape_char : '\\',
-		end         : '${',
-		until       : true,
-		contained   : true,
-	}).
-	register({
-		type  : "TemplateLiteral expression",
-		start : "${",
-		end   : '}',
-		contains : [
-			{ type : "Block"       } ,
-			{ type : "Array"       } ,
-			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
-			{ type : "Comment"     } ,
-			{ type : "Parenthesis" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
-			},
-		]
-	}).
-	register({
-		type  : "TemplateLiteral",
-		start : '`',
-		end   : '`',
-		contains : [
-			{ type : "TemplateLiteral quasi string" } ,
-			{ type : "TemplateLiteral expression"   } ,
-		],
-		keepend : true
-	}).
 
 	// Parenthesis {{{2
 	register({
@@ -102,13 +60,12 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 		start : '(',
 		end   : ')',
 		contains : [
-			{ type : "Block"           } ,
-			{ type : "Array"           } ,
-			{ type : "String"          } ,
-			{ type : "RegExp"          } ,
-			{ type : "Comment"         } ,
-			{ type : "Parenthesis"     } ,
-			{ type : "TemplateLiteral" } ,
+			{ type : "Block"       } ,
+			{ type : "Array"       } ,
+			{ type : "String"      } ,
+			{ type : "RegExp"      } ,
+			{ type : "Comment"     } ,
+			{ type : "Parenthesis" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
@@ -152,13 +109,12 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 		start : '{',
 		end   : '}',
 		contains : [
-			{ type : "Block"           } ,
-			{ type : "Array"           } ,
-			{ type : "String"          } ,
-			{ type : "RegExp"          } ,
-			{ type : "Comment"         } ,
-			{ type : "Parenthesis"     } ,
-			{ type : "TemplateLiteral" } ,
+			{ type : "Block"       } ,
+			{ type : "Array"       } ,
+			{ type : "String"      } ,
+			{ type : "RegExp"      } ,
+			{ type : "Comment"     } ,
+			{ type : "Parenthesis" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [

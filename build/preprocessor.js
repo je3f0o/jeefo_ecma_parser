@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preprocessor.js
 * Created at  : 2017-04-26
-* Updated at  : 2017-05-22
+* Updated at  : 2017-05-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,7 +9,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 //ignore:start
 "use strict";
 
-var jeefo = require("../src/parser.js");
+var jeefo = require("../src/es6_parser.js");
 
 jeefo.use(require("jeefo_javascript_beautifier"));
 
@@ -335,6 +335,10 @@ pp.namespace("javascript.Preprocessor", [
 			case "NumberLiteral" :
 			case "StringLiteral" :
 			case "RegExpLiteral" :
+			case "BooleanLiteral" :
+				return;
+			case "GroupingExpression" :
+				this.expression(expression.expression, scope);
 				return;
 			case "Identifier" :
 				if (scope.defs.hasOwnProperty(expression.name) && ! this.remove_indices) {
@@ -377,6 +381,7 @@ pp.namespace("javascript.Preprocessor", [
 			case "EqualityExpression":
 			case "LogicalAndExpression":
 			case "LogicalOrExpression":
+			case "ComparisionExpression":
 				this.expression(expression.left, scope);
 				this.expression(expression.right, scope);
 				break;
@@ -384,9 +389,6 @@ pp.namespace("javascript.Preprocessor", [
 				this.process(expression.body.body, scope.$new());
 				break;
 			case "MemberExpression" :
-				if (! expression.property) {
-					console.log(3333, expression);
-				}
 				this.expression(expression.object, scope);
 				this.expression(expression.property, scope);
 				break;
@@ -448,7 +450,6 @@ pp.namespace("javascript.Preprocessor", [
 				});
 				break;
 			default:
-			//console.log(expression);
 				console.log("UNIMPLEMENTED expression", expression.type, expression.start);
 		}
 
@@ -480,12 +481,14 @@ pp.namespace("javascript.Preprocessor", [
 			case "IfStatement" :
 				this.process([statement], scope);
 				break;
+			case "WhileStatement" :
+				this.statement(statement.statement, scope);
+				break;
 			case "ForStatement" :
 			case "SwitchStatement" :
 				this.process([statement], scope);
 				break;
 			case "EmptyStatement" :
-			console.log(statement);
 				break;
 			default:
 				console.log("UNIMPLEMENTED statement", statement.type);
