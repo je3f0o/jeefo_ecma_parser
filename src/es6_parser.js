@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-05-23
+* Updated at  : 2017-05-29
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,11 +9,9 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
 
-var jeefo    = require("./es6_tokenizer"),
+var jeefo    = require("./es5_parser"),
 	_package = require("../package"),
 	app      = jeefo.module(_package.name);
-
-require("./es5_parser");
 
 /* globals */
 /* exported */
@@ -23,91 +21,134 @@ require("./es5_parser");
 // ES6 parser {{{1
 app.namespace("javascript.ES6_parser", [
 	"javascript.ES5_parser",
-	"javascript.es6_tokenizer",
-], function (parser, tokenizer) {
+], function (parser) {
 
 	parser = parser.copy();
-	parser.tokenizer = tokenizer;
+
+	var is_named = function (value) {
+		return function (token, tokens, index) {
+			if (token.value === value) {
+				if (tokens[index + 1] && tokens[index + 1].start.index === token.end.index) {
+					switch (tokens[index + 1].type) {
+						case "Number" :
+							return false;
+						case "SpecialCharacter" :
+							if (tokens[index + 1].value !== '_' && tokens[index + 1].value !== '$') {
+								token.op    = token.value;
+								token.index = index;
+								return true;
+							}
+							return false;
+					}
+				}
+				token.op    = token.value;
+				token.index = index;
+				return true;
+			}
+		};
+	};
 
 	parser.symbols.
 	// Template literal {{{2
-	literal_expression("TemplateLiteral", {
+	literal("SpecialCharacter", {
+		is : function (token) { return token.value === '`'; },
 		protos : {
 			type       : "Template",
 			precedence : 21,
 			initialize : function (tokens, index, scope) {
 				this.type  = this.type;
-				this.value = tokens[index].value;
-				this.body  = scope.$new(tokens[index].children);
-				this.start = tokens[index].start;
-				this.end   = tokens[index].end;
-			},
-			null_denotation : function () {
-				var body       = new Array(this.body.tokens.length),
-					body_scope = this.body;
+				this.start = scope.current_token.start;
 
-				for (var i = 0; i < body.length; ++i) {
-					body_scope.advance();
-					body[i] = body_scope.current_expression;
+				var i = index + 1, j = 0, last_index = i, body = this.body = [], expression;
+
+				while (tokens[i]) {
+					if (tokens[i].value === '\\') {
+						i += 2;
+						continue;
+					}
+
+					if (tokens[i].value           === '$' &&
+						tokens[i + 1].value       === '{' &&
+						tokens[i + 1].start.index === tokens[i].end.index) {
+
+						if (i > last_index) {
+							body[j++] = new this.TemplateLiteralString(
+								tokens[last_index].start,
+								tokens[i - 1].end,
+								scope.code.substr(
+									tokens[last_index].start.index,
+									tokens[i].start.index - tokens[last_index].start.index
+								)
+							);
+						}
+
+						scope.token_index = i + 1;
+						scope.advance();
+
+						expression = scope.expression(0);
+
+						if (scope.current_token.value === '}') {
+							body[j++] = new this.TemplateLiteralExpression(
+								tokens[i].start,
+								tokens[scope.token_index].end,
+								expression
+							);
+							i = last_index = scope.token_index + 1;
+						}
+					}
+
+					if (tokens[i].value === '`') {
+						if (i > last_index) {
+							body[j++] = new this.TemplateLiteralString(
+								tokens[last_index].start,
+								tokens[i - 1].end,
+								scope.code.substr(
+									tokens[last_index].start.index,
+									tokens[i].start.index - tokens[last_index].start.index
+								)
+							);
+						}
+
+						scope.token_index = i;
+						break;
+					}
+
+					++i;
 				}
-				this.body = body;
 
-				return this;
+				this.end = tokens[scope.token_index].end;
 			},
-		}
-	}).
+			on_register : function (handler) {
+				handler.TemplateLiteralString = function (start, end, value) {
+					this.type  = this.type;
+					this.value = value;
+					this.start = start;
+					this.end   = end;
+				};
+				handler.TemplateLiteralString.prototype.type = "TemplateLiteralString";
 
-	declaration_expression("TemplateLiteral expression", {
-		protos : {
-			type       : "TemplateLiteral",
-			precedence : 21,
-			initialize : function (tokens, index, scope) {
-				this.type       = this.type;
-				this.expression = scope.$new(tokens[index].children);
-
-				this.expression.advance();
-				this.expression = this.expression.expression(0);
-
-				this.start      = tokens[index].start;
-				this.end        = tokens[index].end;
-			},
-		}
-	}).
-
-	declaration_expression("TemplateLiteral quasi string", {
-		suffix : false,
-		protos : {
-			type       : "TemplateLiteralString",
-			precedence : 21,
-			initialize : function (tokens, index) {
-				this.type  = this.type;
-				this.value = tokens[index].value;
-				this.start = tokens[index].start;
-				this.end   = tokens[index].end;
+				handler.TemplateLiteralExpression = function (start, end, expression) {
+					this.type       = this.type;
+					this.expression = expression;
+					this.start      = start;
+					this.end        = end;
+				};
+				handler.TemplateLiteralExpression.prototype.type = "TemplateLiteralExpression";
 			},
 		}
 	}).
 
 	// Export default {{{2
-	register_constructor("ExportDefaultDeclaration", function (start, end, declaration) {
-		this.type        = this.type;
-		this.declaration = declaration;
-		this.start       = start;
-		this.end         = end;
-	}).
-
-	register_statement("Identifier", {
-		is     : function (token) { return token.name === "export"; },
+	statement("Identifier", {
+		is     : is_named("export"),
 		protos : {
 			type       : "Export",
+			precedence : 31,
 			initialize : function () {
 				this.type = this.type;
 			},
-			on_register : function (handler, symbols) {
-				handler.ExportDefaultDeclaration = symbols.constructors.ExportDefaultDeclaration;
-			},
 			statement_denotation : function (scope) {
-				var start = scope.current_expression.start, declaration;
+				var start = scope.current_token.start;
 				scope.advance();
 
 				if (scope.current_expression && scope.current_expression.name === "default") {
@@ -115,17 +156,21 @@ app.namespace("javascript.ES6_parser", [
 
 					if (scope.current_expression) {
 						if (scope.current_expression.type === "FunctionExpression") {
-							declaration      = scope.current_expression.null_denotation(scope);
-							declaration.type = "FunctionDeclaration";
-							return new this.ExportDefaultDeclaration(start, declaration.end, declaration);
+							this.declaration      = scope.current_expression;
+							this.declaration.type = "FunctionDeclaration";
+							this.start            = start;
+							this.end              = this.declaration.end;
+							return this;
 						}
 
-						declaration = scope.expression(0);
-						if (scope.current_expression.type === "Terminator") {
-							return new this.ExportDefaultDeclaration(start, scope.current_expression.end, declaration);
+						this.declaration = scope.expression(0);
+						if (scope.current_token.value === ';') {
+							this.start = start;
+							this.end   = this.declaration.end;
+							return this;
 						}
 
-						console.error("Unexpected delimiter");
+						scope.current_token.error_unexpected_token();
 					} else {
 						console.error("ERRRRRRRRRRR export expression");
 					}
@@ -163,7 +208,6 @@ app.run([
 	var filename = path.join(__dirname, "./parser.js");
 	source       = fs.readFileSync(filename, "utf8");
 	/*
-*/
 	source = `
 	var core_module = jeefo.module("jeefo_core", []),
 	CAMEL_CASE_REGEXP = /[A-Z]/g,
@@ -246,18 +290,30 @@ app.run([
 	instance.define("ARRAY_EXISTS" , function (arr, x) { return arr.indexOf(x) >= 0; } , true);
 	export default function () {}
 	export default a = 2;
+	searchables.push({
+		type          : header.type,
+		model         : header.model,\n` +
+"		attrs         : { ngIf : \`configs.${ header.model }.is_renderable\` }," + `
+		is_searchable : index > 0,
+	});
 `;
-source += "namespace = namespace ? z ? `${ namespace }.` : f : part;";
+source += "namespace = namespace ? z ? `Hello??${ namespace }` : f : part;";
+*/
 
+try {
 	var r = p.parse(source);
+	print(r[10]);
+} catch(e) {
+	console.log(e);
+	console.log(e.stack);
+}
 
 	//print(r[0].declarations[2].init.body.body[0].argument.arguments[1].body.body[0].argument);
 	//print(r[9].statement.body[0]);
 	//print(r[12].expression.arguments[2].body.body[0].declarations[0].init.body.body[3]);
-	print(r[25]);
-	print(r[26].declaration);
-
-	//console.log(r);
+	//print(r[25]);
+	//print(r[26].declaration);
+	//print(r[27].expression.right.consequent.consequent);
 
 	//process.exit();
 });

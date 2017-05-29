@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_tokenizer.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-05-24
+* Updated at  : 2017-05-26
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -45,7 +45,6 @@ app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function
 			{ type : "Block"       } ,
 			{ type : "Array"       } ,
 			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
 			{ type : "Comment"     } ,
 			{ type : "Parenthesis" } ,
 			{

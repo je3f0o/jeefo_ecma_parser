@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-05-24
+* Updated at  : 2017-05-26
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -21,10 +21,10 @@ var jeefo    = require("./parser"),
 
 // ES5 Tokenizer {{{1
 app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tokenizer) {
-	var javascript_tokenizer = new Tokenizer("ECMA Script 5");
+	var es5_tokenizer = new Tokenizer("ECMA Script 5");
 
 	// Comment {{{2
-	javascript_tokenizer.regions.register({
+	es5_tokenizer.regions.register({
 		type  : "Comment",
 		name  : "Inline comment",
 		start : "//",
@@ -63,16 +63,18 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 			{ type : "Block"       } ,
 			{ type : "Array"       } ,
 			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
 			{ type : "Comment"     } ,
 			{ type : "Parenthesis" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
+					'-', '+', '*', '/', '%', // operator
+					'&', '|', '^',
+					'?', ':',
+					'$', '_',
+					'!', '\\',
+					'=', '<', '>',
+					'`', '.', ',', ';', // delimiters
 				]
 			},
 		]
@@ -93,10 +95,13 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 			{
 				type  : "SpecialCharacter",
 				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>',
-					':', '.', ',', ';', // delimiters
+					'-', '+', '*', '/', '%', // operator
+					'&', '|', '^',
+					'?', ':',
+					'$', '_',
+					'!', '\\',
+					'=', '<', '>',
+					'`', '.', ',', ';', // delimiters
 				]
 			},
 		]
@@ -112,32 +117,25 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 			{ type : "Block"       } ,
 			{ type : "Array"       } ,
 			{ type : "String"      } ,
-			{ type : "RegExp"      } ,
 			{ type : "Comment"     } ,
 			{ type : "Parenthesis" } ,
 			{
 				type  : "SpecialCharacter",
 				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
+					'-', '+', '*', '/', '%', // operator
+					'&', '|', '^',
+					'?', ':',
+					'$', '_',
+					'!', '\\',
+					'=', '<', '>',
+					'`', '.', ',', ';', // delimiters
 				]
 			},
 		]
-	}).
-
-	// RegExp {{{2
-	register({
-		type        : "RegExp",
-		name        : "RegExp",
-		start       : '/',
-		escape_char : '\\',
-		end         : '/',
 	});
 	// }}}2
 
-	return javascript_tokenizer;
+	return es5_tokenizer;
 });
 // }}}1
 
