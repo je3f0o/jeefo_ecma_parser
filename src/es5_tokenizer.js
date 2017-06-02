@@ -218,7 +218,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 				this.quote = quote;
 				this.value = streamer.seek(start_index);
 				this.start = start;
-				this.end   = streamer.get_cursor();
+				this.end   = streamer.end_cursor();
 			},
 		},
 	}).

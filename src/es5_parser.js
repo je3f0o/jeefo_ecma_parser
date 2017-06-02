@@ -1634,7 +1634,7 @@ if (require.main === module) {
 app.run("javascript.ES5_parser", function (p) {
 	var print_substr = function (token) {
 		console.log("-----------------------");
-		console.log(source.slice(token.start.index, token.end.index));
+		console.log(source.substring(token.start.index, token.end.index));
 		console.log("----------------------------------------");
 	};
 	var print = function (token) {
@@ -1813,7 +1813,9 @@ app.run("javascript.ES5_parser", function (p) {
 
 try {
 	var r = p.parse(source);
-	print(r[36].declarations[0].init);
+	print(r[0].declarations[0].init.arguments[0]);
+	console.log(source[33]);
+	//print(r[36].declarations[0].init);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);
