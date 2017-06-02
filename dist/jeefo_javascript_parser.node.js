@@ -1375,8 +1375,8 @@ app.namespace("javascript.es5_symbols", [
 					scope.advance();
 				}
 
-				if (scope.current_token.type === "Identifier") {
-					this.property    = scope.current_token;
+				if (scope.current_expression.type === "Identifier") {
+					this.property    = scope.current_expression;
 					this.is_computed = false;
 					this.start       = left.start;
 					this.end         = this.property.end;
@@ -1925,7 +1925,7 @@ app.namespace("javascript.es5_symbols", [
 		} else {
 			this.argument = scope.expression(0);
 			if (scope.current_token.delimiter !== ';') {
-				console.log('[' + this.undefined + ']', scope.current_expression, this);
+				console.log('[' + this.type + ']', scope.current_expression, this);
 				scope.current_token.error_unexpected_token();
 			}
 		}

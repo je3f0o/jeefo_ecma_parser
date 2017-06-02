@@ -629,8 +629,8 @@ app.namespace("javascript.es5_symbols", [
 					scope.advance();
 				}
 
-				if (scope.current_token.type === "Identifier") {
-					this.property    = scope.current_token;
+				if (scope.current_expression.type === "Identifier") {
+					this.property    = scope.current_expression;
 					this.is_computed = false;
 					this.start       = left.start;
 					this.end         = this.property.end;
