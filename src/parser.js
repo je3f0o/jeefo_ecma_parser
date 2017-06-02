@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2017-05-11
-* Updated at  : 2017-05-29
+* Updated at  : 2017-06-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -144,22 +144,22 @@ app.namespace("parser.SymbolsTable", [
 			return this;
 		},
 
-		get_expression : function (scope, tokens, index) {
-			var symbols = this.expression_symbols[tokens[index].type];
+		get_expression : function (scope) {
+			var symbols = this.expression_symbols[scope.current_token.type];
 
 			if (! symbols) {
 				return;
 			}
 
 			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(tokens[index], tokens, index)) {
+				if (symbols[i].is && ! symbols[i].is(scope.current_token)) {
 					continue;
 				}
 
 				var token = new symbols[i].Token();
 
 				if (token.initialize) {
-					token.initialize(tokens, index, scope);
+					token.initialize(scope.current_token, scope);
 				}
 
 				return token;
@@ -253,18 +253,21 @@ app.namespace("javascript.SymbolsTable", [
 
 			return this;
 		},
-		get_binary_expression : function (scope, tokens, index) {
-			var symbols = this.binary_expression_symbols[tokens[index].type], i = symbols.length - 1;
+		get_binary_expression : function (scope) {
+			if (! this.binary_expression_symbols[scope.current_token.type]) {
+				console.log(22222222222, scope.current_token);
+			}
+			var symbols = this.binary_expression_symbols[scope.current_token.type], i = symbols.length - 1;
 
 			for (; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(tokens[index], tokens, index)) {
+				if (symbols[i].is && ! symbols[i].is(scope.current_token)) {
 					continue;
 				}
 
 				var token = new symbols[i].Token();
 
 				if (token.initialize) {
-					token.initialize(tokens, index, scope);
+					token.initialize(scope.current_token, scope);
 				}
 
 				return token;
@@ -295,11 +298,9 @@ app.namespace("javascript.SymbolsTable", [
 
 // Javascript Scope {{{1
 app.namespace("javascript.Scope", function () {
-	var Scope = function (tokens, symbols) {
-		this.tokens        = tokens;
-		this.symbols       = symbols;
-		this.token_index   = -1;
-		this.tokens_length = tokens.length;
+	var Scope = function (symbols, tokenizer) {
+		this.symbols   = symbols;
+		this.tokenizer = tokenizer;
 	};
 
 	Scope.prototype = {
@@ -327,15 +328,14 @@ app.namespace("javascript.Scope", function () {
 
 		// Advance {{{3
 		advance : function (expected_token_value) {
-			this.token_index += 1;
+			this.current_token = this.tokenizer.next();
 
-			if (this.token_index < this.tokens_length) {
-				this.current_token      = this.tokens[this.token_index];
+			if (this.current_token) {
 
-				if (this.symbols.delimiter_symbols.hasOwnProperty(this.current_token.value)) {
+				if (this.symbols.delimiter_symbols.hasOwnProperty(this.current_token.delimiter)) {
 					this.current_expression = this.symbols.delimiter_symbols[this.current_token.value];
 				} else {
-					this.current_expression = this.symbols.get_expression(this, this.tokens, this.token_index);
+					this.current_expression = this.symbols.get_expression(this);
 				}
 
 				if (expected_token_value && expected_token_value !== this.current_token.value) {
@@ -343,23 +343,22 @@ app.namespace("javascript.Scope", function () {
 					this.current_token.error_unexpected_token();
 				}
 			} else {
-				this.current_token = this.current_expression = null;
+				this.current_expression = null;
 			}
 		},
 
 		// Advance binary {{{3
 		advance_binary : function () {
-			this.token_index += 1;
+			this.current_token = this.tokenizer.next();
 
-			if (this.token_index < this.tokens_length) {
-				this.current_token      = this.tokens[this.token_index];
-				this.current_expression = this.symbols.delimiter_symbols[this.current_token.value];
-
-				if (! this.current_expression) {
-					this.current_expression = this.symbols.get_binary_expression(this, this.tokens, this.token_index);
+			if (this.current_token) {
+				if (this.symbols.delimiter_symbols.hasOwnProperty(this.current_token.delimiter)) {
+					this.current_expression = this.symbols.delimiter_symbols[this.current_token.value];
+				} else {
+					this.current_expression = this.symbols.get_binary_expression(this);
 				}
 			} else {
-				this.current_token = this.current_expression = null;
+				this.current_expression = null;
 			}
 		},
 		// }}}3
@@ -407,12 +406,10 @@ app.namespace("javascript.Parser", function () {
 			return new this.Parser(this.tokenizer.copy(), this.symbols.copy(), this.Scope);
 		},
 		parse : function (source_code) {
-			var tokens = this.tokenizer.parse(source_code),
-				scope  = new this.Scope(tokens, this.symbols);
+			var scope = new this.Scope(this.symbols, this.tokenizer);
+			this.tokenizer.init(source_code, 4);
 
-			scope.code = source_code;
-
-			return scope.parse(tokens);
+			return scope.parse();
 		},
 	};
 

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_tokenizer.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-05-26
+* Updated at  : 2017-06-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -20,59 +20,22 @@ var jeefo    = require("./es5_tokenizer"),
 
 // ES6 Tokenizer {{{1
 app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function (es5_tokenizer) {
-	var es6_tokenizer = es5_tokenizer.copy(),
-		hash          = es6_tokenizer.regions.hash;
+	var es6_tokenizer = es5_tokenizer.copy();
 	
-	es6_tokenizer.language = "ECMA Script 6";
-	
-	// TODO: think about matchgroup
-
-	es6_tokenizer.regions.
 	// TemplateLiteral {{{2
-	register({
-		type        : "TemplateLiteral quasi string",
-		start       : null,
-		escape_char : '\\',
-		end         : '${',
-		until       : true,
-		contained   : true,
-	}).
-	register({
-		type  : "TemplateLiteral expression",
-		start : "${",
-		end   : '}',
-		contains : [
-			{ type : "Block"       } ,
-			{ type : "Array"       } ,
-			{ type : "String"      } ,
-			{ type : "Comment"     } ,
-			{ type : "Parenthesis" } ,
-			{
-				type  : "SpecialCharacter",
-				chars : [
-					'-', '_', '+', '*', '%', // operator
-					'&', '|', '$', '?', '`',
-					'=', '!', '<', '>', '\\',
-					':', '.', ',', ';', // delimiters
-				]
+	es6_tokenizer.register({
+		is     : function (character) { return character === '`'; },
+		protos : {
+			type       : "BackTick",
+			precedence : 1,
+			initialize : function (character, streamer) {
+				this.type  = this.type;
+				this.start = streamer.get_cursor();
+				this.end   = streamer.end_cursor();
 			},
-		]
-	}).
-	register({
-		type  : "TemplateLiteral",
-		start : '`',
-		end   : '`',
-		contains : [
-			{ type : "TemplateLiteral quasi string" } ,
-			{ type : "TemplateLiteral expression"   } ,
-		],
-		keepend : true
+		},
 	});
 	// }}}2
-
-	hash['{'][0].contains.push({ type : "TemplateLiteral" });
-	hash['('][0].contains.push({ type : "TemplateLiteral" });
-	hash['['][0].contains.push({ type : "TemplateLiteral" });
 
 	return es6_tokenizer;
 });
