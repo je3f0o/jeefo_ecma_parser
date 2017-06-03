@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-02
+* Updated at  : 2017-06-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -139,7 +139,7 @@ app.namespace("javascript.ES6_parser", [
 						this.declaration = scope.expression(0);
 						if (scope.current_token.delimiter === ';') {
 							this.start = start;
-							this.end   = this.declaration.end;
+							this.end   = scope.current_token.end;
 							return this;
 						}
 

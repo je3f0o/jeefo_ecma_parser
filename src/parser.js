@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2017-05-11
-* Updated at  : 2017-06-02
+* Updated at  : 2017-06-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -254,9 +254,6 @@ app.namespace("javascript.SymbolsTable", [
 			return this;
 		},
 		get_binary_expression : function (scope) {
-			if (! this.binary_expression_symbols[scope.current_token.type]) {
-				console.log(22222222222, scope.current_token);
-			}
 			var symbols = this.binary_expression_symbols[scope.current_token.type], i = symbols.length - 1;
 
 			for (; i >= 0; --i) {

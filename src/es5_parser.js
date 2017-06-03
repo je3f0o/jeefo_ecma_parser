@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-06-03
+* Updated at  : 2017-06-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -345,19 +345,18 @@ app.namespace("javascript.es5_symbols", [
 			},
 			expression_statement : expression_statement,
 			statement_denotation : function (scope) {
-				var	id       = scope.current_expression,
-					token    = scope.current_token,
-					streamer = scope.tokenizer.streamer,
-					cursor   = streamer.get_cursor();
+				var	id        = scope.current_expression,
+					token     = scope.current_token,
+					tokenizer = scope.tokenizer,
+					cursor    = tokenizer.streamer.get_cursor(),
+					next      = tokenizer.next();
 
-				scope.advance();
-
-				while (scope.current_expression && scope.current_expression.type === "Comment") {
-					scope.advance();
+				while (next && next.type === "Comment") {
+					next = tokenizer.next();
 				}
 
 				// Labeled statement {{{4
-				if (scope.current_token.delimiter === ':') {
+				if (next && next.delimiter === ':') {
 					var labeled_statement = new this.LabeledStatement();
 					labeled_statement.label = id;
 
@@ -372,9 +371,9 @@ app.namespace("javascript.es5_symbols", [
 				// }}}4
 
 				// Expression statement
-				streamer.cursor          = cursor;
-				scope.current_token      = token;
-				scope.current_expression = id;
+				scope.current_token       = token;
+				scope.current_expression  = id;
+				tokenizer.streamer.cursor = cursor;
 				return this.expression_statement(scope);
 			},
 		},
@@ -432,11 +431,15 @@ app.namespace("javascript.es5_symbols", [
 				scope.advance();
 				
 				if (scope.current_token.delimiter !== '}') {
-					while (scope.current_expression && scope.current_expression.type === "Comment") {
+					if (scope.current_expression && scope.current_expression.type === "Comment") {
+						scope.advance();
+						
+						while (scope.current_expression && scope.current_expression.type === "Comment") {
+							scope.advance();
+						}
+					} else {
 						scope.advance();
 					}
-
-					scope.advance();
 
 					while (scope.current_expression && scope.current_expression.type === "Comment") {
 						scope.advance();
@@ -629,8 +632,10 @@ app.namespace("javascript.es5_symbols", [
 					scope.advance();
 				}
 
-				if (scope.current_expression.type === "Identifier") {
-					this.property    = scope.current_expression;
+				if (scope.current_token.type === "Identifier") {
+					scope.current_token.name = scope.current_token.value;
+
+					this.property    = scope.current_token;
 					this.is_computed = false;
 					this.start       = left.start;
 					this.end         = this.property.end;
@@ -1814,8 +1819,6 @@ app.run("javascript.ES5_parser", function (p) {
 try {
 	var r = p.parse(source);
 	print(r[0].declarations[0].init.arguments[0]);
-	console.log(source[33]);
-	//print(r[36].declarations[0].init);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);
