@@ -155,28 +155,20 @@ app.namespace("javascript.ES6_parser", [
 
 			// TODO: handle comments...
 
-			if (next && next.operator === '=') {
-				next = tokenizer.next();
-				if (next && next.operator === '>') {
-					tokenizer.streamer.cursor = cursor;
-					return true;
-				}
-			}
-
 			tokenizer.streamer.cursor = cursor;
+
+			return next && next.operator === "=>";
 		},
 		protos : {
 			type        : "ArrowFunction",
 			precedence  : 21,
 			on_register : set_expression_statement,
 			initialize  : function (token, scope) {
-				var	tokenizer = scope.tokenizer,
-					next      = tokenizer.next(true);
-
+				//var	tokenizer = scope.tokenizer, next      = tokenizer.next(true);
 				// TODO: handle comments...
 				//while (next && next.type === "Comment") { next = tokenizer.next(); }
 
-				tokenizer.streamer.move_right(2);
+				scope.advance("=>");
 				scope.advance('{');
 
 				this.type       = this.type;
@@ -202,17 +194,10 @@ app.namespace("javascript.ES6_parser", [
 
 				// TODO: handle comments...
 
-				next = tokenizer.next(true);
-
-				if (next && next.operator === '=') {
-					next = tokenizer.next();
-					if (next && next.operator === '>') {
-						tokenizer.streamer.cursor = cursor;
-						return true;
-					}
-				}
-
+				next                      = tokenizer.next(true);
 				tokenizer.streamer.cursor = cursor;
+
+				return next && next.operator === "=>";
 			}
 		},
 		protos : {
@@ -226,12 +211,9 @@ app.namespace("javascript.ES6_parser", [
 				this.type       = this.type;
 				this.parameters = scope.current_expression.get_params(scope);
 
-				scope.advance();
-				if (scope.current_token.operator === '=') {
-					scope.tokenizer.streamer.move_right(2);
-				}
-
+				scope.advance("=>");
 				scope.advance('{');
+
 				this.body  = scope.current_expression.statement(scope);
 				this.start = token.start;
 				this.end   = this.body.end;

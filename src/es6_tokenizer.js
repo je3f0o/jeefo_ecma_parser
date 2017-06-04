@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_tokenizer.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-02
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,6 +32,25 @@ app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function
 				this.type  = this.type;
 				this.start = streamer.get_cursor();
 				this.end   = streamer.end_cursor();
+			},
+		},
+	}).
+	
+	// Arrow function punctuator {{{2
+	register({
+		is : function (character, streamer) {
+			return character === '=' && streamer.peek(streamer.cursor.index + 1) === '>';
+		},
+		protos : {
+			type       : "ArrowFunctionPunctuator",
+			precedence : 21,
+			initialize : function (character, streamer) {
+				this.type     = this.type;
+				this.operator = this.value = "=>";
+				this.start    = streamer.get_cursor();
+
+				streamer.move_right(1);
+				this.end = streamer.end_cursor();
 			},
 		},
 	});
