@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-06-04
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -329,7 +329,7 @@ app.namespace("javascript.es5_symbols", [
 			precedence : 2,
 			initialize : function (token) {
 				this.type  = this.type;
-				this.name  = token.value;
+				this.name  = token.name;
 				this.start = token.start;
 				this.end   = token.end;
 
@@ -338,16 +338,15 @@ app.namespace("javascript.es5_symbols", [
 			on_register : function (handler) {
 				handler.ExpressionStatement = ExpressionStatement;
 
-				handler.LabeledStatement = function () {
-					this.type = this.type;
+				handler.LabeledStatement = function (label) {
+					this.type  = this.type;
+					this.label = label;
 				};
 				handler.LabeledStatement.prototype.type = "LabeledStatement";
 			},
 			expression_statement : expression_statement,
 			statement_denotation : function (scope) {
-				var	id        = scope.current_expression,
-					token     = scope.current_token,
-					tokenizer = scope.tokenizer,
+				var	tokenizer = scope.tokenizer,
 					cursor    = tokenizer.streamer.get_cursor(),
 					next      = tokenizer.next();
 
@@ -357,13 +356,12 @@ app.namespace("javascript.es5_symbols", [
 
 				// Labeled statement {{{4
 				if (next && next.delimiter === ':') {
-					var labeled_statement = new this.LabeledStatement();
-					labeled_statement.label = id;
+					var labeled_statement = new this.LabeledStatement(scope.current_expression);
 
 					scope.advance();
 					labeled_statement.statement = scope.current_expression.statement_denotation(scope);
 
-					labeled_statement.start = token.start;
+					labeled_statement.start = labeled_statement.label.start;
 					labeled_statement.end   = labeled_statement.statement.end;
 
 					return labeled_statement;
@@ -371,8 +369,6 @@ app.namespace("javascript.es5_symbols", [
 				// }}}4
 
 				// Expression statement
-				scope.current_token       = token;
-				scope.current_expression  = id;
 				tokenizer.streamer.cursor = cursor;
 				return this.expression_statement(scope);
 			},
@@ -552,48 +548,6 @@ app.namespace("javascript.es5_symbols", [
 			type       : "Grouping",
 			precedence : 20,
 			initialize : binary.protos.initialize,
-			get_params : function (scope) {
-				var i = 0, params = [];
-
-				scope.advance();
-
-				while (scope.current_expression && scope.current_expression.type === "Comment") {
-					scope.advance();
-				}
-
-				while (scope.current_token && scope.current_token.delimiter !== ')') {
-					if (scope.current_expression.type === "Identifier") {
-						params[i++] = scope.current_expression;
-						scope.advance();
-					} else {
-						scope.current_token.error_unexpected_token();
-					}
-
-					if (! scope.current_token) {
-						console.error("Unexpected end");
-					}
-
-					while (scope.current_expression && scope.current_expression.type === "Comment") {
-						scope.advance();
-					}
-
-					switch (scope.current_token.delimiter) {
-						case ')' :
-							return params;
-						case ',' :
-							scope.advance();
-							break;
-						default:
-							scope.current_token.error_unexpected_token();
-					}
-
-					while (scope.current_expression && scope.current_expression.type === "Comment") {
-						scope.advance();
-					}
-				}
-
-				return params;
-			},
 			null_denotation : function (scope) {
 				var start = scope.current_token.start;
 
@@ -633,8 +587,6 @@ app.namespace("javascript.es5_symbols", [
 				}
 
 				if (scope.current_token.type === "Identifier") {
-					scope.current_token.name = scope.current_token.value;
-
 					this.property    = scope.current_token;
 					this.is_computed = false;
 					this.start       = left.start;
@@ -721,6 +673,49 @@ app.namespace("javascript.es5_symbols", [
 				//console.log(`[${ call.type }]`, call);
 			},
 
+			get_params : function (scope) {
+				var i = 0, params = [];
+
+				scope.advance();
+
+				while (scope.current_expression && scope.current_expression.type === "Comment") {
+					scope.advance();
+				}
+
+				while (scope.current_token && scope.current_token.delimiter !== ')') {
+					if (scope.current_expression.type === "Identifier") {
+						params[i++] = scope.current_expression;
+						scope.advance();
+					} else {
+						scope.current_token.error_unexpected_token();
+					}
+
+					if (! scope.current_token) {
+						console.error("Unexpected end");
+					}
+
+					while (scope.current_expression && scope.current_expression.type === "Comment") {
+						scope.advance();
+					}
+
+					switch (scope.current_token.delimiter) {
+						case ')' :
+							return params;
+						case ',' :
+							scope.advance();
+							break;
+						default:
+							scope.current_token.error_unexpected_token();
+					}
+
+					while (scope.current_expression && scope.current_expression.type === "Comment") {
+						scope.advance();
+					}
+				}
+
+				return params;
+			},
+
 			left_denotation : function (left, scope) {
 				switch (left.type) {
 					case "Identifier" :
@@ -753,7 +748,7 @@ app.namespace("javascript.es5_symbols", [
 	
 	// New expression (18) {{{3
 	unary_expression("Identifier", {
-		is     : function (token) { return token.value === "new"; },
+		is     : function (token) { return token.name === "new"; },
 		protos : {
 			type            : "New",
 			precedence      : 18,
@@ -825,8 +820,8 @@ app.namespace("javascript.es5_symbols", [
 	// Unary prefix void, typeof and delete unary expressions (16) {{{3
 	unary_expression("Identifier", {
 		is : function (token) {
-			switch (token.value) { case "void" : case "typeof" : case "delete" :
-				token.operator = token.value;
+			switch (token.name) { case "void" : case "typeof" : case "delete" :
+				token.operator = token.name;
 				return true;
 			}
 		},
@@ -919,13 +914,13 @@ app.namespace("javascript.es5_symbols", [
 
 	// In expression (11) {{{3
 	binary_expression("Identifier", {
-		is     : function (token) { return token.value === "in"; },
+		is     : function (token) { return token.name === "in"; },
 		protos : binary.make("In", 11),
 	}).
 
 	// Instanceof expression (11) {{{3
 	binary_expression("Identifier", {
-		is     : function (token) { return token.value === "instanceof"; },
+		is     : function (token) { return token.name === "instanceof"; },
 		protos : binary.make("Instanceof", 11),
 	}).
 
@@ -1036,7 +1031,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Function expression {{{3
 	declaration_expression("Identifier", {
-		is     : function (token) { return token.value === "function"; },
+		is     : function (token) { return token.name === "function"; },
 		protos : {
 			type            : "Function",
 			precedence      : 31,
@@ -1045,10 +1040,10 @@ app.namespace("javascript.es5_symbols", [
 			initialize : function (token, scope) {
 				this.type = this.type;
 
-				scope.advance();
-				if (scope.current_expression.type === "Identifier") {
-					this.id = scope.current_expression;
-					scope.advance('(');
+				scope.advance_binary();
+				if (scope.current_token.type === "Identifier") {
+					this.id = scope.current_token;
+					scope.advance_binary('(');
 				} else {
 					this.id = null;
 				}
@@ -1101,7 +1096,7 @@ app.namespace("javascript.es5_symbols", [
 	
 	// Variable declaration statement {{{3
 	declaration_expression("Identifier", {
-		is     : function (token) { return token.value === "var"; },
+		is     : function (token) { return token.name === "var"; },
 		suffix : false,
 		protos : {
 			type        : "VariableDeclaration",
@@ -1197,7 +1192,7 @@ app.namespace("javascript.es5_symbols", [
 	};
 
 	symbols.statement("Identifier", {
-		is     : function (token) { return token.value === "throw"; },
+		is     : function (token) { return token.name === "throw"; },
 		protos : {
 			type                 : "Throw",
 			precedence           : 31,
@@ -1206,7 +1201,7 @@ app.namespace("javascript.es5_symbols", [
 		}
 	}).
 	statement("Identifier", {
-		is     : function (token) { return token.value === "return"; },
+		is     : function (token) { return token.name === "return"; },
 		protos : {
 			type                 : "Return",
 			precedence           : 31,
@@ -1236,7 +1231,7 @@ app.namespace("javascript.es5_symbols", [
 	};
 
 	symbols.statement("Identifier", {
-		is     : function (token) { return token.value === "break"; },
+		is     : function (token) { return token.name === "break"; },
 		protos : {
 			type                 : "Break",
 			precedence           : 31,
@@ -1245,7 +1240,7 @@ app.namespace("javascript.es5_symbols", [
 		},
 	}).
 	statement("Identifier", {
-		is     : function (token) { return token.value === "continue"; },
+		is     : function (token) { return token.name === "continue"; },
 		protos : {
 			type                 : "Continue",
 			precedence           : 31,
@@ -1256,7 +1251,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// If statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "if"; },
+		is     : function (token) { return token.name === "if"; },
 		protos : {
 			type                 : "If",
 			precedence           : 31,
@@ -1296,7 +1291,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// For statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "for"; },
+		is     : function (token) { return token.name === "for"; },
 		protos : {
 			type       : "For",
 			precedence : 31,
@@ -1387,7 +1382,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// While statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "while"; },
+		is     : function (token) { return token.name === "while"; },
 		protos : {
 			type       : "While",
 			precedence : 31,
@@ -1417,7 +1412,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Do While statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "do"; },
+		is     : function (token) { return token.name === "do"; },
 		protos : {
 			type                 : "DoWhile",
 			precedence           : 31,
@@ -1429,7 +1424,7 @@ app.namespace("javascript.es5_symbols", [
 
 				this.statement = scope.current_expression.statement_denotation(scope);
 
-				scope.advance("while");
+				scope.advance("name", "while");
 				scope.advance('(');
 				scope.advance();
 
@@ -1453,7 +1448,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Switch statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "switch"; },
+		is     : function (token) { return token.name === "switch"; },
 		protos : {
 			type                 : "Switch",
 			precedence           : 31,
@@ -1551,7 +1546,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Try statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "try"; },
+		is     : function (token) { return token.name === "try"; },
 		protos : {
 			type                 : "Try",
 			precedence           : 31,

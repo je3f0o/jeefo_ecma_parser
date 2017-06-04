@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2017-05-11
-* Updated at  : 2017-06-04
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -41,7 +41,6 @@ app.namespace("parser.SymbolsTable", [
 	 * @interface
 	 *
 	 * expression_default_prototype : {}
-	 * statement_default_prototype  : {}
 	 *
 	 * register_expression({
 	 *   precedence : number
@@ -49,19 +48,11 @@ app.namespace("parser.SymbolsTable", [
 	 *   suffix : any
 	 *   protos : {}
 	 * })
-	 * register_statement({
-	 *   precedence : number
-	 *   initialize(statement_token, symbol_token, tokens, index, scope)
-	 *   suffix : any
-	 *   protos : {}
-	 * })
 	 *
 	 * get_expression(scope, tokens, index)
-	 * get_statement(scope, tokens, index)
 	 */
-	var SymbolsTable = function (constructors, expression_symbols, statement_symbols) {
+	var SymbolsTable = function (constructors, expression_symbols) {
 		this.constructors       = constructors       || new JeefoObject();
-		this.statement_symbols  = statement_symbols  || new JeefoObject();
 		this.expression_symbols = expression_symbols || new JeefoObject();
 	};
 
@@ -79,7 +70,7 @@ app.namespace("parser.SymbolsTable", [
 		},
 
 		copy : function () {
-			return new this.SymbolsTable(this.constructors.$copy(), this.expression_symbols.$copy(), this.statement_symbols.$copy());
+			return new this.SymbolsTable(this.constructors.$copy(), this.expression_symbols.$copy());
 		},
 
 		register_constructor : function (type, Constructor, protos) {
@@ -119,31 +110,6 @@ app.namespace("parser.SymbolsTable", [
 			return this;
 		},
 
-		register_statement : function (type, handler) {
-			var _handler = this.handler(handler);
-			_handler.inherit(this.statement_default_prototypes, handler.protos);
-
-			if (handler.suffix === void 0) {
-				_handler.Token.prototype.type += "Statement";
-			} else if (handler.suffix) {
-				_handler.Token.prototype.type += handler.suffix;
-			}
-			this.constructors[_handler.Token.prototype.type] = _handler.Token;
-
-			if (_handler.Token.prototype.on_register) {
-				_handler.Token.prototype.on_register(_handler.Token.prototype, this);
-			}
-
-			if (this.statement_symbols.hasOwnProperty(type)) {
-				this.statement_symbols[type].push(_handler);
-				this.statement_symbols[type].sort(this.sort_handler);
-			} else {
-				this.statement_symbols[type] = [_handler];
-			}
-
-			return this;
-		},
-
 		get_expression : function (scope) {
 			var symbols = this.expression_symbols[scope.current_token.type];
 
@@ -152,7 +118,7 @@ app.namespace("parser.SymbolsTable", [
 			}
 
 			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(scope.current_token)) {
+				if (symbols[i].is && ! symbols[i].is(scope.current_token, scope)) {
 					continue;
 				}
 
@@ -166,37 +132,9 @@ app.namespace("parser.SymbolsTable", [
 			}
 		},
 
-		get_statement : function (scope, tokens, index) {
-			var token   = scope.current_expression,
-				symbols = this.statement_symbols[token.type];
-
-			if (! symbols) {
-				return;
-			}
-
-			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(token, tokens, index)) {
-					continue;
-				}
-
-				token = new symbols[i].Token();
-
-				if (token.initialize) {
-					token.initialize(tokens, index, scope);
-				}
-
-				return token;
-			}
-		},
-
 		expression_default_prototypes : {
 			type       : "Undefined",
 			precedence : 0,
-		},
-
-		statement_default_prototypes : {
-			type       : "Undefined",
-			precedence : 3,
 		},
 	};
 
@@ -257,7 +195,7 @@ app.namespace("javascript.SymbolsTable", [
 			var symbols = this.binary_expression_symbols[scope.current_token.type], i = symbols.length - 1;
 
 			for (; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(scope.current_token)) {
+				if (symbols[i].is && ! symbols[i].is(scope.current_token, scope)) {
 					continue;
 				}
 
@@ -324,7 +262,7 @@ app.namespace("javascript.Scope", function () {
 		},
 
 		// Advance {{{3
-		advance : function (expected_token_value) {
+		advance : function (expected_token_property, expected_token_value) {
 			this.current_token = this.tokenizer.next();
 
 			if (this.current_token) {
@@ -335,8 +273,13 @@ app.namespace("javascript.Scope", function () {
 					this.current_expression = this.symbols.get_expression(this);
 				}
 
-				if (expected_token_value && expected_token_value !== this.current_token.value) {
-					console.log("EXPECT TOKEN VALUE", expected_token_value, this.current_token);
+				if (expected_token_value) {
+					if (expected_token_value !== this.current_token[expected_token_property]) {
+						console.log("EXPECT TOKEN VALUE", expected_token_value, this.current_token);
+						this.current_token.error_unexpected_token();
+					}
+				} else if (expected_token_property && expected_token_property !== this.current_token.value) {
+					console.log("EXPECT TOKEN VALUE", expected_token_property, this.current_token);
 					this.current_token.error_unexpected_token();
 				}
 			} else {

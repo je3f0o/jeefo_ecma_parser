@@ -10,7 +10,7 @@ jeefo.use(function (jeefo) {
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2017-05-11
-* Updated at  : 2017-06-04
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -40,7 +40,6 @@ app.namespace("parser.SymbolsTable", [
 	 * @interface
 	 *
 	 * expression_default_prototype : {}
-	 * statement_default_prototype  : {}
 	 *
 	 * register_expression({
 	 *   precedence : number
@@ -48,19 +47,11 @@ app.namespace("parser.SymbolsTable", [
 	 *   suffix : any
 	 *   protos : {}
 	 * })
-	 * register_statement({
-	 *   precedence : number
-	 *   initialize(statement_token, symbol_token, tokens, index, scope)
-	 *   suffix : any
-	 *   protos : {}
-	 * })
 	 *
 	 * get_expression(scope, tokens, index)
-	 * get_statement(scope, tokens, index)
 	 */
-	var SymbolsTable = function (constructors, expression_symbols, statement_symbols) {
+	var SymbolsTable = function (constructors, expression_symbols) {
 		this.constructors       = constructors       || new JeefoObject();
-		this.statement_symbols  = statement_symbols  || new JeefoObject();
 		this.expression_symbols = expression_symbols || new JeefoObject();
 	};
 
@@ -78,7 +69,7 @@ app.namespace("parser.SymbolsTable", [
 		},
 
 		copy : function () {
-			return new this.SymbolsTable(this.constructors.$copy(), this.expression_symbols.$copy(), this.statement_symbols.$copy());
+			return new this.SymbolsTable(this.constructors.$copy(), this.expression_symbols.$copy());
 		},
 
 		register_constructor : function (type, Constructor, protos) {
@@ -118,31 +109,6 @@ app.namespace("parser.SymbolsTable", [
 			return this;
 		},
 
-		register_statement : function (type, handler) {
-			var _handler = this.handler(handler);
-			_handler.inherit(this.statement_default_prototypes, handler.protos);
-
-			if (handler.suffix === void 0) {
-				_handler.Token.prototype.type += "Statement";
-			} else if (handler.suffix) {
-				_handler.Token.prototype.type += handler.suffix;
-			}
-			this.constructors[_handler.Token.prototype.type] = _handler.Token;
-
-			if (_handler.Token.prototype.on_register) {
-				_handler.Token.prototype.on_register(_handler.Token.prototype, this);
-			}
-
-			if (this.statement_symbols.hasOwnProperty(type)) {
-				this.statement_symbols[type].push(_handler);
-				this.statement_symbols[type].sort(this.sort_handler);
-			} else {
-				this.statement_symbols[type] = [_handler];
-			}
-
-			return this;
-		},
-
 		get_expression : function (scope) {
 			var symbols = this.expression_symbols[scope.current_token.type];
 
@@ -151,7 +117,7 @@ app.namespace("parser.SymbolsTable", [
 			}
 
 			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(scope.current_token)) {
+				if (symbols[i].is && ! symbols[i].is(scope.current_token, scope)) {
 					continue;
 				}
 
@@ -165,37 +131,9 @@ app.namespace("parser.SymbolsTable", [
 			}
 		},
 
-		get_statement : function (scope, tokens, index) {
-			var token   = scope.current_expression,
-				symbols = this.statement_symbols[token.type];
-
-			if (! symbols) {
-				return;
-			}
-
-			for (var i = symbols.length - 1; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(token, tokens, index)) {
-					continue;
-				}
-
-				token = new symbols[i].Token();
-
-				if (token.initialize) {
-					token.initialize(tokens, index, scope);
-				}
-
-				return token;
-			}
-		},
-
 		expression_default_prototypes : {
 			type       : "Undefined",
 			precedence : 0,
-		},
-
-		statement_default_prototypes : {
-			type       : "Undefined",
-			precedence : 3,
 		},
 	};
 
@@ -256,7 +194,7 @@ app.namespace("javascript.SymbolsTable", [
 			var symbols = this.binary_expression_symbols[scope.current_token.type], i = symbols.length - 1;
 
 			for (; i >= 0; --i) {
-				if (symbols[i].is && ! symbols[i].is(scope.current_token)) {
+				if (symbols[i].is && ! symbols[i].is(scope.current_token, scope)) {
 					continue;
 				}
 
@@ -323,7 +261,7 @@ app.namespace("javascript.Scope", function () {
 		},
 
 		// Advance {{{3
-		advance : function (expected_token_value) {
+		advance : function (expected_token_property, expected_token_value) {
 			this.current_token = this.tokenizer.next();
 
 			if (this.current_token) {
@@ -334,8 +272,13 @@ app.namespace("javascript.Scope", function () {
 					this.current_expression = this.symbols.get_expression(this);
 				}
 
-				if (expected_token_value && expected_token_value !== this.current_token.value) {
-					console.log("EXPECT TOKEN VALUE", expected_token_value, this.current_token);
+				if (expected_token_value) {
+					if (expected_token_value !== this.current_token[expected_token_property]) {
+						console.log("EXPECT TOKEN VALUE", expected_token_value, this.current_token);
+						this.current_token.error_unexpected_token();
+					}
+				} else if (expected_token_property && expected_token_property !== this.current_token.value) {
+					console.log("EXPECT TOKEN VALUE", expected_token_property, this.current_token);
 					this.current_token.error_unexpected_token();
 				}
 			} else {
@@ -416,7 +359,7 @@ app.namespace("javascript.Parser", function () {
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-06-03
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -550,7 +493,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 				}
 
 				this.type  = this.type;
-				this.value = streamer.seek(start.index);
+				this.name  = streamer.seek(start.index);
 				this.start = start;
 				this.end   = streamer.get_cursor();
 
@@ -751,7 +694,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-06-04
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -1067,7 +1010,7 @@ app.namespace("javascript.es5_symbols", [
 			precedence : 2,
 			initialize : function (token) {
 				this.type  = this.type;
-				this.name  = token.value;
+				this.name  = token.name;
 				this.start = token.start;
 				this.end   = token.end;
 
@@ -1076,16 +1019,15 @@ app.namespace("javascript.es5_symbols", [
 			on_register : function (handler) {
 				handler.ExpressionStatement = ExpressionStatement;
 
-				handler.LabeledStatement = function () {
-					this.type = this.type;
+				handler.LabeledStatement = function (label) {
+					this.type  = this.type;
+					this.label = label;
 				};
 				handler.LabeledStatement.prototype.type = "LabeledStatement";
 			},
 			expression_statement : expression_statement,
 			statement_denotation : function (scope) {
-				var	id        = scope.current_expression,
-					token     = scope.current_token,
-					tokenizer = scope.tokenizer,
+				var	tokenizer = scope.tokenizer,
 					cursor    = tokenizer.streamer.get_cursor(),
 					next      = tokenizer.next();
 
@@ -1095,13 +1037,12 @@ app.namespace("javascript.es5_symbols", [
 
 				// Labeled statement {{{4
 				if (next && next.delimiter === ':') {
-					var labeled_statement = new this.LabeledStatement();
-					labeled_statement.label = id;
+					var labeled_statement = new this.LabeledStatement(scope.current_expression);
 
 					scope.advance();
 					labeled_statement.statement = scope.current_expression.statement_denotation(scope);
 
-					labeled_statement.start = token.start;
+					labeled_statement.start = labeled_statement.label.start;
 					labeled_statement.end   = labeled_statement.statement.end;
 
 					return labeled_statement;
@@ -1109,8 +1050,6 @@ app.namespace("javascript.es5_symbols", [
 				// }}}4
 
 				// Expression statement
-				scope.current_token       = token;
-				scope.current_expression  = id;
 				tokenizer.streamer.cursor = cursor;
 				return this.expression_statement(scope);
 			},
@@ -1290,48 +1229,6 @@ app.namespace("javascript.es5_symbols", [
 			type       : "Grouping",
 			precedence : 20,
 			initialize : binary.protos.initialize,
-			get_params : function (scope) {
-				var i = 0, params = [];
-
-				scope.advance();
-
-				while (scope.current_expression && scope.current_expression.type === "Comment") {
-					scope.advance();
-				}
-
-				while (scope.current_token && scope.current_token.delimiter !== ')') {
-					if (scope.current_expression.type === "Identifier") {
-						params[i++] = scope.current_expression;
-						scope.advance();
-					} else {
-						scope.current_token.error_unexpected_token();
-					}
-
-					if (! scope.current_token) {
-						console.error("Unexpected end");
-					}
-
-					while (scope.current_expression && scope.current_expression.type === "Comment") {
-						scope.advance();
-					}
-
-					switch (scope.current_token.delimiter) {
-						case ')' :
-							return params;
-						case ',' :
-							scope.advance();
-							break;
-						default:
-							scope.current_token.error_unexpected_token();
-					}
-
-					while (scope.current_expression && scope.current_expression.type === "Comment") {
-						scope.advance();
-					}
-				}
-
-				return params;
-			},
 			null_denotation : function (scope) {
 				var start = scope.current_token.start;
 
@@ -1371,8 +1268,6 @@ app.namespace("javascript.es5_symbols", [
 				}
 
 				if (scope.current_token.type === "Identifier") {
-					scope.current_token.name = scope.current_token.value;
-
 					this.property    = scope.current_token;
 					this.is_computed = false;
 					this.start       = left.start;
@@ -1459,6 +1354,49 @@ app.namespace("javascript.es5_symbols", [
 				//console.log(`[${ call.type }]`, call);
 			},
 
+			get_params : function (scope) {
+				var i = 0, params = [];
+
+				scope.advance();
+
+				while (scope.current_expression && scope.current_expression.type === "Comment") {
+					scope.advance();
+				}
+
+				while (scope.current_token && scope.current_token.delimiter !== ')') {
+					if (scope.current_expression.type === "Identifier") {
+						params[i++] = scope.current_expression;
+						scope.advance();
+					} else {
+						scope.current_token.error_unexpected_token();
+					}
+
+					if (! scope.current_token) {
+						console.error("Unexpected end");
+					}
+
+					while (scope.current_expression && scope.current_expression.type === "Comment") {
+						scope.advance();
+					}
+
+					switch (scope.current_token.delimiter) {
+						case ')' :
+							return params;
+						case ',' :
+							scope.advance();
+							break;
+						default:
+							scope.current_token.error_unexpected_token();
+					}
+
+					while (scope.current_expression && scope.current_expression.type === "Comment") {
+						scope.advance();
+					}
+				}
+
+				return params;
+			},
+
 			left_denotation : function (left, scope) {
 				switch (left.type) {
 					case "Identifier" :
@@ -1491,7 +1429,7 @@ app.namespace("javascript.es5_symbols", [
 	
 	// New expression (18) {{{3
 	unary_expression("Identifier", {
-		is     : function (token) { return token.value === "new"; },
+		is     : function (token) { return token.name === "new"; },
 		protos : {
 			type            : "New",
 			precedence      : 18,
@@ -1563,8 +1501,8 @@ app.namespace("javascript.es5_symbols", [
 	// Unary prefix void, typeof and delete unary expressions (16) {{{3
 	unary_expression("Identifier", {
 		is : function (token) {
-			switch (token.value) { case "void" : case "typeof" : case "delete" :
-				token.operator = token.value;
+			switch (token.name) { case "void" : case "typeof" : case "delete" :
+				token.operator = token.name;
 				return true;
 			}
 		},
@@ -1657,13 +1595,13 @@ app.namespace("javascript.es5_symbols", [
 
 	// In expression (11) {{{3
 	binary_expression("Identifier", {
-		is     : function (token) { return token.value === "in"; },
+		is     : function (token) { return token.name === "in"; },
 		protos : binary.make("In", 11),
 	}).
 
 	// Instanceof expression (11) {{{3
 	binary_expression("Identifier", {
-		is     : function (token) { return token.value === "instanceof"; },
+		is     : function (token) { return token.name === "instanceof"; },
 		protos : binary.make("Instanceof", 11),
 	}).
 
@@ -1774,7 +1712,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Function expression {{{3
 	declaration_expression("Identifier", {
-		is     : function (token) { return token.value === "function"; },
+		is     : function (token) { return token.name === "function"; },
 		protos : {
 			type            : "Function",
 			precedence      : 31,
@@ -1783,10 +1721,10 @@ app.namespace("javascript.es5_symbols", [
 			initialize : function (token, scope) {
 				this.type = this.type;
 
-				scope.advance();
-				if (scope.current_expression.type === "Identifier") {
-					this.id = scope.current_expression;
-					scope.advance('(');
+				scope.advance_binary();
+				if (scope.current_token.type === "Identifier") {
+					this.id = scope.current_token;
+					scope.advance_binary('(');
 				} else {
 					this.id = null;
 				}
@@ -1839,7 +1777,7 @@ app.namespace("javascript.es5_symbols", [
 	
 	// Variable declaration statement {{{3
 	declaration_expression("Identifier", {
-		is     : function (token) { return token.value === "var"; },
+		is     : function (token) { return token.name === "var"; },
 		suffix : false,
 		protos : {
 			type        : "VariableDeclaration",
@@ -1935,7 +1873,7 @@ app.namespace("javascript.es5_symbols", [
 	};
 
 	symbols.statement("Identifier", {
-		is     : function (token) { return token.value === "throw"; },
+		is     : function (token) { return token.name === "throw"; },
 		protos : {
 			type                 : "Throw",
 			precedence           : 31,
@@ -1944,7 +1882,7 @@ app.namespace("javascript.es5_symbols", [
 		}
 	}).
 	statement("Identifier", {
-		is     : function (token) { return token.value === "return"; },
+		is     : function (token) { return token.name === "return"; },
 		protos : {
 			type                 : "Return",
 			precedence           : 31,
@@ -1974,7 +1912,7 @@ app.namespace("javascript.es5_symbols", [
 	};
 
 	symbols.statement("Identifier", {
-		is     : function (token) { return token.value === "break"; },
+		is     : function (token) { return token.name === "break"; },
 		protos : {
 			type                 : "Break",
 			precedence           : 31,
@@ -1983,7 +1921,7 @@ app.namespace("javascript.es5_symbols", [
 		},
 	}).
 	statement("Identifier", {
-		is     : function (token) { return token.value === "continue"; },
+		is     : function (token) { return token.name === "continue"; },
 		protos : {
 			type                 : "Continue",
 			precedence           : 31,
@@ -1994,7 +1932,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// If statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "if"; },
+		is     : function (token) { return token.name === "if"; },
 		protos : {
 			type                 : "If",
 			precedence           : 31,
@@ -2034,7 +1972,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// For statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "for"; },
+		is     : function (token) { return token.name === "for"; },
 		protos : {
 			type       : "For",
 			precedence : 31,
@@ -2125,7 +2063,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// While statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "while"; },
+		is     : function (token) { return token.name === "while"; },
 		protos : {
 			type       : "While",
 			precedence : 31,
@@ -2155,7 +2093,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Do While statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "do"; },
+		is     : function (token) { return token.name === "do"; },
 		protos : {
 			type                 : "DoWhile",
 			precedence           : 31,
@@ -2167,7 +2105,7 @@ app.namespace("javascript.es5_symbols", [
 
 				this.statement = scope.current_expression.statement_denotation(scope);
 
-				scope.advance("while");
+				scope.advance("name", "while");
 				scope.advance('(');
 				scope.advance();
 
@@ -2191,7 +2129,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Switch statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "switch"; },
+		is     : function (token) { return token.name === "switch"; },
 		protos : {
 			type                 : "Switch",
 			precedence           : 31,
@@ -2289,7 +2227,7 @@ app.namespace("javascript.es5_symbols", [
 
 	// Try statement {{{3
 	statement("Identifier", {
-		is     : function (token) { return token.value === "try"; },
+		is     : function (token) { return token.name === "try"; },
 		protos : {
 			type                 : "Try",
 			precedence           : 31,
@@ -2406,7 +2344,7 @@ app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-04
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -2422,6 +2360,11 @@ app.namespace("javascript.ES6_parser", [
 	parser           = parser.copy();
 	parser.tokenizer = tokenizer;
 
+	var set_expression_statement = function (handler, symbols) {
+		handler.ExpressionStatement  = symbols.constructors.StringLiteral.prototype.ExpressionStatement;
+		handler.statement_denotation = symbols.constructors.StringLiteral.prototype.statement_denotation;
+	};
+
 	parser.symbols.
 	// Template literal {{{2
 	literal("BackTick", {
@@ -2433,49 +2376,53 @@ app.namespace("javascript.ES6_parser", [
 					character = streamer.next(),
 					start     = token.end, i = 0, body = [];
 
+				LOOP:
 				while (character) {
-					if (character === '\\') {
-						streamer.next();
-						character = streamer.next();
-					}
-
-					if (character && character === '$' && streamer.peek(streamer.cursor.index + 1) === '{') {
-						if (streamer.cursor.index > start.index) {
-							body[i++] = new this.TemplateLiteralString(
-								start,
-								streamer.get_cursor(),
-								streamer.seek(start.index)
-							);
-						}
-
-						start = streamer.get_cursor();
-						streamer.move_right(1);
-						scope.advance();
-
-						body[i++] = new this.TemplateLiteralExpression(start, scope.expression(0));
-
-						if (scope.current_token.delimiter === '}') {
-							body[i - 1].end = scope.current_token.end;
+					switch (character) {
+						case '\\':
+							streamer.move_right(1);
 							character = streamer.next();
-							start     = streamer.get_cursor();
-						} else {
-							throw new Error("WTF");
-						}
+							break;
+						case '$' :
+							if (streamer.peek(streamer.cursor.index + 1) === '{') {
+								if (streamer.cursor.index > start.index) {
+									body[i++] = new this.TemplateLiteralString(
+										start,
+										streamer.get_cursor(),
+										streamer.seek(start.index)
+									);
+								}
+
+								start = streamer.get_cursor();
+								streamer.move_right(1);
+								scope.advance();
+
+								body[i++] = new this.TemplateLiteralExpression(start, scope.expression(0));
+
+								if (scope.current_token.delimiter === '}') {
+									body[i - 1].end = scope.current_token.end;
+
+									character = streamer.next();
+									start     = streamer.get_cursor();
+								} else {
+									throw new Error("WTF");
+								}
+							} else {
+								character = streamer.next();
+							}
+							break;
+						case '`':
+							if (streamer.cursor.index > start.index) {
+								body[i++] = new this.TemplateLiteralString(
+									start,
+									streamer.get_cursor(),
+									streamer.seek(start.index)
+								);
+							}
+							break LOOP;
+						default:
+							character = streamer.next();
 					}
-
-					if (character === '`') {
-						if (streamer.cursor.index > start.index) {
-							body[i++] = new this.TemplateLiteralString(
-								start,
-								streamer.get_cursor(),
-								streamer.seek(start.index)
-							);
-						}
-
-						break;
-					}
-
-					character = streamer.next();
 				}
 
 				this.type  = this.type;
@@ -2483,7 +2430,7 @@ app.namespace("javascript.ES6_parser", [
 				this.start = token.start;
 				this.end   = streamer.end_cursor();
 			},
-			on_register : function (handler) {
+			on_register : function (handler, symbols) {
 				handler.TemplateLiteralString = function (start, end, value) {
 					this.type  = this.type;
 					this.value = value;
@@ -2498,13 +2445,134 @@ app.namespace("javascript.ES6_parser", [
 					this.start      = start;
 				};
 				handler.TemplateLiteralExpression.prototype.type = "TemplateLiteralExpression";
+
+				set_expression_statement(handler, symbols);
 			},
 		}
 	}).
 
+	// Tagged Template literal {{{2
+	literal("Identifier", {
+		is : function (token, scope) {
+			var	tokenizer = scope.tokenizer,
+				cursor    = tokenizer.streamer.get_cursor(),
+				next      = tokenizer.next();
+
+			tokenizer.streamer.cursor = cursor;
+			return next && next.type === "BackTick";
+		},
+		protos : {
+			type        : "TaggedTemplate",
+			precedence  : 21,
+			on_register : set_expression_statement,
+			initialize  : function (token, scope) {
+				this.type = this.type;
+				this.tag  = scope.current_token;
+
+				scope.advance();
+				this.template = scope.current_expression;
+				this.start    = this.tag.start;
+				this.end      = this.template.end;
+			},
+		},
+	}).
+
+	// Arrow Function Expression without parenthesis {{{2
+	declaration_expression("Identifier", {
+		is : function (token, scope) {
+			var	tokenizer = scope.tokenizer,
+				cursor    = tokenizer.streamer.get_cursor(),
+				next      = tokenizer.next(true);
+
+			// TODO: handle comments...
+
+			if (next && next.operator === '=') {
+				next = tokenizer.next();
+				if (next && next.operator === '>') {
+					tokenizer.streamer.cursor = cursor;
+					return true;
+				}
+			}
+
+			tokenizer.streamer.cursor = cursor;
+		},
+		protos : {
+			type        : "ArrowFunction",
+			precedence  : 21,
+			on_register : set_expression_statement,
+			initialize  : function (token, scope) {
+				var	tokenizer = scope.tokenizer,
+					next      = tokenizer.next(true);
+
+				// TODO: handle comments...
+				//while (next && next.type === "Comment") { next = tokenizer.next(); }
+
+				tokenizer.streamer.move_right(2);
+				scope.advance('{');
+
+				this.type       = this.type;
+				this.parameters = [];
+				this.body       = scope.current_expression.statement(scope);
+				this.start      = token.start;
+				this.end        = this.body.end;
+			},
+		},
+	}).
+
+	// Arrow Function Expression with parenthesis {{{2
+	declaration_expression("Delimiter", {
+		is : function (token, scope) {
+			if (token.delimiter === '(') {
+				var	tokenizer = scope.tokenizer,
+					cursor    = tokenizer.streamer.get_cursor(),
+					next      = tokenizer.next();
+
+				while (next && next.delimiter !== ')') {
+					next = tokenizer.next();
+				}
+
+				// TODO: handle comments...
+
+				next = tokenizer.next(true);
+
+				if (next && next.operator === '=') {
+					next = tokenizer.next();
+					if (next && next.operator === '>') {
+						tokenizer.streamer.cursor = cursor;
+						return true;
+					}
+				}
+
+				tokenizer.streamer.cursor = cursor;
+			}
+		},
+		protos : {
+			type        : "ArrowFunction",
+			precedence  : 21,
+			on_register : set_expression_statement,
+			initialize  : function (token, scope) {
+				scope.tokenizer.streamer.cursor.index -= 1;
+				scope.advance_binary();
+
+				this.type       = this.type;
+				this.parameters = scope.current_expression.get_params(scope);
+
+				scope.advance();
+				if (scope.current_token.operator === '=') {
+					scope.tokenizer.streamer.move_right(2);
+				}
+
+				scope.advance('{');
+				this.body  = scope.current_expression.statement(scope);
+				this.start = token.start;
+				this.end   = this.body.end;
+			},
+		},
+	}).
+
 	// Export default {{{2
 	statement("Identifier", {
-		is     : function (token) { return token.value === "export"; },
+		is     : function (token) { return token.name === "export"; },
 		protos : {
 			type       : "Export",
 			precedence : 31,

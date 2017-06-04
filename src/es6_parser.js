@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-04
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,6 +29,11 @@ app.namespace("javascript.ES6_parser", [
 	parser           = parser.copy();
 	parser.tokenizer = tokenizer;
 
+	var set_expression_statement = function (handler, symbols) {
+		handler.ExpressionStatement  = symbols.constructors.StringLiteral.prototype.ExpressionStatement;
+		handler.statement_denotation = symbols.constructors.StringLiteral.prototype.statement_denotation;
+	};
+
 	parser.symbols.
 	// Template literal {{{2
 	literal("BackTick", {
@@ -40,49 +45,53 @@ app.namespace("javascript.ES6_parser", [
 					character = streamer.next(),
 					start     = token.end, i = 0, body = [];
 
+				LOOP:
 				while (character) {
-					if (character === '\\') {
-						streamer.next();
-						character = streamer.next();
-					}
-
-					if (character && character === '$' && streamer.peek(streamer.cursor.index + 1) === '{') {
-						if (streamer.cursor.index > start.index) {
-							body[i++] = new this.TemplateLiteralString(
-								start,
-								streamer.get_cursor(),
-								streamer.seek(start.index)
-							);
-						}
-
-						start = streamer.get_cursor();
-						streamer.move_right(1);
-						scope.advance();
-
-						body[i++] = new this.TemplateLiteralExpression(start, scope.expression(0));
-
-						if (scope.current_token.delimiter === '}') {
-							body[i - 1].end = scope.current_token.end;
+					switch (character) {
+						case '\\':
+							streamer.move_right(1);
 							character = streamer.next();
-							start     = streamer.get_cursor();
-						} else {
-							throw new Error("WTF");
-						}
+							break;
+						case '$' :
+							if (streamer.peek(streamer.cursor.index + 1) === '{') {
+								if (streamer.cursor.index > start.index) {
+									body[i++] = new this.TemplateLiteralString(
+										start,
+										streamer.get_cursor(),
+										streamer.seek(start.index)
+									);
+								}
+
+								start = streamer.get_cursor();
+								streamer.move_right(1);
+								scope.advance();
+
+								body[i++] = new this.TemplateLiteralExpression(start, scope.expression(0));
+
+								if (scope.current_token.delimiter === '}') {
+									body[i - 1].end = scope.current_token.end;
+
+									character = streamer.next();
+									start     = streamer.get_cursor();
+								} else {
+									throw new Error("WTF");
+								}
+							} else {
+								character = streamer.next();
+							}
+							break;
+						case '`':
+							if (streamer.cursor.index > start.index) {
+								body[i++] = new this.TemplateLiteralString(
+									start,
+									streamer.get_cursor(),
+									streamer.seek(start.index)
+								);
+							}
+							break LOOP;
+						default:
+							character = streamer.next();
 					}
-
-					if (character === '`') {
-						if (streamer.cursor.index > start.index) {
-							body[i++] = new this.TemplateLiteralString(
-								start,
-								streamer.get_cursor(),
-								streamer.seek(start.index)
-							);
-						}
-
-						break;
-					}
-
-					character = streamer.next();
 				}
 
 				this.type  = this.type;
@@ -90,7 +99,7 @@ app.namespace("javascript.ES6_parser", [
 				this.start = token.start;
 				this.end   = streamer.end_cursor();
 			},
-			on_register : function (handler) {
+			on_register : function (handler, symbols) {
 				handler.TemplateLiteralString = function (start, end, value) {
 					this.type  = this.type;
 					this.value = value;
@@ -105,13 +114,134 @@ app.namespace("javascript.ES6_parser", [
 					this.start      = start;
 				};
 				handler.TemplateLiteralExpression.prototype.type = "TemplateLiteralExpression";
+
+				set_expression_statement(handler, symbols);
 			},
 		}
 	}).
 
+	// Tagged Template literal {{{2
+	literal("Identifier", {
+		is : function (token, scope) {
+			var	tokenizer = scope.tokenizer,
+				cursor    = tokenizer.streamer.get_cursor(),
+				next      = tokenizer.next();
+
+			tokenizer.streamer.cursor = cursor;
+			return next && next.type === "BackTick";
+		},
+		protos : {
+			type        : "TaggedTemplate",
+			precedence  : 21,
+			on_register : set_expression_statement,
+			initialize  : function (token, scope) {
+				this.type = this.type;
+				this.tag  = scope.current_token;
+
+				scope.advance();
+				this.template = scope.current_expression;
+				this.start    = this.tag.start;
+				this.end      = this.template.end;
+			},
+		},
+	}).
+
+	// Arrow Function Expression without parenthesis {{{2
+	declaration_expression("Identifier", {
+		is : function (token, scope) {
+			var	tokenizer = scope.tokenizer,
+				cursor    = tokenizer.streamer.get_cursor(),
+				next      = tokenizer.next(true);
+
+			// TODO: handle comments...
+
+			if (next && next.operator === '=') {
+				next = tokenizer.next();
+				if (next && next.operator === '>') {
+					tokenizer.streamer.cursor = cursor;
+					return true;
+				}
+			}
+
+			tokenizer.streamer.cursor = cursor;
+		},
+		protos : {
+			type        : "ArrowFunction",
+			precedence  : 21,
+			on_register : set_expression_statement,
+			initialize  : function (token, scope) {
+				var	tokenizer = scope.tokenizer,
+					next      = tokenizer.next(true);
+
+				// TODO: handle comments...
+				//while (next && next.type === "Comment") { next = tokenizer.next(); }
+
+				tokenizer.streamer.move_right(2);
+				scope.advance('{');
+
+				this.type       = this.type;
+				this.parameters = [];
+				this.body       = scope.current_expression.statement(scope);
+				this.start      = token.start;
+				this.end        = this.body.end;
+			},
+		},
+	}).
+
+	// Arrow Function Expression with parenthesis {{{2
+	declaration_expression("Delimiter", {
+		is : function (token, scope) {
+			if (token.delimiter === '(') {
+				var	tokenizer = scope.tokenizer,
+					cursor    = tokenizer.streamer.get_cursor(),
+					next      = tokenizer.next();
+
+				while (next && next.delimiter !== ')') {
+					next = tokenizer.next();
+				}
+
+				// TODO: handle comments...
+
+				next = tokenizer.next(true);
+
+				if (next && next.operator === '=') {
+					next = tokenizer.next();
+					if (next && next.operator === '>') {
+						tokenizer.streamer.cursor = cursor;
+						return true;
+					}
+				}
+
+				tokenizer.streamer.cursor = cursor;
+			}
+		},
+		protos : {
+			type        : "ArrowFunction",
+			precedence  : 21,
+			on_register : set_expression_statement,
+			initialize  : function (token, scope) {
+				scope.tokenizer.streamer.cursor.index -= 1;
+				scope.advance_binary();
+
+				this.type       = this.type;
+				this.parameters = scope.current_expression.get_params(scope);
+
+				scope.advance();
+				if (scope.current_token.operator === '=') {
+					scope.tokenizer.streamer.move_right(2);
+				}
+
+				scope.advance('{');
+				this.body  = scope.current_expression.statement(scope);
+				this.start = token.start;
+				this.end   = this.body.end;
+			},
+		},
+	}).
+
 	// Export default {{{2
 	statement("Identifier", {
-		is     : function (token) { return token.value === "export"; },
+		is     : function (token) { return token.name === "export"; },
 		protos : {
 			type       : "Export",
 			precedence : 31,
@@ -181,6 +311,7 @@ app.run([
 	var filename = path.join(__dirname, "./es6_parser.js");
 	source       = fs.readFileSync(filename, "utf8");
 	/*
+*/
 	source = `
 	export default function () {}
 	export default a = 2;
@@ -190,13 +321,19 @@ app.run([
 		attrs         : { ngIf : \`configs.\${ header.model }.is_renderable\` },
 		is_searchable : index > 0,
 	});
-	namespace = namespace ? z ? \`Hello??\${ namespace }\` : f : part;
+	\`Hello??\${ namespace }\${ other }\`;
+	jt\`hello\`;
+	x => {
+
+	};
+	(x, y) => {
+		x = y;
+	};
 `;
-*/
 
 try {
 	var r = p.parse(source);
-	print(r[3].expression.right.consequent.consequent);
+	print(r[6].expression);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);

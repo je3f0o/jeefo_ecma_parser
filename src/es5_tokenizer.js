@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-06-03
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -146,7 +146,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 				}
 
 				this.type  = this.type;
-				this.value = streamer.seek(start.index);
+				this.name  = streamer.seek(start.index);
 				this.start = start;
 				this.end   = streamer.get_cursor();
 
