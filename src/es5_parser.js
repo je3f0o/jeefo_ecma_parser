@@ -47,7 +47,7 @@ app.namespace("javascript.es5_symbols", [
 		handler.ExpressionStatement = ExpressionStatement;
 	},
 	expression_statement = function (scope) {
-		var statement = new this.ExpressionStatement(scope.current_token.start, scope.expression(0));
+		var statement = new this.ExpressionStatement(scope.current_expression.start, scope.expression(0));
 
 		if (scope.current_token) {
 			if (scope.current_token.delimiter === ';') {
@@ -1113,6 +1113,7 @@ app.namespace("javascript.es5_symbols", [
 			initialize : function (token) {
 				this.type         = this.type;
 				this.declarations = [];
+				this.ASI          = true;
 				this.start        = token.start;
 			},
 			statement_denotation : function (scope) {
@@ -1149,15 +1150,23 @@ app.namespace("javascript.es5_symbols", [
 								scope.advance();
 								break;
 							case ';' :
+								this.ASI = false;
 								this.end = scope.current_token.end;
 								return this;
 							default:
-							console.log(2222222, scope.current_token);
-								scope.current_token.error_unexpected_token();
+								if (declarator.end.column === 0) {
+									this.end = declarator.end;
+									scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+									return this;
+								} else {
+									console.log("unexpected end of var", scope.current_token, declarator);
+									scope.current_token.error_unexpected_token();
+								}
 						}
 					}
 				}
 
+				this.end = declarator.end;
 				return this;
 			},
 

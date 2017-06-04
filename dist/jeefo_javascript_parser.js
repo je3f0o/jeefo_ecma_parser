@@ -191,9 +191,13 @@ app.namespace("javascript.SymbolsTable", [
 			return this;
 		},
 		get_binary_expression : function (scope) {
-			var symbols = this.binary_expression_symbols[scope.current_token.type], i = symbols.length - 1;
+			var symbols = this.binary_expression_symbols[scope.current_token.type];
 
-			for (; i >= 0; --i) {
+			if (! symbols) {
+				return;
+			}
+
+			for (var i = symbols.length - 1; i >= 0; --i) {
 				if (symbols[i].is && ! symbols[i].is(scope.current_token, scope)) {
 					continue;
 				}
@@ -728,7 +732,7 @@ app.namespace("javascript.es5_symbols", [
 		handler.ExpressionStatement = ExpressionStatement;
 	},
 	expression_statement = function (scope) {
-		var statement = new this.ExpressionStatement(scope.current_token.start, scope.expression(0));
+		var statement = new this.ExpressionStatement(scope.current_expression.start, scope.expression(0));
 
 		if (scope.current_token) {
 			if (scope.current_token.delimiter === ';') {
@@ -1794,6 +1798,7 @@ app.namespace("javascript.es5_symbols", [
 			initialize : function (token) {
 				this.type         = this.type;
 				this.declarations = [];
+				this.ASI          = true;
 				this.start        = token.start;
 			},
 			statement_denotation : function (scope) {
@@ -1830,15 +1835,23 @@ app.namespace("javascript.es5_symbols", [
 								scope.advance();
 								break;
 							case ';' :
+								this.ASI = false;
 								this.end = scope.current_token.end;
 								return this;
 							default:
-							console.log(2222222, scope.current_token);
-								scope.current_token.error_unexpected_token();
+								if (declarator.end.column === 0) {
+									this.end = declarator.end;
+									scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+									return this;
+								} else {
+									console.log("unexpected end of var", scope.current_token, declarator);
+									scope.current_token.error_unexpected_token();
+								}
 						}
 					}
 				}
 
+				this.end = declarator.end;
 				return this;
 			},
 
@@ -2311,7 +2324,7 @@ namespace("javascript.ES5_parser", [
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_tokenizer.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-02
+* Updated at  : 2017-06-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -2332,6 +2345,25 @@ app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function
 				this.type  = this.type;
 				this.start = streamer.get_cursor();
 				this.end   = streamer.end_cursor();
+			},
+		},
+	}).
+	
+	// Arrow function punctuator {{{2
+	register({
+		is : function (character, streamer) {
+			return character === '=' && streamer.peek(streamer.cursor.index + 1) === '>';
+		},
+		protos : {
+			type       : "ArrowFunctionPunctuator",
+			precedence : 21,
+			initialize : function (character, streamer) {
+				this.type     = this.type;
+				this.operator = this.value = "=>";
+				this.start    = streamer.get_cursor();
+
+				streamer.move_right(1);
+				this.end = streamer.end_cursor();
 			},
 		},
 	});
@@ -2454,12 +2486,7 @@ app.namespace("javascript.ES6_parser", [
 	// Tagged Template literal {{{2
 	literal("Identifier", {
 		is : function (token, scope) {
-			var	tokenizer = scope.tokenizer,
-				cursor    = tokenizer.streamer.get_cursor(),
-				next      = tokenizer.next();
-
-			tokenizer.streamer.cursor = cursor;
-			return next && next.type === "BackTick";
+			return scope.tokenizer.streamer.peek(scope.tokenizer.streamer.cursor.index + 1) === '`';
 		},
 		protos : {
 			type        : "TaggedTemplate",
@@ -2486,32 +2513,24 @@ app.namespace("javascript.ES6_parser", [
 
 			// TODO: handle comments...
 
-			if (next && next.operator === '=') {
-				next = tokenizer.next();
-				if (next && next.operator === '>') {
-					tokenizer.streamer.cursor = cursor;
-					return true;
-				}
-			}
-
 			tokenizer.streamer.cursor = cursor;
+
+			return next && next.operator === "=>";
 		},
 		protos : {
 			type        : "ArrowFunction",
 			precedence  : 21,
 			on_register : set_expression_statement,
 			initialize  : function (token, scope) {
-				var	tokenizer = scope.tokenizer,
-					next      = tokenizer.next(true);
-
+				//var	tokenizer = scope.tokenizer, next      = tokenizer.next(true);
 				// TODO: handle comments...
 				//while (next && next.type === "Comment") { next = tokenizer.next(); }
 
-				tokenizer.streamer.move_right(2);
+				scope.advance("=>");
 				scope.advance('{');
 
 				this.type       = this.type;
-				this.parameters = [];
+				this.parameters = [token];
 				this.body       = scope.current_expression.statement(scope);
 				this.start      = token.start;
 				this.end        = this.body.end;
@@ -2533,17 +2552,10 @@ app.namespace("javascript.ES6_parser", [
 
 				// TODO: handle comments...
 
-				next = tokenizer.next(true);
-
-				if (next && next.operator === '=') {
-					next = tokenizer.next();
-					if (next && next.operator === '>') {
-						tokenizer.streamer.cursor = cursor;
-						return true;
-					}
-				}
-
+				next                      = tokenizer.next(true);
 				tokenizer.streamer.cursor = cursor;
+
+				return next && next.operator === "=>";
 			}
 		},
 		protos : {
@@ -2557,12 +2569,9 @@ app.namespace("javascript.ES6_parser", [
 				this.type       = this.type;
 				this.parameters = scope.current_expression.get_params(scope);
 
-				scope.advance();
-				if (scope.current_token.operator === '=') {
-					scope.tokenizer.streamer.move_right(2);
-				}
-
+				scope.advance("=>");
 				scope.advance('{');
+
 				this.body  = scope.current_expression.statement(scope);
 				this.start = token.start;
 				this.end   = this.body.end;

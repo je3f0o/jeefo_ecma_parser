@@ -192,9 +192,13 @@ app.namespace("javascript.SymbolsTable", [
 			return this;
 		},
 		get_binary_expression : function (scope) {
-			var symbols = this.binary_expression_symbols[scope.current_token.type], i = symbols.length - 1;
+			var symbols = this.binary_expression_symbols[scope.current_token.type];
 
-			for (; i >= 0; --i) {
+			if (! symbols) {
+				return;
+			}
+
+			for (var i = symbols.length - 1; i >= 0; --i) {
 				if (symbols[i].is && ! symbols[i].is(scope.current_token, scope)) {
 					continue;
 				}

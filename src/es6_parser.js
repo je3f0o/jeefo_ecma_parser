@@ -123,12 +123,7 @@ app.namespace("javascript.ES6_parser", [
 	// Tagged Template literal {{{2
 	literal("Identifier", {
 		is : function (token, scope) {
-			var	tokenizer = scope.tokenizer,
-				cursor    = tokenizer.streamer.get_cursor(),
-				next      = tokenizer.next();
-
-			tokenizer.streamer.cursor = cursor;
-			return next && next.type === "BackTick";
+			return scope.tokenizer.streamer.peek(scope.tokenizer.streamer.cursor.index + 1) === '`';
 		},
 		protos : {
 			type        : "TaggedTemplate",
@@ -172,7 +167,7 @@ app.namespace("javascript.ES6_parser", [
 				scope.advance('{');
 
 				this.type       = this.type;
-				this.parameters = [];
+				this.parameters = [token];
 				this.body       = scope.current_expression.statement(scope);
 				this.start      = token.start;
 				this.end        = this.body.end;
@@ -311,11 +306,13 @@ app.run([
 	(x, y) => {
 		x = y;
 	};
+	var a = b
 `;
 
 try {
 	var r = p.parse(source);
-	print(r[6].expression);
+	print(r[3]);
+	print(r[7]);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);
