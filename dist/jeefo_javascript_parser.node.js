@@ -728,32 +728,31 @@ app.namespace("javascript.es5_symbols", [
 	},
 
 	// Expression Statement {{{2
-	ExpressionStatement = function (start, expression) {
+	ExpressionStatement = function (expression, ASI, start, end) {
 		this.type       = this.type;
 		this.expression = expression;
+		this.ASI        = ASI;
 		this.start      = start;
+		this.end        = end;
 	},
 	cache_expression_statement = function (handler) {
 		handler.ExpressionStatement = ExpressionStatement;
 	},
 	expression_statement = function (scope) {
-		var statement = new this.ExpressionStatement(scope.current_expression.start, scope.expression(0));
+		var start      = scope.current_expression.start,
+			expression = scope.expression(0);
 
-		if (scope.current_token) {
-			if (scope.current_token.delimiter === ';') {
-				statement.end = scope.current_token.end;
-
-//console.log(`[${ statement.type }]`, statement, scope.current_expression);
-//process.exit();
-				return statement;
-			} else {
-				console.log(22222222, statement, scope.current_expression, scope.current_token);
-				scope.current_token.error_unexpected_token();
-			}
+		if (! scope.current_token) {
+			return new this.ExpressionStatement(expression, true, start, expression.end);
+		} else if (expression.end.column === 0 || scope.current_token.start.line > expression.end.line) {
+			scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+			return new this.ExpressionStatement(expression, true, start, expression.end);
+		} else if (scope.current_token.delimiter === ';') {
+			return new this.ExpressionStatement(expression, false, start, scope.current_token.end);
 		}
 
-		statement.end = statement.expression.end;
-		return statement;
+		console.log("ExpressionStatement", expression, scope.current_expression, scope.current_token);
+		scope.current_token.error_unexpected_token();
 	},
 
 	// Comment {{{2
@@ -1873,10 +1872,10 @@ app.namespace("javascript.es5_symbols", [
 		var start = scope.current_token.start, end = scope.current_token.end;
 
 		scope.advance();
-		if (! scope.current_token || end.column === 0) {
+		if (! scope.current_token) {
 			this.argument = null;
 			this.ASI      = true;
-		} else if (scope.current_token.start.line > end.line) {
+		} else if (end.column === 0 || scope.current_token.start.line > end.line) {
 			this.argument = null;
 			this.ASI      = true;
 			scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
@@ -1887,18 +1886,18 @@ app.namespace("javascript.es5_symbols", [
 		} else {
 			this.argument = scope.expression(0);
 
-			if (scope.current_token) {
-				if (scope.current_token.delimiter === ';') {
-					end      = scope.current_token.end;
-					this.ASI = false;
-				} else {
-					end      = this.argument.end;
-					this.ASI = true;
-					scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
-				}
-			} else {
+			if (! scope.current_token) {
 				end      = this.argument.end;
 				this.ASI = true;
+			} else if (this.argument.end.column === 0 || scope.current_token.start.line > this.argument.end.line) {
+				end      = this.argument.end;
+				this.ASI = true;
+				scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+			} else if (scope.current_token.delimiter === ';') {
+				end      = scope.current_token.end;
+				this.ASI = false;
+			} else {
+				scope.current_token.error();
 			}
 		}
 
@@ -1933,10 +1932,10 @@ app.namespace("javascript.es5_symbols", [
 		var start = scope.current_token.start, end = scope.current_token.end;
 
 		scope.advance();
-		if (! scope.current_expression || end.column === 0) {
+		if (! scope.current_expression) {
 			this.label = null;
 			this.ASI   = true;
-		} else if (scope.current_token.start.line > end.line) {
+		} else if (end.column === 0 || scope.current_token.start.line > end.line) {
 			this.label = null;
 			this.ASI   = true;
 			scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
@@ -1948,18 +1947,19 @@ app.namespace("javascript.es5_symbols", [
 			this.label = scope.current_token;
 
 			scope.advance();
-			if (scope.current_token) {
-				if (scope.current_token.delimiter === ';') {
-					end      = scope.current_token.end;
-					this.ASI = false;
-				} else {
-					end      = this.label.end;
-					this.ASI = true;
-					scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
-				}
-			} else {
+
+			if (! scope.current_token) {
 				end      = this.label.end;
 				this.ASI = true;
+			} else if (this.label.end.column === 0 || scope.current_token.start.line > this.label.end.line) {
+				end      = this.label.end;
+				this.ASI = true;
+				scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+			} else if (scope.current_token.delimiter === ';') {
+				end      = scope.current_token.end;
+				this.ASI = false;
+			} else {
+				scope.current_token.error();
 			}
 		} else {
 			scope.current_token.error();
@@ -2160,7 +2160,7 @@ app.namespace("javascript.es5_symbols", [
 			precedence           : 31,
 			initialize           : binary.protos.initialize,
 			statement_denotation : function (scope) {
-				var start = scope.current_token.start;
+				var start = scope.current_token.start, end;
 
 				scope.advance();
 
@@ -2173,14 +2173,25 @@ app.namespace("javascript.es5_symbols", [
 				this.test = scope.expression(0);
 
 				if (scope.current_token.value === ')') {
+					end = scope.current_token.end;
 					scope.advance();
 				}
 
-				if (scope.current_token.value === ';') {
+				if (! scope.current_token) {
+					this.ASI   = true;
+					this.start = start;
+					this.end   = end;
+				} else if (end.column === 0 || scope.current_token.start.line > end.line) {
+					scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+					this.ASI   = true;
+					this.start = start;
+					this.end   = end;
+				} else if (scope.current_token.delimiter === ';') {
+					this.ASI   = false;
 					this.start = start;
 					this.end   = scope.current_token.end;
 				} else {
-					scope.current_token.error_unexpected_token();
+					scope.current_token.error();
 				}
 
 				return this;

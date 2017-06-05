@@ -306,8 +306,11 @@ app.run([
 	(x, y) => {
 		x = y;
 	};
+	a + 1 
+	do console.log(123)
+		while (true)
 	break b
-	return 
+	return z
 	var a =
 		b
 `;
