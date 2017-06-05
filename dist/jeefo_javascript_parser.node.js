@@ -1870,21 +1870,36 @@ app.namespace("javascript.es5_symbols", [
 
 	// Return, Throw statement {{{3
 	var initialize_argument = function (scope) {
-		var start = scope.current_token.start;
+		var start = scope.current_token.start, end = scope.current_token.end;
 
 		scope.advance();
-		if (scope.current_token.delimiter === ';') {
+		if (! scope.current_token || end.column === 0 || scope.current_token.start.line > end.line) {
 			this.argument = null;
+			this.ASI      = true;
+		} else if (scope.current_token.delimiter === ';') {
+			end           = scope.current_token.end;
+			this.argument = null;
+			this.ASI      = false;
 		} else {
 			this.argument = scope.expression(0);
-			if (scope.current_token.delimiter !== ';') {
-				console.log('[' + this.type + ']', scope.current_expression, this);
-				scope.current_token.error_unexpected_token();
+
+			if (scope.current_token) {
+				if (scope.current_token.delimiter === ';') {
+					end      = scope.current_token.end;
+					this.ASI = false;
+				} else {
+					end      = this.argument.end;
+					this.ASI = true;
+					scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
+				}
+			} else {
+				end      = this.argument.end;
+				this.ASI = true;
 			}
 		}
 
 		this.start = start;
-		this.end   = scope.current_token.end;
+		this.end   = end;
 		//console.log(`[${ this.type }]`, scope.current_expression, this);
 
 		return this;

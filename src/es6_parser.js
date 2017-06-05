@@ -306,13 +306,15 @@ app.run([
 	(x, y) => {
 		x = y;
 	};
-	var a = b
+	return a
+	var a =
+		b
 `;
 
 try {
 	var r = p.parse(source);
-	print(r[3]);
 	print(r[7]);
+	print(r[8]);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);
