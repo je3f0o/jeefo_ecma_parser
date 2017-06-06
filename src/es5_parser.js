@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-06-05
+* Updated at  : 2017-06-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -787,6 +787,9 @@ app.namespace("javascript.es5_symbols", [
 			precedence      : 17,
 			initialize      : initialize_multi_characters_operator,
 			left_denotation : function (left, scope) {
+				if (left.start.line !== scope.current_token.start.line) {
+					scope.current_token.error();
+				}
 				this.argument  = left;
 				this.is_prefix = false;
 				this.start     = left.start;
@@ -1185,7 +1188,7 @@ app.namespace("javascript.es5_symbols", [
 		if (! scope.current_token) {
 			this.argument = null;
 			this.ASI      = true;
-		} else if (end.column === 0 || scope.current_token.start.line > end.line) {
+		} else if (end.column === 0 || (scope.current_expression.start && scope.current_expression.start.line > end.line)) {
 			this.argument = null;
 			this.ASI      = true;
 			scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;

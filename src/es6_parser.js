@@ -307,6 +307,9 @@ app.run([
 		x = y;
 	};
 	a + 1 
+	return function (d) {
+		return (d.values.length > 1) ? liner(d.values) : null;
+	};
 	do console.log(123)
 		while (true)
 	break b
