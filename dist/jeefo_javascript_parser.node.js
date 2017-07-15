@@ -4,7 +4,7 @@
 module.exports = function (jeefo) {
 
 /**
- * jeefo_javascript_parser : v0.0.8
+ * jeefo_javascript_parser : v0.0.9
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
@@ -703,7 +703,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-06-06
+* Updated at  : 2017-07-16
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -2210,7 +2210,7 @@ app.namespace("javascript.es5_symbols", [
 			precedence           : 31,
 			initialize           : binary.protos.initialize,
 			statement_denotation : function (scope) {
-				var start = scope.current_expression.start;
+				var start = scope.current_token.start;
 
 				scope.advance('(');
 				scope.advance();
@@ -2438,7 +2438,7 @@ app.namespace("javascript.es6_tokenizer", ["javascript.es5_tokenizer"], function
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-05
+* Updated at  : 2017-06-09
 * Author      : jeefo
 * Purpose     :
 * Description :

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-06-06
+* Updated at  : 2017-07-16
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -1520,7 +1520,7 @@ app.namespace("javascript.es5_symbols", [
 			precedence           : 31,
 			initialize           : binary.protos.initialize,
 			statement_denotation : function (scope) {
-				var start = scope.current_expression.start;
+				var start = scope.current_token.start;
 
 				scope.advance('(');
 				scope.advance();

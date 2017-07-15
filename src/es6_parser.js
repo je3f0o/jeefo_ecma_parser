@@ -1,13 +1,12 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-06-05
+* Updated at  : 2017-06-09
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
-"use strict";
 
 var jeefo    = require("./es6_tokenizer"),
 	_package = require("../package"),
@@ -317,12 +316,18 @@ app.run([
 	var a =
 		b
 `;
+source = `
+	{
+		// "wheel.zoom"      : { is_enabled : false },
+		"dblclick.zoom"   : { is_enabled : false },
+		// "mousewheel.zoom" : { is_enabled : false }
+	}
+`;
 
 try {
 	var r = p.parse(source);
-	print(r[7]);
-	print(r[8]);
-	print(r[9]);
+	print(r[0]);
+	//print(r[13].expression.right);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);
