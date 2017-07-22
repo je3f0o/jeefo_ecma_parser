@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2017-05-11
-* Updated at  : 2017-06-05
+* Updated at  : 2017-07-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,7 +18,7 @@ jeefo.use(require("jeefo_tokenizer"));
 
 // ignore:end
 
-var app = jeefo.module("jeefo_javascript_parser", ["jeefo_tokenizer"]);
+var app = jeefo.module("jeefo_javascript_parser", ["jeefo.tokenizer"]);
 
 // SymbolsTable {{{1
 app.namespace("parser.SymbolsTable", [
