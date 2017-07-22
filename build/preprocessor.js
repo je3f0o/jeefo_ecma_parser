@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preprocessor.js
 * Created at  : 2017-04-26
-* Updated at  : 2017-06-02
+* Updated at  : 2017-07-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -337,6 +337,12 @@ pp.namespace("javascript.Preprocessor", [
 			case "RegExpLiteral" :
 			case "BooleanLiteral" :
 				return;
+			case "Delimiter" :
+			throw new Error(222);
+				console.log(expression);
+				process.exit();
+			case "InExpression" :
+				return;
 			case "GroupingExpression" :
 				this.expression(expression.expression, scope);
 				return;
@@ -556,6 +562,10 @@ if (! tokens[i]) {
 						this.expression(tokens[i].test, scope);
 					}
 					if (tokens[i].update) {
+						if (tokens[i].update.type === "Delimiter") {
+							console.log(tokens[i]);
+							process.exit();
+						}
 						this.expression(tokens[i].update, scope);
 					}
 					this.statement(tokens[i].statement, scope);
@@ -654,7 +664,7 @@ pp.namespace("javascript.ES5_preprocessor", [
 	};
 
 	p.process = function (filename, source_code, defs, indent, indentation) {
-		console.log(882131, filename);
+		console.log("filename", filename);
 		var i    = 0,
 			file = {
 				code : source_code,

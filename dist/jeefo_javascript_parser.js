@@ -1,5 +1,5 @@
 /**
- * jeefo_javascript_parser : v0.0.11
+ * jeefo_javascript_parser : v0.0.12
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
@@ -2098,8 +2098,12 @@ app.namespace("javascript.es5_symbols", [
 					}
 
 					scope.advance();
-					self.update = scope.expression(0);
 
+					if (scope.current_token.delimiter === ')') {
+						self.update = null;
+					} else {
+						self.update = scope.expression(0);
+					}
 				} else if (self.init && self.init.type === "InExpression") {
 					self = new self.ForInStatement(self.init.left, self.init.right);
 				} else if (self.type !== "ForInStatement") {

@@ -12,7 +12,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 /* globals -PP */
 /* exported */
 
-var jeefo = require("jeefo").create();
+var jeefo = require("../node_modules/jeefo/dist/jeefo.node.js").create();
 jeefo.use(require("jeefo_core"));
 jeefo.use(require("jeefo_tokenizer"));
 

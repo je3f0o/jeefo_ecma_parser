@@ -1413,8 +1413,12 @@ app.namespace("javascript.es5_symbols", [
 					}
 
 					scope.advance();
-					self.update = scope.expression(0);
 
+					if (scope.current_token.delimiter === ')') {
+						self.update = null;
+					} else {
+						self.update = scope.expression(0);
+					}
 				} else if (self.init && self.init.type === "InExpression") {
 					self = new self.ForInStatement(self.init.left, self.init.right);
 				} else if (self.type !== "ForInStatement") {
@@ -1697,7 +1701,7 @@ namespace("javascript.ES5_parser", [
 // Debug {{{1
 if (require.main === module) {
 	
-app.run("javascript.ES5_parser", function (p) {
+app.run(["javascript.ES5_parser"], function (p) {
 	var print_substr = function (token) {
 		console.log("-----------------------");
 		console.log(source.substring(token.start.index, token.end.index));
@@ -1763,6 +1767,9 @@ app.run("javascript.ES5_parser", function (p) {
 		return final;
 	}
 	for (var i = 0; i < 5; ++i) {
+		zz = as, gg = aa;
+	}
+	for (;;) {
 		zz = as, gg = aa;
 	}
 	for (var a in b) {
@@ -1879,7 +1886,7 @@ app.run("javascript.ES5_parser", function (p) {
 
 try {
 	var r = p.parse(source);
-	print(r[0].declarations[0].init.arguments[0]);
+	print(r[11]);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);
