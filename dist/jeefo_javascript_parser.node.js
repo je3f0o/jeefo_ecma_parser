@@ -4,7 +4,7 @@
 module.exports = function (jeefo) {
 
 /**
- * jeefo_javascript_parser : v0.0.13
+ * jeefo_javascript_parser : v0.0.14
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
@@ -452,7 +452,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 						end_index = streamer.cursor.index;
 
 						if (character === '*' && streamer.peek(cursor.index + 1) === '/') {
-							streamer.next();
+							streamer.move_right(2);
 							break;
 						}
 						character = streamer.next(true);

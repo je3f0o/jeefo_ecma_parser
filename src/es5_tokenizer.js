@@ -96,7 +96,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 						end_index = streamer.cursor.index;
 
 						if (character === '*' && streamer.peek(cursor.index + 1) === '/') {
-							streamer.next();
+							streamer.move_right(2);
 							break;
 						}
 						character = streamer.next(true);

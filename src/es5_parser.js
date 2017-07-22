@@ -1777,7 +1777,7 @@ app.run(["javascript.ES5_parser"], function (p) {
 	}
 /*                 comment            */
 //ignore:start
-	{
+{
 		var a = c + b.c * d - f, z = rr; 
 	}
 	while (zzz) {}
