@@ -1775,6 +1775,8 @@ app.run(["javascript.ES5_parser"], function (p) {
 	for (var a in b) {
 		zz = as, gg = aa;
 	}
+/*                 comment            */
+//ignore:start
 	{
 		var a = c + b.c * d - f, z = rr; 
 	}
@@ -1886,7 +1888,8 @@ app.run(["javascript.ES5_parser"], function (p) {
 
 try {
 	var r = p.parse(source);
-	print(r[11]);
+	print(r[13]);
+	print(r[14]);
 } catch(e) {
 	console.log(e);
 	console.log(e.stack);

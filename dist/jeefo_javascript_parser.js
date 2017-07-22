@@ -1,5 +1,5 @@
 /**
- * jeefo_javascript_parser : v0.0.12
+ * jeefo_javascript_parser : v0.0.13
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
@@ -363,7 +363,7 @@ app.namespace("javascript.Parser", function () {
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-06-05
+* Updated at  : 2017-07-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -434,7 +434,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 			type       : "Comment",
 			precedence : 40,
 			initialize : function (character, streamer) {
-				var start = streamer.get_cursor(), start_index, end_index, is_trimmed;
+				var start = streamer.get_cursor(), start_index, end_index;
 
 				this.type = this.type;
 
@@ -451,14 +451,9 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 							break;
 						}
 						character = streamer.next(true);
-
-						if (! is_trimmed) {
-							start_index = streamer.cursor.index;
-							is_trimmed  = true;
-						}
 					}
 
-					this.comment      = streamer.seek(start_index, end_index);
+					this.comment      = streamer.seek(start_index, end_index).trim();
 					this.is_multiline = true;
 				} else {
 					character   = streamer.next();
@@ -466,14 +461,9 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 
 					while (character && character !== '\n') {
 						character = streamer.next();
-
-						if (! is_trimmed) {
-							start_index = streamer.cursor.index;
-							is_trimmed  = true;
-						}
 					}
 
-					this.comment      = streamer.seek(start_index);
+					this.comment      = streamer.seek(start_index).trim();
 					this.is_multiline = false;
 				}
 
