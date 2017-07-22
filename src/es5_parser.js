@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-07-16
+* Updated at  : 2017-07-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -972,7 +972,7 @@ app.namespace("javascript.es5_symbols", [
 	// Logical Or expression (5) {{{3
 	binary_expression("Operator", {
 		is     : function (token) { return token.operator === "||"; },
-		protos : binary.make("LogicalAnd", 5),
+		protos : binary.make("LogicalOr", 5),
 	}).
 
 	// Conditional expression (4) {{{3

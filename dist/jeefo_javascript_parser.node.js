@@ -4,7 +4,7 @@
 module.exports = function (jeefo) {
 
 /**
- * jeefo_javascript_parser : v0.0.9
+ * jeefo_javascript_parser : v0.0.11
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
@@ -703,7 +703,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-07-16
+* Updated at  : 2017-07-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -1662,7 +1662,7 @@ app.namespace("javascript.es5_symbols", [
 	// Logical Or expression (5) {{{3
 	binary_expression("Operator", {
 		is     : function (token) { return token.operator === "||"; },
-		protos : binary.make("LogicalAnd", 5),
+		protos : binary.make("LogicalOr", 5),
 	}).
 
 	// Conditional expression (4) {{{3
