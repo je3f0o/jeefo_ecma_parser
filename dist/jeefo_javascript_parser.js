@@ -1,5 +1,5 @@
 /**
- * jeefo_javascript_parser : v0.0.14
+ * jeefo_javascript_parser : v0.0.15
  * Author                  : je3f0o, <je3f0o@gmail.com>
  * Homepage                : https://github.com/je3f0o/jeefo_javascript_parser
  * License                 : The MIT License
@@ -688,7 +688,7 @@ app.namespace("javascript.es5_tokenizer", ["tokenizer.Tokenizer"], function (Tok
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-07-22
+* Updated at  : 2017-08-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -724,7 +724,7 @@ app.namespace("javascript.es5_symbols", [
 		handler.ExpressionStatement = ExpressionStatement;
 	},
 	expression_statement = function (scope) {
-		var start      = scope.current_expression.start,
+		var start      = scope.current_token.start,
 			expression = scope.expression(0);
 
 		if (! scope.current_token) {
@@ -931,7 +931,7 @@ app.namespace("javascript.es5_symbols", [
 					character   = streamer.next(),
 					start_index = streamer.cursor.index, end, flags = '', pattern;
 
-				while (character && character > ' ' && character !== '/') {
+				while (character && character >= ' ' && character !== '/') {
 					if (character === '\\') {
 						streamer.next();
 					}
@@ -942,7 +942,7 @@ app.namespace("javascript.es5_symbols", [
 				end = streamer.get_cursor();
 
 				character = streamer.next();
-				while (character && character > ' ') {
+				while (character && character >= ' ') {
 					if (this.REGEX_FLAGS.indexOf(character) !== -1 && flags.indexOf(character) === -1) {
 						flags    += character;
 						streamer.assign(end, streamer.cursor);
