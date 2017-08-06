@@ -1661,10 +1661,20 @@ app.namespace("javascript.es5_symbols", [
 				this.test = left;
 
 				scope.advance();
+
+				while (scope.current_token.type === "Comment") {
+					scope.advance();
+				}
+
 				this.consequent = scope.expression(0);
 
 				if (scope.current_token.delimiter === ':') {
 					scope.advance();
+
+					while (scope.current_token.type === "Comment") {
+						scope.advance();
+					}
+
 					this.alternate = scope.expression(COMMA_PRECEDENCE);
 				} else {
 					scope.current_token.error_unexpected_token();
