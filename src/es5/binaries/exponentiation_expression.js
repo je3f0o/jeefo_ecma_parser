@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : exponentiation_expression.js
 * Created at  : 2017-08-16
-* Updated at  : 2017-08-17
+* Updated at  : 2017-08-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,7 +17,7 @@ var ExponentiationExpression = function () {};
 ExponentiationExpression.prototype = {
 	type            : "ExponentiationExpression",
 	precedence      : 15,
-	initialize      : require("../operator_initialzier"),
+	initialize      : require("../generic_initializer"),
 	left_denotation : require("./binary").left_denotation,
 };
 

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_expressions.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-17
+* Updated at  : 2017-08-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -35,8 +35,8 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 var expressions = [
 	// Math expressions
-	"remainder",
-	"multiply_division",
+	"division",
+	"multiply_remainder",
 	"addition_subtraction",
 	"exponentiation",
 
