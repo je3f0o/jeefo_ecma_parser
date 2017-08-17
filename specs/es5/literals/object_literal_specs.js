@@ -16,7 +16,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 var expect = require("expect"),
 	parser = require("../../../src/es5_parser");
 
-describe.only("ObjectLiteral", () => {
+describe("ObjectLiteral", () => {
 	var expr       = parser.parse("{ prop : value }")[0],
 		literal    = expr.expression,
 		properties = literal.properties;

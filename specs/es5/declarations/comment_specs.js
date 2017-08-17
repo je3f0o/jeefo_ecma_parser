@@ -17,7 +17,7 @@ var expect = require("expect"),
 	parser = require("../../../src/es5_parser");
 
 describe("Comment", () => {
-	var comment = parser.parse("// comment")[0];
+	var comment = parser.parse("//comment")[0];
 
 	it('Type should be "Comment"', function () {
 		expect(comment.type).toBe("Comment");
@@ -40,9 +40,9 @@ describe("Comment", () => {
 
 	it("Should be has end object", function () {
 		expect(comment.end.line).toBe(1);
-		expect(comment.end.index).toBe(10);
-		expect(comment.end.column).toBe(11);
-		expect(comment.end.virtual_column).toBe(11);
+		expect(comment.end.index).toBe(9);
+		expect(comment.end.column).toBe(10);
+		expect(comment.end.virtual_column).toBe(10);
 	});
 
 	describe("Multiline comment", () => {

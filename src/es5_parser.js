@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2017-08-17
+* Updated at  : 2017-08-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -212,7 +212,6 @@ this.REGEX_FLAGS.indexOf(flags_value.charAt(i)) !== -1 && flags.indexOf(flags_va
 
 try {
 	var r = parser.parse(source);
-	console.log(r);
 	_print(r[13]);
 	_print(r[14]);
 	_print(r[38]);
