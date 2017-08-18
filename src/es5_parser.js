@@ -38,11 +38,6 @@ var _print = function (token) {
 source = `
 var core_module = jeefo.module("jeefo_core", []),
 CAMEL_CASE_REGEXP = /[A-Z]/g,
-dash_case = function (str) {
-	return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
-		return (pos ? '-' : '') + letter.toLowerCase();
-	});
-},
 snake_case = function (str) {
 	return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
 		return (pos ? '_' : '') + letter.toLowerCase();
@@ -118,7 +113,6 @@ f ** f;
 a++;
 o = { a_1 : 99, $b : 2 };
 [1,2,3];
-{ kkk : 1, $b : 2 };
 {};
 function a () {}
 new Fn(1.2E2,2,3);

@@ -36,7 +36,7 @@ FunctionExpression.prototype = {
 
 		scope.advance();
 		if (scope.current_token.delimiter === '{') {
-			this.body  = scope.current_expression.statement(scope);
+			this.body  = scope.current_expression.statement_denotation(scope);
 			this.start = token.start;
 			this.end   = this.body.end;
 		} else {
@@ -44,8 +44,6 @@ FunctionExpression.prototype = {
 		}
 
 		//console.log(`[${ this.type }]`, this, scope.current_expression);
-
-		scope.current_expression = this;
 
 		return this;
 	},

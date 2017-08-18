@@ -25,10 +25,12 @@ SwitchStatement = function () {};
 
 SwitchCase.prototype = {
 	type       : "SwitchCase",
+	precedence : 31,
 	initialize : generic_initializer
 };
 DefaultCase.prototype = {
 	type       : "DefaultCase",
+	precedence : 31,
 	initialize : generic_initializer
 };
 

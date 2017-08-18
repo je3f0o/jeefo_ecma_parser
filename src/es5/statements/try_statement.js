@@ -22,6 +22,7 @@ var CatchClause = function () {
 };
 CatchClause.prototype = {
 	type       : "CatchClause",
+	precedence : 31,
 	initialize : generic_initializer
 };
 
@@ -35,7 +36,7 @@ TryStatement.prototype = {
 			streamer = scope.tokenizer.streamer, token, cursor;
 
 		scope.advance('{');
-		this.block = scope.current_expression.statement(scope);
+		this.block = scope.current_expression.statement_denotation(scope);
 
 		scope.advance();
 		if (scope.current_expression.name === "catch") {
@@ -49,7 +50,7 @@ TryStatement.prototype = {
 
 		if (scope.current_token && scope.current_token.name === "finally") {
 			scope.advance('{');
-			this.finalizer = scope.current_expression.statement(scope);
+			this.finalizer = scope.current_expression.statement_denotation(scope);
 		} else if (token) {
 			this.finalizer      = null;
 			streamer.cursor     = cursor;
@@ -74,7 +75,7 @@ TryStatement.prototype = {
 
 		if (scope.current_token.value === ')') {
 			scope.advance('{');
-			_catch.body  = scope.current_expression.statement(scope);
+			_catch.body  = scope.current_expression.statement_denotation(scope);
 			_catch.start = start;
 			_catch.end   = _catch.body.end;
 		}

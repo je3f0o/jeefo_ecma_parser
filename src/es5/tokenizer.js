@@ -209,7 +209,7 @@ register({
 
 // Operator {{{1
 register({
-	is : function (character) {
+	is : function (character, streamer) {
 		switch (character) {
 			// Member operator
 			case '.' :
@@ -229,6 +229,8 @@ register({
 			case '^' :
 			case '~' :
 				return true;
+			case '/' :
+				return streamer.peek(streamer.cursor.index + 1) === '=';
 		}
 	},
 	protos : {
@@ -259,6 +261,8 @@ register({
 					}
 					break;
 				case '/' :
+					streamer.move_right(1);
+					break;
 				case '%' :
 				case '^' :
 					if (streamer.peek(cursor.index + 1) === '=') {
@@ -307,7 +311,7 @@ register({
 register({
 	is : function (character, streamer) {
 		if (character === '/') {
-			switch (streamer.peek(streamer.cursor.index + 1)) { case '*' : case '/' : return false; }
+			switch (streamer.peek(streamer.cursor.index + 1)) { case '*' : case '=' : case '/' : return false; }
 			return true;
 		}
 	},

@@ -17,7 +17,7 @@ var expect = require("expect"),
 	parser = require("../../../src/es5_parser");
 
 describe("Void,Delete,Typeof UnaryExpression", () => {
-	var stmt = parser.parse("delete something")[0],
+	var stmt = parser.parse("void 123")[0],
 		expr = stmt.expression;
 
 	it('Statement type should be "ExpressionStatement"', function () {
@@ -32,8 +32,8 @@ describe("Void,Delete,Typeof UnaryExpression", () => {
 		expect(expr.is_prefix).toBe(true);
 	});
 
-	it("Should be has argument", function () {
-		expect(expr.argument.type).toBe("Identifier");
+	it('Argument type should be "NumberLiteral"', function () {
+		expect(expr.argument.type).toBe("NumberLiteral");
 	});
 
 	it("Should be has start object", function () {
@@ -45,19 +45,19 @@ describe("Void,Delete,Typeof UnaryExpression", () => {
 
 	it("Should be has end object", function () {
 		expect(stmt.end.line).toBe(1);
-		expect(stmt.end.index).toBe(16);
-		expect(stmt.end.column).toBe(17);
-		expect(stmt.end.virtual_column).toBe(17);
+		expect(stmt.end.index).toBe(8);
+		expect(stmt.end.column).toBe(9);
+		expect(stmt.end.virtual_column).toBe(9);
 	});
 
 	describe("Operators", () => {
-		it('Should be "delete"', function () {
-			expect(expr.operator).toBe("delete");
+		it('Should be "void"', function () {
+			expect(expr.operator).toBe("void");
 		});
 
-		it('Should be "void"', function () {
-			var expr = parser.parse("void 123")[0].expression;
-			expect(expr.operator).toBe("void");
+		it('Should be "delete"', function () {
+			var expr = parser.parse("delete something")[0].expression;
+			expect(expr.operator).toBe("delete");
 		});
 
 		it('Should be "typeof"', function () {

@@ -17,13 +17,9 @@ var expect = require("expect"),
 	parser = require("../../../src/es5_parser");
 
 describe("ObjectLiteral", () => {
-	var expr       = parser.parse("{ prop : value }")[0],
-		literal    = expr.expression,
+	var stmt       = parser.parse("a = { prop : value };")[0],
+		literal    = stmt.expression.right,
 		properties = literal.properties;
-
-	it('Statement type should be "ExpressionStatement"', function () {
-		expect(expr.type).toBe("ExpressionStatement");
-	});
 
 	it('Type should be "ObjectLiteral"', function () {
 		expect(literal.type).toBe("ObjectLiteral");
@@ -35,16 +31,16 @@ describe("ObjectLiteral", () => {
 
 	it("Should be has start object", function () {
 		expect(literal.start.line).toBe(1);
-		expect(literal.start.index).toBe(0);
-		expect(literal.start.column).toBe(1);
-		expect(literal.start.virtual_column).toBe(1);
+		expect(literal.start.index).toBe(4);
+		expect(literal.start.column).toBe(5);
+		expect(literal.start.virtual_column).toBe(5);
 	});
 
 	it("Should be has end object", function () {
 		expect(literal.end.line).toBe(1);
-		expect(literal.end.index).toBe(16);
-		expect(literal.end.column).toBe(17);
-		expect(literal.end.virtual_column).toBe(17);
+		expect(literal.end.index).toBe(20);
+		expect(literal.end.column).toBe(21);
+		expect(literal.end.virtual_column).toBe(21);
 	});
 
 	describe("Property", () => {

@@ -13,6 +13,8 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
+var EmptyStatement = require("../statements/empty_statement");
+
 var Delimiter = function () {};
 Delimiter.prototype = {
 	type       : "Delimiter",
@@ -21,10 +23,7 @@ Delimiter.prototype = {
 		this.delimiter = ';';
 	},
 	statement_denotation : function (scope) {
-		this.start = scope.current_token.start;
-		this.end   = scope.current_token.end;
-
-		return this;
+		return new EmptyStatement(scope.current_token);
 	}
 };
 

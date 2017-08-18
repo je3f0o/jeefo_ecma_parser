@@ -104,6 +104,7 @@ ForStatement.prototype = {
 
 ForInStatement.prototype = {
 	type       : "ForInStatement",
+	precedence : 31,
 	initialize : generic_initializer,
 };
 

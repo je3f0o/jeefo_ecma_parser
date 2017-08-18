@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : identifier.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-17
+* Updated at  : 2017-08-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -13,7 +13,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var LabeledStatement     = require("../statements/labeled_statement"),
+var LabelledStatement    = require("../statements/labelled_statement"),
 	expression_statement = require("../denotations/expression_statement_denotation");
 
 var Identifier = function () {};
@@ -39,15 +39,15 @@ Identifier.prototype = {
 
 		// Labeled statement {{{1
 		if (next && next.delimiter === ':') {
-			var labeled_statement = new LabeledStatement(scope.current_expression);
+			var labelled_statement = new LabelledStatement(scope.current_expression);
 
 			scope.advance();
-			labeled_statement.statement = scope.current_expression.statement_denotation(scope);
+			labelled_statement.statement = scope.current_expression.statement_denotation(scope);
 
-			labeled_statement.start = labeled_statement.label.start;
-			labeled_statement.end   = labeled_statement.statement.end;
+			labelled_statement.start = labelled_statement.label.start;
+			labelled_statement.end   = labelled_statement.statement.end;
 
-			return labeled_statement;
+			return labelled_statement;
 		}
 		// }}}1
 

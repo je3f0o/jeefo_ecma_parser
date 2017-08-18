@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : bit_shift_expression.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-17
+* Updated at  : 2017-08-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,7 +15,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 var BitwiseShiftExpression = function () {};
 BitwiseShiftExpression.prototype = {
-	type            : "BitwiseShift",
+	type            : "BitwiseShiftExpression",
 	precedence      : 12,
 	initialize      : require("../operator_initialzier"),
 	left_denotation : require("./binary").left_denotation,

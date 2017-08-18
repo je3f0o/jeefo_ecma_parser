@@ -62,6 +62,7 @@ var expressions = [
 	"bitwise_and",
 	"bitwise_xor",
 
+	// Ternary expression
 	"conditional",
 
 	// Assignmenr expression
@@ -78,22 +79,24 @@ var expressions = [
 ];
 
 module.exports = function (symbol_table) {
+	var container = symbol_table.symbols.binaries;
+
 	expressions.forEach(expression => {
 		expression = require(`./binaries/${ expression }_expression`);
 
-		symbol_table.binary_expression(expression.token_type, {
+		symbol_table.register(container, expression.token_type, {
 			is          : expression.is,
 			Constructor : expression.Constructor,
 		});
 	});
 
 	var comment = require("./declarations/comment");
-	symbol_table.binary_expression(comment.token_type, {
+	symbol_table.register(container, comment.token_type, {
 		Constructor : comment.Constructor
 	});
 
 	var delimiter = require("./declarations/delimiter");
-	symbol_table.binary_expression(delimiter.token_type, {
+	symbol_table.register(container, delimiter.token_type, {
 		is          : delimiter.is,
 		Constructor : delimiter.Constructor
 	});

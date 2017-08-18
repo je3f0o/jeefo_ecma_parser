@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : literals.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-17
+* Updated at  : 2017-08-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -13,7 +13,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var literals = ["null", "array", "number", "string", "regexp", "boolean"];
+var literals = ["null", "array", "number", "string", "regexp", "object", "boolean"];
 
 module.exports = function (symbol_table) {
 	var container = symbol_table.symbols.others;
