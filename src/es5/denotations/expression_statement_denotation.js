@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement_denotation.js
 * Created at  : 2017-08-16
-* Updated at  : 2017-08-18
+* Updated at  : 2017-08-20
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -28,7 +28,6 @@ module.exports = function (scope) {
 		return new ExpressionStatement(expression, false, start, scope.current_token.end);
 	}
 
-/*
 	console.log("ExpressionStatement");
 	console.log(expression);
 	console.log("--------------------------");
@@ -36,7 +35,9 @@ module.exports = function (scope) {
 	console.log("--------------------------");
 	console.log(scope.current_token);
 	console.log("--------------------------");
+	console.log(scope.tokenizer.streamer.string);
 	process.exit();
+/*
 	*/
 	scope.current_token.error_unexpected_token();
 };

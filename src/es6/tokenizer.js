@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : es6_tokenizer.js
+* File Name   : tokenizer.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-08-16
+* Updated at  : 2017-08-20
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -13,10 +13,10 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var es6_tokenizer = require("./es5_tokenizer").clone();
+var tokenizer = require("../es5/tokenizer").clone();
 	
 // TemplateLiteral {{{1
-es6_tokenizer.register({
+tokenizer.register({
 	is     : function (character) { return character === '`'; },
 	protos : {
 		type       : "BackTick",
@@ -49,4 +49,4 @@ register({
 });
 // }}}1
 
-module.exports = es6_tokenizer;
+module.exports = tokenizer;
