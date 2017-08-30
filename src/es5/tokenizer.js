@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-08-18
+* Updated at  : 2017-08-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -191,7 +191,7 @@ register({
 			character   = streamer.next();
 			start_index = streamer.cursor.index;
 
-			while (character && character >= ' ' && character !== quote) {
+			while (character && (character >= ' ' || character === '\t') && character !== quote) {
 				if (character === '\\') {
 					streamer.next();
 				}

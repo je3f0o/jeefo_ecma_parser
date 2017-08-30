@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : statements.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-18
+* Updated at  : 2017-08-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,9 +26,6 @@ var statements = [
 	"for",
 	"while",
 	"do_while",
-
-	// Empty statement ;
-	"empty",
 
 	// Conditional statement
 	"if",
