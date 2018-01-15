@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : scope.js
 * Created at  : 2017-08-16
-* Updated at  : 2017-08-18
+* Updated at  : 2018-01-15
 * Author      : jeefo
 * Purpose     :
 * Description :

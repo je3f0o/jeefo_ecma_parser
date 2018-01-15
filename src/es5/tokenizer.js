@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2017-08-31
+* Updated at  : 2018-01-15
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,6 +15,7 @@
 *
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -90,7 +91,7 @@ register({
 					end_index = streamer.cursor.index;
 
 					if (character === '*' && streamer.peek(cursor.index + 1) === '/') {
-						streamer.move_right(2);
+						streamer.next();
 						break;
 					}
 					character = streamer.next(true);
@@ -98,6 +99,9 @@ register({
 
 				this.comment      = streamer.seek(start_index, end_index).trim();
 				this.is_multiline = true;
+
+				this.start = start;
+				this.end   = streamer.end_cursor();
 			} else {
 				character   = streamer.next();
 				start_index = streamer.cursor.index;
@@ -108,10 +112,10 @@ register({
 
 				this.comment      = streamer.seek(start_index).trim();
 				this.is_multiline = false;
-			}
 
-			this.start = start;
-			this.end   = streamer.get_cursor();
+				this.start = start;
+				this.end   = streamer.get_cursor();
+			}
 		},
 	}
 }).

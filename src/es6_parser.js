@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2017-08-20
+* Updated at  : 2018-01-15
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -40,38 +41,43 @@ if (require.main === module) {
 	var filename = path.join(__dirname, "./es6_parser.js");
 	source       = fs.readFileSync(filename, "utf8");
 
-	source = `
-	export default function () {}
-	export default a = 2;
-	searchables.push({
-		type          : header.type,
-		model         : header.model,
-		attrs         : { ngIf : \`configs.\${ header.model }.is_renderable\` },
-		is_searchable : index > 0,
-	});
-	\`Hello??\${ namespace }\${ other }\`;
-	jt\`hello\`;
-	x => {
+source = `/*
+ * some comment
+ */
 
-	};
-	(x, y) => {
-		x = y;
-	};
-	a + 1 
-	return function (d) {
-		return (d.values.length > 1) ? liner(d.values) : null;
-	};
-	do console.log(123)
-		while (true)
-	break b
-	return z
-	var a =
-		b
-	z = {
-		// "wheel.zoom"      : { is_enabled : false },
-		"dblclick.zoom"   : { is_enabled : false },
-		// "mousewheel.zoom" : { is_enabled : false }
-	}
+"use strict";
+
+export default function () {}
+export default a = 2;
+searchables.push({
+	type          : header.type,
+	model         : header.model,
+	attrs         : { ngIf : \`configs.\${ header.model }.is_renderable\` },
+	is_searchable : index > 0,
+});
+\`Hello??\${ namespace }\${ other }\`;
+jt\`hello\`;
+x => {
+
+};
+(x, y) => {
+	x = y;
+};
+a + 1 
+return function (d) {
+	return (d.values.length > 1) ? liner(d.values) : null;
+};
+do console.log(123)
+	while (true)
+break b
+return z
+var a =
+	b
+z = {
+	// "wheel.zoom"      : { is_enabled : false },
+	"dblclick.zoom"   : { is_enabled : false },
+	// "mousewheel.zoom" : { is_enabled : false }
+}
 `;
 
 try {
