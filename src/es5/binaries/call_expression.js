@@ -1,12 +1,13 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : call_expression.js
 * Created at  : 2017-08-16
-* Updated at  : 2017-08-17
+* Updated at  : 2018-12-18
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
@@ -113,7 +114,7 @@ CallExpression.prototype = {
 
 			case "NewExpression" :
 				this.get_arguments(scope, left);
-				left.end = this.end;
+				scope.advance();
 				return left;
 
 			case "GroupingExpression" :
