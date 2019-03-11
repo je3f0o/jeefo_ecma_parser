@@ -1,18 +1,10 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2018-01-15
+* Updated at  : 2019-03-08
 * Author      : jeefo
 * Purpose     :
 * Description :
-*
-* Precedence Table
-* 0  - 10 : Identifier and Literals
-* 10 - 20 : Delimiters
-* 20 - 30 : Operators
-* 40      : Comment
-* 50      : Division operator
-*
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
@@ -22,199 +14,60 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var assign     = require("jeefo_utils/object/assign"),
-	Tokenizer  = require("jeefo_tokenizer"),
-	DELIMITERS = [
-		'.', ',',
-		'/', '?',
-		';', ':',
-		"'", '"',
-		'`', '~',
-		'-',
-		'=', '+',
-		'\\', '|', 
-		'(', ')',
-		'[', ']',
-		'{', '}',
-		'<', '>',
-		'!', '@', '#', '%', '^', '&', '*',
-	].join(''),
+const Tokenizer  = require("jeefo_tokenizer"),
+	  DELIMITERS = [
+          '.', ',',
+          '/', '?',
+          ';', ':',
+          "'", '"',
+          '`', '~',
+          '-',
+          '=', '+',
+          '\\', '|', 
+          '(', ')',
+          '[', ']',
+          '{', '}',
+          '<', '>',
+          '!', '@', '#', '%', '^', '&', '*',
+	  ].join(''),
 
-	es5_tokenizer = new Tokenizer();
+	  es5_tokenizer = new Tokenizer();
 
 es5_tokenizer.
-// Delimiter {{{1
-register({
-	is : function (character) {
-		switch (character) {
-			case ':' : case ';' :
-			case ',' : case '?' :
-			case '(' : case ')' :
-			case '[' : case ']' :
-			case '{' : case '}' :
-				return true;
-		}
-	},
-	protos : {
-		type       : "Delimiter",
-		precedence : 10,
-		initialize : function (character, streamer) {
-			this.type  = this.type;
-			this.value = this.delimiter = character;
-			this.start = streamer.get_cursor();
-			this.end   = streamer.end_cursor();
-		},
-	}
-}).
-
-// Comment {{{1
-register({
-	is : function (character, streamer) {
-		if (character === '/') {
-			switch (streamer.peek(streamer.cursor.index + 1)) { case '*' : case '/' : return true; }
-		}
-	},
-	protos : {
-		type       : "Comment",
-		precedence : 40,
-		initialize : function (character, streamer) {
-			var start = streamer.get_cursor(), start_index, end_index;
-
-			this.type = this.type;
-
-			if (streamer.next() === '*') {
-				var cursor  = streamer.cursor;
-				character   = streamer.next(true);
-				start_index = streamer.cursor.index;
-
-				while (character) {
-					end_index = streamer.cursor.index;
-
-					if (character === '*' && streamer.peek(cursor.index + 1) === '/') {
-						streamer.next();
-						break;
-					}
-					character = streamer.next(true);
-				}
-
-				this.comment      = streamer.seek(start_index, end_index).trim();
-				this.is_multiline = true;
-
-				this.start = start;
-				this.end   = streamer.end_cursor();
-			} else {
-				character   = streamer.next();
-				start_index = streamer.cursor.index;
-
-				while (character && character !== '\n') {
-					character = streamer.next();
-				}
-
-				this.comment      = streamer.seek(start_index).trim();
-				this.is_multiline = false;
-
-				this.start = start;
-				this.end   = streamer.get_cursor();
-			}
-		},
-	}
-}).
-
 // Identifier {{{1
 register({
-	protos : {
-		type       : "Identifier",
-		DELIMITERS : DELIMITERS,
-		initialize : function (character, streamer) {
-			var start = streamer.get_cursor(), end = {};
+    id       : "Identifier",
+    priority : 0,
 
-			while (character && character > ' ' && this.DELIMITERS.indexOf(character) === -1) {
-				assign(end, streamer.cursor);
-				character = streamer.next();
-			}
+    is         : () => true,
+    initialize : (token, current_character, streamer) => {
+        const start = streamer.get_cursor();
+        let length = 1;
 
-			this.type  = this.type;
-			this.name  = streamer.seek(start.index);
-			this.start = start;
-			this.end   = streamer.get_cursor();
+        while (true) {
+            let next_character = streamer.at(start.index + length);
+            if (next_character === null || next_character <= ' ' || DELIMITERS.includes(next_character)) {
+                break;
+            }
 
-			streamer.cursor = end;
-		},
-	},
-}).
+            length += 1;
+        }
 
-// Number Literal {{{1
-register({
-	is     : function (character) { return character >= '0' && character <= '9'; },
-	protos : {
-		type       : "Number",
-		precedence : 2,
-		initialize : function (character, streamer) {
-			var start = streamer.get_cursor(), end = {};
+        streamer.move_cursor(length - 1);
 
-			while (character && character >= '0' && character <= '9') {
-				assign(end, streamer.cursor);
-				character = streamer.next();
-			}
-
-			if (character && character === '.') {
-				character = streamer.next();
-				while (character && character >= '0' && character <= '9') {
-					assign(end, streamer.cursor);
-					character = streamer.next();
-				}
-			}
-
-			if (character && (character === 'e' || character === 'E')) {
-				character = streamer.next();
-				while (character && character >= '0' && character <= '9') {
-					assign(end, streamer.cursor);
-					character = streamer.next();
-				}
-			}
-
-			this.type  = this.type;
-			this.value = streamer.seek(start.index);
-			this.start = start;
-			this.end   = streamer.get_cursor();
-
-			streamer.cursor = end;
-		},
-	},
-}).
-
-// String Literal {{{1
-register({
-	is     : function (character) { return character === '"' || character === "'"; },
-	protos : {
-		type       : "String",
-		precedence : 1,
-		initialize : function (character, streamer) {
-			var start = streamer.get_cursor(), quote = character, start_index;
-
-			character   = streamer.next();
-			start_index = streamer.cursor.index;
-
-			while (character && (character >= ' ' || character === '\t') && character !== quote) {
-				if (character === '\\') {
-					streamer.next();
-				}
-				character = streamer.next();
-			}
-
-			this.type  = this.type;
-			this.quote = quote;
-			this.value = streamer.seek(start_index);
-			this.start = start;
-			this.end   = streamer.end_cursor();
-		},
-	},
+        token.value = streamer.substring_from(start.index);
+        token.start = start;
+        token.end   = streamer.get_cursor();
+    },
 }).
 
 // Operator {{{1
 register({
-	is : function (character, streamer) {
-		switch (character) {
+    id       : "Operator",
+    priority : 20,
+
+	is : (current_character, streamer) => {
+		switch (current_character) {
 			// Member operator
 			case '.' :
 			// Comparation operators
@@ -227,90 +80,109 @@ register({
 			case '-' :
 			case '*' :
 			case '%' :
-			// Binary operators
+			// Binary and unary operators
 			case '&' :
 			case '|' :
 			case '^' :
 			case '~' :
 				return true;
+            // division operator
+            // TODO: think about rule. it is not following ecma specs
 			case '/' :
-				return streamer.peek(streamer.cursor.index + 1) === '=';
+				return streamer.at(streamer.cursor.index + 1) === '=';
 		}
 	},
-	protos : {
-		type       : "Operator",
-		precedence : 20,
-		initialize : function (character, streamer) {
-			var start = streamer.get_cursor(), cursor = streamer.cursor;
 
-			switch (character) {
-				case '!' :
-				case '=' :
-					if (streamer.peek(cursor.index + 1) === '=') {
-						streamer.move_right(1);
+    initialize : (token, current_character, streamer) => {
+        let length = 0;
+        const start         = streamer.get_cursor();
+        const current_index = streamer.cursor.index;
 
-						if (streamer.peek(cursor.index + 1) === '=') {
-							streamer.move_right(1);
-						}
-					}
-					break;
-				case '+' :
-				case '-' :
-				case '&' :
-				case '|' :
-					switch (streamer.peek(cursor.index + 1)) {
-						case '='       :
-						case character :
-							streamer.move_right(1);
-					}
-					break;
-				case '/' :
-					streamer.move_right(1);
-					break;
-				case '%' :
-				case '^' :
-					if (streamer.peek(cursor.index + 1) === '=') {
-						streamer.move_right(1);
-					}
-					break;
-				case '*' :
-					if (streamer.peek(cursor.index + 1) === '*') {
-						streamer.move_right(1);
-					}
-					if (streamer.peek(cursor.index + 1) === '=') {
-						streamer.move_right(1);
-					}
-					break;
-				case '<' :
-					if (streamer.peek(cursor.index + 1) === '<') {
-						streamer.move_right(1);
-					}
-					if (streamer.peek(cursor.index + 1) === '=') {
-						streamer.move_right(1);
-					}
-					break;
-				case '>'  :
-					if (streamer.peek(cursor.index + 1) === '>') {
-						streamer.move_right(1);
+        switch (current_character) {
+            // Operators:
+            //     !   =
+            //     !=  ==
+            //     !== ===
+            case '!' :
+            case '=' :
+                if (streamer.at(current_index + 1) === '=') {
+                    length = 1;
 
-						if (streamer.peek(cursor.index + 1) === '>') {
-							streamer.move_right(1);
-						}
+                    if (streamer.at(current_index + 2) === '=') {
+                        length = 2;
+                    }
+                }
+                break;
+            // Operators:
+            //     &  |  +  -
+            //     &= |= += -=
+            //     && || ++ --
+            case '&' :
+            case '|' :
+            case '+' :
+            case '-' :
+                const next_character = streamer.at(current_index + 1);
+                if (next_character === '=' || next_character === current_character) {
+                    length = 1;
+                }
+                break;
+            // Operators:
+            //     /  %  ^
+            //     /= %= ^=
+            case '/' :
+            case '%' :
+            case '^' :
+                if (streamer.at(current_index + 1) === '=') {
+                    length = 1;
+                }
+                break;
+            // Operators:
+            //     *   <
+            //     **  <<
+            //     *=  <=
+            //     **= <<=
+            case '*' :
+            case '<' :
+                iterative_operator(2);
+                break;
+            // Operators:
+            //     >
+            //     >>
+            //     >>>
+            //     >=
+            //     >>=
+            //     >>>=
+            case '>'  :
+                iterative_operator(3);
+                break;
+        }
 
-					}
-					if (streamer.peek(cursor.index + 1) === '=') {
-						streamer.move_right(1);
-					}
-			}
+        if (length) {
+            streamer.move_cursor(length);
+        }
 
-			this.type     = this.type;
-			this.operator = streamer.seek(start.index, cursor.index + 1);
-			this.start    = start;
-			this.end      = streamer.end_cursor();
-		},
-	},
-}).
+        token.value = streamer.substring_from(current_index);
+        token.start = start;
+        token.end   = streamer.get_cursor();
 
+        // jshint latedef : false
+        function iterative_operator (max_length) {
+            for (let i = 1; i <= max_length; ++i) {
+                const next_character = streamer.at(current_index + i);
+
+                if (next_character === current_character && i < max_length) {
+                    length += 1;
+                } else if (next_character === '=') {
+                    length += 1;
+                    break;
+                }
+            }
+        }
+        // jshint latedef : true
+    },
+});
+
+/*
 // Slash {{{1
 register({
 	is : function (character, streamer) {
@@ -331,5 +203,11 @@ register({
 	},
 });
 // }}}1
+*/
+
+es5_tokenizer.register(require("./token_definitions/delimiter_definition"));
+es5_tokenizer.register(require("./token_definitions/comment"));
+es5_tokenizer.register(require("./token_definitions/string"));
+es5_tokenizer.register(require("./token_definitions/number"));
 
 module.exports = es5_tokenizer;

@@ -1,0 +1,40 @@
+"string \" \
+new line"
+/**
+ * @Validators
+ * @param : a (Something)
+ * @param : b (Something)
+ * @param : c (Something)
+ */
+function /*a*/ name /*b*/ (/*c*/ a /*d*/, /*e*/ b /*f*/, /*g*/ c /*k*/) /*h*/ {
+    //CAMEL_CASE_REGEXP = /[A-Z]/g;
+}
+fn = /*0*/ function /*a*/ zz /*b*/ (/*c*/ a /*d*/, /*e*/ b /*f*/, /*g*/ c /*k*/) {
+    //CAMEL_CASE_REGEXP = /[A-Z]/g;
+};
+return 123;
+throw 1;
+continue;
+continue
+;
+continue id;
+break id;
+debugger
+debugger;
+
+switch (expression) {
+    case null:
+        break;
+    case 123:
+        break;
+    default:
+        break;
+}
+label : 1 + 2;
+with (Math) {
+    var TAU = PI * 2;
+}
+55.5e-2;
+
+for (;;) {
+}

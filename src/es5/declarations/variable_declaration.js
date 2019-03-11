@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_declaration.js
 * Created at  : 2017-08-17
-* Updated at  : 2018-12-18
+* Updated at  : 2019-03-11
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,91 +14,103 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-var COMMA_PRECEDENCE = 1;
+const states_enum        = require("../enums/states_enum"),
+      precedence_enum    = require("../enums/precedence_enum"),
+      get_right_value    = require("../helpers/get_right_value"),
+      get_pre_comment    = require("../helpers/get_pre_comment"),
+      SymbolDefinition   = require("@jeefo/parser/src/symbol_definition"),
+      get_start_position = require("../helpers/get_start_position");
 
-var VariableDeclarator = function (token) {
-	this.type  = this.type;
-	this.id    = token;
-	this.init  = null;
-	this.start = token.start;
-};
-VariableDeclarator.prototype.type = "VariableDeclarator";
+const variable_declarator_symbol_definition = new SymbolDefinition({
+    id         : "Variable declarator",
+    type       : "Declarator",
+    precedence : 31,
+    is         : () => {},
+    initialize : (symbol, current_token, parser) => {
+        parser.expect("identifier", parser => parser.next_symbol_definition.id === "Identifier");
+        const identifier = parser.next_symbol_definition.generate_new_symbol(parser);
+        let init         = null,
+            pre_comment  = null,
+            post_comment = null;
 
-var VariableDeclaration = function () {};
-VariableDeclaration.prototype = {
-	type       : "VariableDeclaration",
-	precedence : 31,
-	initialize : function (token) {
-		this.type         = this.type;
-		this.declarations = [];
-		this.ASI          = true;
-		this.start        = token.start;
-	},
-	statement_denotation : function (scope) {
-		// init
-		scope.advance();
-		var declarator;
+        // We don't want prepare_next_state("expression") here.
+        // Because we want line termination if possible.
+        // That is why we set `current_symbol = identifier` manually.
+        parser.current_symbol = identifier;
+        parser.prepare_next_symbol_definition();
+        if (parser.next_token !== null) {
+            switch (parser.next_token.value) {
+                case '=' :
+                    if (parser.current_symbol.id === "Comment") {
+                        pre_comment = parser.current_symbol;
+                    }
 
-		while (scope.current_expression) {
-			while (scope.current_expression.type === "Comment") {
-				this.declarations.push(scope.current_expression);
-				scope.advance();
-			}
+                    parser.prepare_next_state("expression", true);
+                    parser.post_comment = null;
+                    init = get_right_value(parser, precedence_enum.COMMA);
+                    if (parser.next_token !== null) {
+                        post_comment = parser.post_comment;
+                    }
+                    break;
+                case ',' :
+                case ';' :
+                    if (parser.current_symbol.id === "Comment") {
+                        post_comment = parser.current_symbol;
+                    }
+                    break;
+                default:
+                    parser.throw_unexpected_token();
+            }
+        }
 
-			if (scope.current_expression.type === "Identifier") {
-				declarator = this.declare(scope.current_expression);
-			} else {
-				scope.current_token.error();
-			}
-
-			scope.advance_binary();
-			if (scope.current_token && scope.current_expression.operator === '=') {
-				scope.advance();
-				declarator.init = scope.expression(COMMA_PRECEDENCE);
-			}
-			declarator.end = declarator.init ? declarator.init.end : declarator.id.end;
-			//console.log("VARIABLE DECLARATOR", declarator);
-
-			if (scope.current_token) {
-				switch (scope.current_token.delimiter) {
-					case ',' :
-						scope.advance();
-						break;
-					case ';' :
-						this.ASI = false;
-						this.end = scope.current_token.end;
-						return this;
-					default:
-						if (declarator.end.column === 0) {
-							this.end = declarator.end;
-							scope.tokenizer.streamer.cursor.index = scope.current_token.start.index - 1;
-							return this;
-						} else {
-							console.log("unexpected end of var", scope.current_token);
-							console.log("---------------");
-							console.log(declarator);
-							console.log("---------------");
-							console.log(declarator.init);
-							console.log("---------------");
-							scope.current_token.error_unexpected_token();
-						}
-				}
-			}
-		}
-
-		this.end = declarator.end;
-		return this;
-	},
-
-	declare : function (token) {
-		token = new VariableDeclarator(token);
-		this.declarations.push(token);
-		return token;
-	}
-};
+        symbol.identifier   = identifier;
+        symbol.init         = init;
+        symbol.pre_comment  = pre_comment;
+        symbol.post_comment = post_comment;
+        symbol.start        = get_start_position(identifier.comment, identifier);
+        symbol.end          = post_comment ? post_comment.end : init ? init.end : identifier.end;
+    }
+});
 
 module.exports = {
-	is          : function (token) { return token.name === "var"; },
-	token_type  : "Identifier",
-	Constructor : VariableDeclaration
+    id         : "Variable declaration",
+    type       : "Declaration",
+    precedence : 31,
+
+    is         : (current_token, parser) => parser.current_state === states_enum.statement,
+    initialize : (symbol, current_token, parser) => {
+        const declarations = [];
+        let asi         = true,
+            pre_comment = get_pre_comment(parser),
+            declarator;
+
+        parser.prepare_next_state("expression", true);
+
+        LOOP:
+        while (true) {
+            declarator = variable_declarator_symbol_definition.generate_new_symbol(parser);
+            declarations.push(declarator);
+
+            if (parser.next_token === null) { break; }
+
+            switch (parser.next_token.value) {
+                case ',' :
+                    parser.prepare_next_state("expression", true);
+                    break;
+                case ';' :
+                    asi = false;
+                    break LOOP;
+                default:
+                    parser.throw_unexpected_token(`Expected delimiter instead saw: ${ parser.next_token.value }`);
+            }
+        }
+
+        symbol.declarations = declarations;
+        symbol.pre_comment  = pre_comment;
+        symbol.ASI          = asi;
+        symbol.start        = get_start_position(pre_comment, current_token);
+        symbol.end          = asi ? declarator.end : parser.next_token.end;
+
+        parser.terminate(symbol);
+    }
 };

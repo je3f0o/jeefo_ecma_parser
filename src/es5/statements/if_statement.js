@@ -1,57 +1,79 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : if_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-18
+* Updated at  : 2019-02-26
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
 
 // ignore:end
 
-var IfStatement = function () {};
-IfStatement.prototype = {
-	type                 : "IfStatement",
-	precedence           : 31,
-	initialize           : require("../generic_initializer"),
-	statement_denotation : function (scope) {
-		var	start = scope.current_token.start;
+const states_enum        = require("../enums/states_enum"),
+      precedence_enum    = require("../enums/precedence_enum"),
+      get_pre_comment    = require("../helpers/get_pre_comment"),
+      get_start_position = require("../helpers/get_start_position");
 
-		scope.advance('(');
-		scope.advance();
-		this.test = scope.expression(0);
-		scope.advance();
+module.exports = function register_if_statement (symbol_table) {
+    symbol_table.register_reserved_word("else", {
+        id         : "Else statement",
+        type       : "Statement",
+        precedence : 31,
 
-		this.statement = scope.current_expression.statement_denotation(scope);
+        is         : (current_token, parser) => parser.current_state === states_enum.if_statement,
+        initialize : (symbol, current_token, parser) => {
+            const pre_comment = get_pre_comment(parser);
 
-		var token    = scope.current_token,
-			streamer = scope.tokenizer.streamer,
-			cursor   = streamer.get_cursor();
+            parser.prepare_next_state(null, true);
 
-		scope.advance();
-		if (scope.current_expression && scope.current_expression.name === "else") {
-			scope.advance();
+            symbol.statement   = parser.get_next_symbol(precedence_enum.TERMINATION);
+            symbol.pre_comment = pre_comment;
+            symbol.start       = get_start_position(pre_comment, current_token);
+            symbol.end         = symbol.statement.end;
+        }
+    });
 
-			this.alternate = scope.current_expression.statement_denotation(scope);
-		} else {
-			this.alternate      = null;
-			streamer.cursor     = cursor;
-			scope.current_token = token;
-		}
+    symbol_table.register_reserved_word("if", {
+        id         : "If statement",
+        type       : "Statement",
+        precedence : 31,
 
-		this.start = start;
-		this.end   = (this.alternate || this.statement).end;
+        is         : (token, parser) => parser.current_state === states_enum.statement,
+        initialize : (symbol, current_token, parser) => {
+            const pre_comment = get_pre_comment(parser);
+            let else_statement = null;
 
-		return this;
-	}
-};
+            // Conditional expression
+            parser.prepare_next_state("conditional_expression", true);
+            parser.expect("(", parser => {
+                return parser.next_symbol_definition    !== null &&
+                       parser.next_symbol_definition.id === "Conditional expression";
+            });
+            const conditional_expression = parser.get_next_symbol(precedence_enum.TERMINATION);
 
-module.exports = {
-	is          : function (token) { return token.name === "if"; },
-	token_type  : "Identifier",
-	Constructor : IfStatement
+            // Statement
+            parser.prepare_next_state(null, true);
+            const statement = parser.get_next_symbol(precedence_enum.TERMINATION);
+
+            // Else statement
+            parser.prepare_next_state("if_statement");
+            if (parser.next_symbol_definition !== null && parser.next_symbol_definition.id === "Else statement") {
+                else_statement = parser.get_next_symbol(precedence_enum.TERMINATION);
+            }
+
+            symbol.expression     = conditional_expression;
+            symbol.statement      = statement;
+            symbol.else_statement = else_statement;
+            symbol.pre_comment    = pre_comment;
+            symbol.start          = get_start_position(pre_comment, current_token);
+            symbol.end            = else_statement ? else_statement.end : statement.end;
+
+            parser.terminate(symbol);
+        }
+    });
 };

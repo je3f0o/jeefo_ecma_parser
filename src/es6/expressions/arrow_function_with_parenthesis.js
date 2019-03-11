@@ -1,19 +1,21 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_function_with_parenthesis.js
 * Created at  : 2017-08-19
-* Updated at  : 2017-08-20
+* Updated at  : 2019-01-23
 * Author      : jeefo
 * Purpose     :
 * Description :
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
 
 // ignore:end
 
-var ArrowFunctionExpression = function () {};
+function ArrowFunctionExpression () {}
+
 ArrowFunctionExpression.prototype = {
 	type       : "ArrowFunctionExpression",
 	precedence : 21,
@@ -25,8 +27,13 @@ ArrowFunctionExpression.prototype = {
 		this.parameters = scope.current_expression.get_params(scope);
 
 		scope.advance("=>");
-		scope.advance('{');
+		scope.advance();
 
+		if (scope.current_expression.type !== "ObjectLiteral") {
+			console.log(scope.current_expression);
+			scope.current_expression.statement_denotation(scope);
+			process.exit();
+		}
 		this.body  = scope.current_expression.statement_denotation(scope);
 		this.start = token.start;
 		this.end   = this.body.end;

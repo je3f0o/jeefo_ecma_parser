@@ -1,91 +1,143 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : try_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-18
+* Updated at  : 2019-02-26
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+* Reference   :
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
 
 // ignore:end
 
-var COMMA_PRECEDENCE = 1;
+const states_enum        = require("../enums/states_enum"),
+      precedence_enum    = require("../enums/precedence_enum"),
+      get_pre_comment    = require("../helpers/get_pre_comment"),
+      get_start_position = require("../helpers/get_start_position");
 
-var generic_initializer = require("../generic_initializer");
+module.exports = function register_try_statement (symbol_table) {
+    // {{{1 Catch parameter
+    symbol_table.register_symbol_definition({
+        id         : "Catch parameter",
+        type       : "Primitive",
+        precedence : 31,
 
-var CatchClause = function () {
-	this.initialize();
-};
-CatchClause.prototype = {
-	type       : "CatchClause",
-	precedence : 31,
-	initialize : generic_initializer
-};
+        is         : (token, parser) => parser.current_state === states_enum.catch_parameter,
+        initialize : (symbol, current_token, parser) => {
+            parser.change_state("delimiter");
+            const open_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
 
-var TryStatement = function () {};
-TryStatement.prototype = {
-	type                 : "TryStatement",
-	precedence           : 31,
-	initialize           : generic_initializer,
-	statement_denotation : function (scope) {
-		var	start    = scope.current_token.start,
-			streamer = scope.tokenizer.streamer, token, cursor;
+            parser.prepare_next_state("expression", true);
+            if (parser.next_token.value === ')') {
+                parser.throw_unexpected_token("Missing identifier");
+            }
 
-		scope.advance('{');
-		this.block = scope.current_expression.statement_denotation(scope);
+            parser.expect("identifier", parser => parser.next_symbol_definition.id === "Identifier");
+			const identifier = parser.next_symbol_definition.generate_new_symbol(parser);
 
-		scope.advance();
-		if (scope.current_expression.name === "catch") {
-			this.handler = this._catch(scope);
-			token        = scope.current_token;
-			cursor       = streamer.get_cursor();
-			scope.advance();
-		} else {
-			this.handler = null;
-		}
+            parser.prepare_next_state("delimiter", true);
+            parser.expect(')', parser => parser.next_token.value === ')');
+            const close_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
 
-		if (scope.current_token && scope.current_token.name === "finally") {
-			scope.advance('{');
-			this.finalizer = scope.current_expression.statement_denotation(scope);
-		} else if (token) {
-			this.finalizer      = null;
-			streamer.cursor     = cursor;
-			scope.current_token = token;
-		} else {
-			console.error("Missing catch or finally after try");
-		}
+            symbol.open_parenthesis  = open_parenthesis;
+            symbol.identifier        = identifier;
+            symbol.close_parenthesis = close_parenthesis;
+            symbol.start             = get_start_position(open_parenthesis.pre_comment, current_token);
+            symbol.end               = close_parenthesis.end;
+        }
+    });
 
-		this.start = start;
-		this.end   = (this.finalizer || this.handler).end;
+    // {{{1 Catch block
+    symbol_table.register_reserved_word("catch", {
+        id         : "Catch block",
+        type       : "Statement",
+        precedence : 31,
 
-		return this;
-	},
-	_catch : function (scope) {
-		var _catch = new CatchClause(),
-			start  = scope.current_expression.start;
+        is         : (token, parser) => parser.current_state === states_enum.try_statement,
+        initialize : (symbol, current_token, parser) => {
+            const pre_comment = get_pre_comment(parser);
 
-		scope.advance('(');
+            // Parameter
+            parser.prepare_next_state("catch_parameter", true);
+            parser.expect('(', parser => parser.next_token.value === '(');
+            const parameter = parser.get_next_symbol(precedence_enum.TERMINATION);
 
-		scope.advance();
-		_catch.param = scope.expression(COMMA_PRECEDENCE);
+            // Block statement
+            parser.prepare_next_state("block_statement", true);
+            parser.expect('{', parser => parser.next_token.value === '{');
+			const block = parser.next_symbol_definition.generate_new_symbol(parser);
 
-		if (scope.current_token.value === ')') {
-			scope.advance('{');
-			_catch.body  = scope.current_expression.statement_denotation(scope);
-			_catch.start = start;
-			_catch.end   = _catch.body.end;
-		}
+            symbol.parameter   = parameter;
+            symbol.block       = block;
+            symbol.pre_comment = pre_comment;
+            symbol.start       = get_start_position(pre_comment, current_token);
+            symbol.end         = block.end;
+        }
+    });
 
-		return _catch;
-	}
-};
+    // {{{1 Finally block
+    symbol_table.register_reserved_word("finally", {
+        id         : "Finally block",
+        type       : "Statement",
+        precedence : 31,
 
-module.exports = {
-	is          : function (token) { return token.name === "try"; },
-	token_type  : "Identifier",
-	Constructor : TryStatement
+        is         : (token, parser) => parser.current_state === states_enum.try_statement,
+        initialize : (symbol, current_token, parser) => {
+            let pre_comment = get_pre_comment(parser), block;
+
+            parser.prepare_next_state(null, true);
+            parser.expect('{', parser => parser.next_token.value === '{');
+            block = parser.get_next_symbol(precedence_enum.TERMINATION);
+
+            symbol.block       = block;
+            symbol.pre_comment = pre_comment;
+            symbol.start       = get_start_position(pre_comment, current_token);
+            symbol.end         = block.end;
+        }
+    });
+    // }}}1
+
+    symbol_table.register_reserved_word("try", {
+        id         : "Try statement",
+        type       : "Statement",
+        precedence : 31,
+
+        is         : (token, parser) => parser.current_state === states_enum.statement,
+        initialize : (symbol, current_token, parser) => {
+            const pre_comment = get_pre_comment(parser);
+            let handler = null, finalizer = null, block;
+
+            parser.prepare_next_state(null, true);
+            parser.expect('{', parser => parser.next_token.value === '{');
+            block = parser.get_next_symbol(precedence_enum.TERMINATION);
+
+            parser.prepare_next_state("try_statement", true);
+            if (parser.next_symbol_definition !== null && parser.next_symbol_definition.id === "Catch block") {
+                handler = parser.get_next_symbol(precedence_enum.TERMINATION);
+                parser.prepare_next_state("try_statement");
+            }
+
+            if (parser.next_symbol_definition !== null && parser.next_symbol_definition.id === "Finally block") {
+                finalizer = parser.get_next_symbol(precedence_enum.TERMINATION);
+            }
+
+            parser.expect("catch or finally after try", () => handler !== null || finalizer !== null);
+
+            symbol.block       = block;
+            symbol.handler     = handler;
+            symbol.finalizer   = finalizer;
+            symbol.pre_comment = pre_comment;
+            symbol.start       = get_start_position(pre_comment, current_token);
+            symbol.end         = finalizer ? finalizer.end : handler.end;
+
+            if (! parser.is_terminated) {
+                parser.terminate(symbol);
+            }
+        }
+    });
 };

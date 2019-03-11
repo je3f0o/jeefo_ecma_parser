@@ -1,28 +1,26 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : break_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2017-08-17
+* Updated at  : 2019-03-01
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
+"use strict";
 
 /* globals */
 /* exported */
 
 // ignore:end
 
-var BreakStatement = function () {};
-BreakStatement.prototype = {
-	type                 : "BreakStatement",
-	precedence           : 31,
-	initialize           : require("../generic_initializer"),
-	statement_denotation : require("../denotations/label_statement_denotation")
-};
+const states_enum = require("../enums/states_enum");
 
 module.exports = {
-	is          : function (token) { return token.name === "break"; },
-	token_type  : "Identifier",
-	Constructor : BreakStatement
+	id         : "Break statement",
+	type       : "Statement",
+	precedence : 31,
+
+	is         : (token, parser) => parser.current_state === states_enum.statement,
+    initialize : require("../helpers/break_continue_statement_initializer")
 };

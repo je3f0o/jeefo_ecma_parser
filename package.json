@@ -11,7 +11,7 @@
   "copyright": "2017",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha specs/**/*_specs.js",
+    "test": "./node_modules/mocha/bin/mocha \"specs/**/*_specs.js\"",
     "build": "node build"
   },
   "repository": {
@@ -25,10 +25,12 @@
     "tokenizer"
   ],
   "devDependencies": {
-    "expect": "^1.20.2",
+    "expect.js": "^0.3.1",
     "mocha": "^3.5.0"
   },
   "dependencies": {
-    "jeefo_tokenizer": "^0.0.29"
+    "@jeefo/parser": "^0.0.1",
+    "jeefo_command": "^0.0.20",
+    "jeefo_utils": "^0.0.5"
   }
 }

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es6_parser.js
 * Created at  : 2017-05-23
-* Updated at  : 2018-01-15
+* Updated at  : 2019-01-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -78,6 +78,7 @@ z = {
 	"dblclick.zoom"   : { is_enabled : false },
 	// "mousewheel.zoom" : { is_enabled : false }
 }
+hash_table.each((value, key, index) => iterator(value, index));
 `;
 
 try {
