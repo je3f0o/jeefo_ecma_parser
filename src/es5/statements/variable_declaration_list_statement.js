@@ -1,11 +1,12 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : variable_declaration.js
-* Created at  : 2017-08-17
-* Updated at  : 2019-03-15
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+* File Name   : variable_declaration_statement.js
+* Created at  : 2019-03-18
+* Updated at  : 2019-03-18
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+* Reference   :
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
@@ -24,7 +25,7 @@ function get_last_element (array) {
 }
 
 module.exports = {
-    id         : "Variable declaration",
+    id         : "Variable declaration list",
     type       : "Statement",
     precedence : 31,
 
@@ -38,11 +39,12 @@ module.exports = {
 
         const asi = parser.next_token === null || parser.next_token.value !== ';';
 
-        symbol.declarations = list;
-        symbol.pre_comment  = pre_comment;
-        symbol.ASI          = asi;
-        symbol.start        = get_start_position(pre_comment, current_token);
-        symbol.end          = asi ? get_last_element(list).end : parser.next_token.end;
+        symbol.pre_comment = pre_comment;
+        symbol.token       = current_token;
+        symbol.list        = list;
+        symbol.ASI         = asi;
+        symbol.start       = get_start_position(pre_comment, current_token);
+        symbol.end         = asi ? get_last_element(list).end : parser.next_token.end;
 
         parser.terminate(symbol);
     }

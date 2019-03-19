@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : unary_operators.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-01-28
+* Updated at  : 2019-03-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,136 +14,173 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-const capitalize = require("jeefo_utils/string/capitalize");
+const capitalize                  = require("jeefo_utils/string/capitalize"),
+      states_enum                 = require("../enums/states_enum"),
+      is_expression               = require("../helpers/is_expression"),
+      get_pre_comment             = require("../helpers/get_pre_comment"),
+      get_start_position          = require("../helpers/get_start_position"),
+      get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
 
 module.exports = function register_unary_operators (symbol_table) {
+    const is_expression_state = (token, parser) => {
+        return is_expression(parser) && get_last_non_comment_symbol(parser) === null;
+    };
+
+    const skeleton_expression_definition = {
+        type : "Unary operator",
+        is   : is_expression_state,
+    };
+
+    // {{{1 New expression (18, 19)
     symbol_table.register_reserved_word("new", {
 		id         : "New expression",
-        type       : "Unary expression",
+        type       : "Unary operator",
         precedence : 18,
-        initialize : (symbol, current_token, parser) => {
-            parser.prepare_next_symbol_definition();
-            if (parser.next_token === null) {
-                parser.throw_unexpected_end_of_stream();
-            }
 
-            const callee = parser.get_next_symbol(symbol.precedence);
-            if (callee.id === "Function call expression") {
+        is         : is_expression_state,
+        initialize : (symbol, current_token, parser) => {
+            const pre_comment = get_pre_comment(parser);
+
+            let state_name = "expression";
+            if (parser.current_state === states_enum.expression_no_in) {
+                state_name = "expression_no_in";
+            }
+            parser.prepare_next_state(state_name, true);
+            const expression = parser.get_next_symbol(symbol.precedence);
+            if (expression.id === "Function call expression") {
                 symbol.precedence = 19;
             }
 
-            symbol.operator = "new";
-            symbol.callee   = callee;
-            symbol.start    = current_token.start;
-            symbol.end      = symbol.callee.end;
+            symbol.token       = current_token;
+            symbol.expression  = expression;
+            symbol.pre_comment = pre_comment;
+            symbol.start       = get_start_position(pre_comment, current_token);
+            symbol.end         = expression.end;
         }
     });
 
-    const expression_definition = {
-        type       : "Unary expression",
-        precedence : 16,
-        initialize : (symbol, current_token, parser) => {
-            parser.prepare_next_symbol_definition();
-            if (parser.next_token === null) {
-                parser.throw_unexpected_end_of_stream();
-            }
+    // {{{1 void, typeof, delete expression (16)
+    // precedence
+    skeleton_expression_definition.precedence = 16;
 
-            symbol.operator  = current_token.name;
-            symbol.argument  = parser.get_next_symbol(symbol.precedence);
-            symbol.is_prefix = true;
-            symbol.start     = current_token.start;
-            symbol.end       = symbol.argument.end;
+    // initialize
+    skeleton_expression_definition.initialize = (symbol, current_token, parser) => {
+        let state_name = "expression";
+        if (parser.current_state === states_enum.expression_no_in) {
+            state_name = "expression_no_in";
         }
+        parser.prepare_next_state("expression", true);
+
+        symbol.token    = current_token;
+        symbol.argument = parser.get_next_symbol(symbol.precedence);
+        symbol.start    = current_token.start;
+        symbol.end      = symbol.argument.end;
     };
 
     ["void", "typeof", "delete"].forEach(keyword => {
-        expression_definition.id = `${ capitalize(keyword) } expression`;
-        symbol_table.register_reserved_word(keyword, expression_definition);
+        skeleton_expression_definition.id = `${ capitalize(keyword) } operator`;
+        symbol_table.register_reserved_word(keyword, skeleton_expression_definition);
     });
 
-    symbol_table.register_symbol_definition({
-		id         : "unnamed operator",
-        type       : "Unary operator",
-        precedence : 17,
-
-        is : (token, parser) => {
-            switch (token.operator) {
-                case "++" :
-                case "--" :
-                    /* TODO: implement
-                    if (left.start.line !== scope.current_token.start.line) {
-                        scope.current_token.error();
-                    }
-                    */
-                    return parser.current_symbol !== null && parser.current_symbol.type !== "Binary operator";
+    // {{{1 unary prefix operators (16)
+    const unary_prefix_operators = [
+        {
+            id : "Logical not",
+            is : (token, parser) => {
+                if (is_expression_state(null, parser)) {
+                    return token.value === "!";
+                }
+                return false;
             }
-            return false;
         },
-
-        initialize : (symbol, current_token, parser) => {
-            symbol.id        = `Post ${ current_token.operator === "++" ? "increment" : "decrement" } operator`;
-            symbol.operator  = current_token.operator;
-            symbol.argument  = parser.current_symbol;
-            symbol.is_prefix = false;
-            symbol.start     = current_token.start;
-            symbol.end       = symbol.argument.end;
-        }
-    });
-
-    symbol_table.register_symbol_definition({
-		id         : "unnamed operator",
-        type       : "Unary operator",
-        precedence : 16,
-
-        is : (token, parser) => {
-            switch (token.operator) {
-                case '!'  :
-                case '~'  :
-                case "++" :
-                case "--" :
-                    return true;
-                case '+' :
-                case '-' :
-                    return parser.current_symbol === null || parser.current_symbol.type === "Binary operator";
+        {
+            id : "Bitwise not",
+            is : (token, parser) => {
+                if (is_expression_state(null, parser)) {
+                    return token.value === "~";
+                }
+                return false;
             }
-            return false;
         },
-
-        initialize : (symbol, current_token, parser) => {
-            switch (current_token.operator) {
-                case '!'  :
-                    symbol.id = "Logical not operator";
-                    break;
-                case '~'  :
-                    symbol.id = "Bitwise not operator";
-                    break;
-                case "++" :
-                    symbol.id = "Pre increment operator";
-                    break;
-                case "--" :
-                    symbol.id = "Pre decrement operator";
-                    break;
-                case '+' :
-                    symbol.id = "Positive plus operator";
-                    break;
-                case '-' :
-                    symbol.id = "Negation minus operator";
-                    break;
+        {
+            id : "Prefix increment",
+            is : (token, parser) => {
+                if (is_expression_state(null, parser)) {
+                    return token.value === "++";
+                }
+                return false;
             }
-
-            if (parser.next_token === null) {
-                parser.throw_unexpected_end_of_stream();
+        },
+        {
+            id : "Prefix decrement",
+            is : (token, parser) => {
+                if (is_expression_state(null, parser)) {
+                    return token.value === "--";
+                }
+                return false;
             }
+        },
+        {
+            id : "Positive plus",
+            is : (token, parser) => {
+                if (is_expression_state(null, parser)) {
+                    return token.value === "+";
+                }
+                return false;
+            }
+        },
+        {
+            id : "Negation minus",
+            is : (token, parser) => {
+                if (is_expression_state(null, parser)) {
+                    return token.value === "-";
+                }
+                return false;
+            }
+        },
+    ];
 
-            symbol.operator = current_token.operator;
-
-            parser.current_symbol = symbol;
-            parser.prepare_next_symbol_definition();
-            symbol.argument = parser.get_next_symbol(symbol.precedence);
-
-            symbol.is_prefix = true;
-            symbol.start     = current_token.start;
-            symbol.end       = symbol.argument.end;
-        }
+    unary_prefix_operators.forEach(operator => {
+        skeleton_expression_definition.id = `${ operator.id } operator`;
+        skeleton_expression_definition.is = operator.is;
+        symbol_table.register_symbol_definition(skeleton_expression_definition);
     });
+
+    // {{{1 Post increment, Post decrement (17)
+    const postfix_operators = [
+        {
+            id : "increment",
+            is : (token, parser) => {
+                // No line termination
+                if (is_expression(parser)) {
+                    return token.value === "++";
+                }
+                return false;
+            }
+        },
+        {
+            id : "decrement",
+            is : (token, parser) => {
+                if (is_expression(parser)) {
+                    return token.value === "--";
+                }
+                return false;
+            }
+        }
+    ];
+
+    skeleton_expression_definition.precedence = 17;
+    skeleton_expression_definition.initialize = (symbol, current_token, parser) => {
+        symbol.token    = current_token;
+        symbol.argument = parser.current_symbol;
+        symbol.start    = symbol.argument.start;
+        symbol.end      = current_token.end;
+    };
+
+    postfix_operators.forEach(operator => {
+        skeleton_expression_definition.id = `Postfix ${ operator.id } operator`;
+        skeleton_expression_definition.is = operator.is;
+        symbol_table.register_symbol_definition(skeleton_expression_definition);
+    });
+    // }}}1
 };

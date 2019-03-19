@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-05
+* Updated at  : 2019-03-18
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -33,6 +33,11 @@ module.exports = {
                     return true;
                 case "Identifier" :
                     switch (token.value) {
+                        case "new" :
+                        case "void" :
+                        case "delete" :
+                        case "typeof" :
+
                         case "null" :
                         case "true" :
                         case "false" :
@@ -53,7 +58,7 @@ module.exports = {
         parser.change_state("expression");
         let expression = parser.get_next_symbol(precedence_enum.TERMINATION);
         if (expression.id === "Comment") {
-            if (parser.next_token && parser.next_token.value === ';') {
+            if (parser.next_token !== null && parser.next_token.value === ';') {
                 post_comment = expression;
             }
 

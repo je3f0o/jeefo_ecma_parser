@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-03-05
+* Updated at  : 2019-03-17
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,7 +32,12 @@ module.exports = function register_primitives (symbol_table) {
 
     const is_primitive_factory = condition => {
         return (current_token, parser) => {
-            return parser.current_state === states_enum.expression && condition(current_token, parser);
+            switch (parser.current_state) {
+                case states_enum.expression :
+                case states_enum.expression_no_in :
+                    return condition(current_token, parser);
+            }
+            return false;
         };
     };
 

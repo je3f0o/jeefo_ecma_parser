@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : do_while_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-02-25
+* Updated at  : 2019-03-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,10 +14,11 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-const states_enum        = require("../enums/states_enum"),
-      precedence_enum    = require("../enums/precedence_enum"),
-      get_pre_comment    = require("../helpers/get_pre_comment"),
-      get_start_position = require("../helpers/get_start_position");
+const states_enum               = require("../enums/states_enum"),
+      precedence_enum           = require("../enums/precedence_enum"),
+      get_pre_comment           = require("../helpers/get_pre_comment"),
+      get_start_position        = require("../helpers/get_start_position"),
+      get_surrounded_expression = require("../helpers/get_surrounded_expression");
 
 module.exports = {
 	id         : "Do while statement",
@@ -38,26 +39,24 @@ module.exports = {
         parser.expect("while", parser => parser.next_token.value === "while");
         inner_comment = parser.current_symbol;
 
-        // Conditional expression
-        parser.prepare_next_state("conditional_expression", true);
-        parser.expect("(", parser => {
-            return parser.next_symbol_definition    !== null &&
-                   parser.next_symbol_definition.id === "Conditional expression";
-        });
-        const conditional_expression = parser.get_next_symbol(precedence_enum.TERMINATION);
+        // Surrounded expression
+        parser.prepare_next_state(null, true);
+        parser.expect('(', parser => parser.next_token.value === '(');
+        const surrounded_expression = get_surrounded_expression(parser);
 
         // ASI
         parser.prepare_next_state();
         const asi = parser.next_token === null || parser.next_token.value !== ';';
 
-        symbol.statement     = statement;
-        symbol.expression    = conditional_expression;
         symbol.pre_comment   = pre_comment;
+        symbol.statement     = statement;
         symbol.inner_comment = inner_comment;
+        symbol.token         = current_token;
+        symbol.expression    = surrounded_expression;
         symbol.post_comment  = asi ? null : parser.current_symbol;
         symbol.ASI           = asi;
         symbol.start         = get_start_position(pre_comment, current_token);
-        symbol.end           = asi ? conditional_expression.end : parser.next_token.end;
+        symbol.end           = asi ? surrounded_expression.end : parser.next_token.end;
 
         parser.terminate(symbol);
     }

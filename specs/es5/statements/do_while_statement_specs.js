@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : do_while_statement_specs.js
 * Created at  : 2019-02-21
-* Updated at  : 2019-03-11
+* Updated at  : 2019-03-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -38,7 +38,7 @@ describe("Do while statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -65,7 +65,7 @@ describe("Do while statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -92,7 +92,7 @@ describe("Do while statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -121,7 +121,7 @@ describe("Do while statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -156,7 +156,7 @@ describe("Do while statement >", () => {
                     expect(comment.is_inline).to.be(true);
                 },
                 expression : (expression, streamer) => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -192,6 +192,7 @@ describe("Do while statement >", () => {
                 it("should be Do while statement", () => {
                     expect(symbol.id).to.be("Do while statement");
                     expect(symbol.type).to.be("Statement");
+                    expect(symbol.precedence).to.be(31);
                 });
 
                 it("should be has correct pre_comment", () => {
@@ -206,11 +207,11 @@ describe("Do while statement >", () => {
                     test_case.post_comment(symbol.post_comment, streamer);
                 });
 
-                it("should be has correct Conditional expression", () => {
+                it("should be has correct expression", () => {
                     test_case.expression(symbol.expression, streamer);
                 });
 
-                it("should be has correct Statement", () => {
+                it("should be has correct statement", () => {
                     test_case.statement(symbol.statement, streamer);
                 });
 
@@ -218,14 +219,12 @@ describe("Do while statement >", () => {
                     expect(symbol.ASI).to.be(test_case.asi);
                 });
 
-                it(`cursor index should be move ${ test_case.source.length } characters to right`, () => {
+                it(`should be in correct range`, () => {
                     const last_index = test_case.code.length - 1;
+
+                    expect(streamer.substring_from_token(symbol)).to.be(test_case.code);
                     expect(streamer.get_current_character()).to.be(test_case.source.charAt(last_index));
                     expect(streamer.cursor.index).to.be(last_index);
-                });
-
-                it(`should be in correct range`, () => {
-                    expect(streamer.substring_from_token(symbol)).to.be(test_case.code);
                 });
             });
         });

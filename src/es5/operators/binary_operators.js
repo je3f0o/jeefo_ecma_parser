@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators.js
 * Created at  : 2019-01-24
-* Updated at  : 2019-02-25
+* Updated at  : 2019-03-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -20,25 +20,29 @@ const capitalize                  = require("jeefo_utils/string/capitalize"),
       get_start_position          = require("../helpers/get_start_position"),
       get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
 
-const initialize = (symbol, current_token, parser) => {
-    const left      = get_last_non_comment_symbol(parser);
-    let pre_comment = null;
-    if (parser.current_symbol.id === "Comment") {
-        pre_comment = parser.current_symbol;
-    }
-
-    parser.prepare_next_state("expression", true);
-    const right = get_right_value(parser, symbol.precedence);
-
-	symbol.operator    = current_token.value;
-    symbol.left        = left;
-    symbol.right       = right;
-	symbol.pre_comment = pre_comment;
-	symbol.start       = get_start_position(pre_comment, left);
-	symbol.end         = right.end;
-};
-
 module.exports = function register_binary_operators (symbol_table) {
+    const initialize = (symbol, current_token, parser) => {
+        const left      = get_last_non_comment_symbol(parser, true);
+        let pre_comment = null;
+        if (parser.current_symbol.id === "Comment") {
+            pre_comment = parser.current_symbol;
+        }
+
+        let state_name = "expression";
+        if (parser.current_state === states_enum.expression_no_in) {
+            state_name = "expression_no_in";
+        }
+        parser.prepare_next_state(state_name, true);
+        const right = get_right_value(parser, symbol.precedence);
+
+        symbol.operator    = current_token.value;
+        symbol.left        = left;
+        symbol.right       = right;
+        symbol.pre_comment = pre_comment;
+        symbol.start       = get_start_position(pre_comment, left);
+        symbol.end         = right.end;
+    };
+
 	const operator_definitions = [
 		// {{{1 Exponentiation operator (15)
 		{
@@ -177,7 +181,12 @@ module.exports = function register_binary_operators (symbol_table) {
 
         const is_operator_expression = operator_definition.is;
         operator_definition.is = (token, parser) => {
-            return parser.current_state === states_enum.expression && is_operator_expression(token);
+            switch (parser.current_state) {
+                case states_enum.expression :
+                case states_enum.expression_no_in :
+                    return is_operator_expression(token);
+            }
+            return false;
         };
 
 		symbol_table.register_symbol_definition(operator_definition);
@@ -187,7 +196,12 @@ module.exports = function register_binary_operators (symbol_table) {
         type       : "Binary expression",
         precedence : 11,
         is : (current_token, parser) => {
-            if (parser.current_state  === states_enum.expression && parser.current_symbol !== null) {
+            if (parser.current_state === states_enum.expression_no_in &&
+                current_token.value === "in") {
+                parser.throw_unexpected_token("Invalid `in` operator in for-loop's expression");
+            }
+
+            if (parser.current_state === states_enum.expression && parser.current_symbol !== null) {
                 let i = parser.previous_symbols.length;
                 while (i--) {
                     if (parser.previous_symbols[i].id === "Comment") {
@@ -196,13 +210,14 @@ module.exports = function register_binary_operators (symbol_table) {
                     return true;
                 }
             }
+
             return false;
         },
         initialize : initialize,
     };
 
     ["in", "instanceof"].forEach(keyword => {
-        skeleton_expression_definition.id = `${ capitalize(keyword) } expression`;
+        skeleton_expression_definition.id = `${ capitalize(keyword) } operator`;
         symbol_table.register_reserved_word(keyword, skeleton_expression_definition);
     });
 };

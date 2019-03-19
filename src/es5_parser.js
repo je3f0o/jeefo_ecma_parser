@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : es5_parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2019-03-11
+* Updated at  : 2019-03-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -148,6 +148,14 @@ const print_symbol = (symbol, is_expression) => {
 };
 // }}}1
 
+/*
+parser.throw_unexpected_token = function () {
+console.log(parser);
+console.log("throw");
+process.exit();
+};
+*/
+
 const fs = require("fs");
 const source = fs.readFileSync("./test", "utf8");
 const symbols = parser.parse(source);
@@ -207,7 +215,7 @@ for (var a in b) {
     zz = as, gg = aa;
 }
 {
-    var a = c + b.c * d - f, z = rr; 
+    var a = c + b.c * d - f, z = rr;
 }
 ++a;
 a++;

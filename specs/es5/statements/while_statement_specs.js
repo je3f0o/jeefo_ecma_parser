@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : while_statement_specs.js
 * Created at  : 2019-02-21
-* Updated at  : 2019-03-11
+* Updated at  : 2019-03-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -31,7 +31,7 @@ describe("While statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -51,7 +51,7 @@ describe("While statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -71,7 +71,7 @@ describe("While statement >", () => {
                     expect(comment).to.be(null);
                 },
                 expression : expression => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -95,7 +95,7 @@ describe("While statement >", () => {
                     expect(comment.is_inline).to.be(false);
                 },
                 expression : (expression, streamer) => {
-                    expect(expression.id).to.be("Conditional expression");
+                    expect(expression.id).to.be("Surrounded expression");
                     expect(expression.type).to.be("Expression");
 
                     expect(expression.expression.id).to.be("Boolean literal");
@@ -122,7 +122,10 @@ describe("While statement >", () => {
                 parser.tokenizer.init(test_case.source);
                 parser.prepare_next_state();
 
-                const symbol   = parser.get_next_symbol(precedence_enum.TERMINATION);
+                let symbol;
+                try {
+                    symbol = parser.get_next_symbol(precedence_enum.TERMINATION);
+                } catch (e) {}
                 const streamer = parser.tokenizer.streamer;
 
                 it("should be While statement", () => {
@@ -134,7 +137,7 @@ describe("While statement >", () => {
                     test_case.pre_comment(symbol.pre_comment, streamer);
                 });
 
-                it("should be has correct Conditional expression", () => {
+                it("should be has correct Surrounded expression", () => {
                     test_case.expression(symbol.expression, streamer);
                 });
 
