@@ -45,4 +45,4 @@ Coming soon...
 ## LICENSE
 The MIT License
 
-Copyright (c) 2017 - jeefo_javascript_parser
+Copyright (C) 2017 - jeefo_javascript_parser
