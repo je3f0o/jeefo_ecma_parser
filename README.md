@@ -32,7 +32,7 @@ Coming soon...
 
 ## Author
 
-- Д.Батхишиг (A.K.A [https://github.com/je3f0o](je3f0o))
+- Д.Батхишиг (A.K.A [je3f0o](https://github.com/je3f0o))
 
 ## Maintainer
 
