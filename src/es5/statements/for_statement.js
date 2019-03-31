@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -292,7 +292,7 @@ module.exports = {
     initialize : (symbol, current_token, parser) => {
         const pre_comment = get_pre_comment(parser);
 
-        parser.prepare_next_state(null, true);
+        parser.prepare_next_state("delimiter", true);
         parser.expect('(', parser => parser.next_token.value === '(');
         const expression = get_for_expression(parser);
 

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : is_expression.js
-* Created at  : 2019-03-19
-* Updated at  : 2019-03-29
+* File Name   : is_property_name.js
+* Created at  : 2019-03-30
+* Updated at  : 2019-03-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,13 +15,13 @@
 
 // ignore:end
 
-const states_enum = require("../enums/states_enum");
-
-module.exports = function is_expression (parser) {
-    switch (parser.current_state) {
-        case states_enum.expression :
-        case states_enum.expression_no_in :
+module.exports = function is_property_name (parser) {
+    switch (parser.next_symbol_definition.id) {
+        case "Identifier"      :
+        case "String literal"  :
+        case "Numeric literal" :
             return true;
     }
+
     return false;
 };

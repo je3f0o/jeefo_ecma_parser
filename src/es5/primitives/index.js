@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-03-17
+* Updated at  : 2019-03-27
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,8 +23,8 @@ module.exports = function register_primitives (symbol_table) {
         type       : "Primitive",
         precedence : 31,
         initialize : (symbol, current_token, parser) => {
-            symbol.token       = current_token;
             symbol.pre_comment = get_pre_comment(parser);
+            symbol.token       = current_token;
             symbol.start       = get_start_position(symbol.pre_comment, current_token);
             symbol.end         = current_token.end;
         }
@@ -94,4 +94,9 @@ module.exports = function register_primitives (symbol_table) {
     skeleton_symbol_definition.id = "String literal";
     skeleton_symbol_definition.is = is_primitive_factory(token => token.id === "String");
     symbol_table.register_symbol_definition(skeleton_symbol_definition);
+
+    // literals
+    symbol_table.register_symbol_definition(require("./array_literal"));
+    symbol_table.register_symbol_definition(require("./object_literal"));
+    symbol_table.register_symbol_definition(require("./regular_expression_literal"));
 };

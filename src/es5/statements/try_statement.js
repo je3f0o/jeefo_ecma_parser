@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : try_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-02-26
+* Updated at  : 2019-03-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -90,7 +90,7 @@ module.exports = function register_try_statement (symbol_table) {
         initialize : (symbol, current_token, parser) => {
             let pre_comment = get_pre_comment(parser), block;
 
-            parser.prepare_next_state(null, true);
+            parser.prepare_next_state("block_statement", true);
             parser.expect('{', parser => parser.next_token.value === '{');
             block = parser.get_next_symbol(precedence_enum.TERMINATION);
 
@@ -112,7 +112,7 @@ module.exports = function register_try_statement (symbol_table) {
             const pre_comment = get_pre_comment(parser);
             let handler = null, finalizer = null, block;
 
-            parser.prepare_next_state(null, true);
+            parser.prepare_next_state("block_statement", true);
             parser.expect('{', parser => parser.next_token.value === '{');
             block = parser.get_next_symbol(precedence_enum.TERMINATION);
 

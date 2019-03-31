@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators.js
 * Created at  : 2019-01-24
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,32 +14,33 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-const capitalize                  = require("jeefo_utils/string/capitalize"),
-      states_enum                 = require("../enums/states_enum"),
+const states_enum                 = require("../enums/states_enum"),
+      operator_definition         = require("../common/operator_definition"),
+      prepare_next_expression     = require("../helpers/prepare_next_expression"),
       get_right_value             = require("../helpers/get_right_value"),
-      get_start_position          = require("../helpers/get_start_position"),
       get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
 
 module.exports = function register_binary_operators (symbol_table) {
-    const initialize = (symbol, current_token, parser) => {
-        const left      = get_last_non_comment_symbol(parser, true);
-        let pre_comment = null;
-        if (parser.current_symbol.id === "Comment") {
-            pre_comment = parser.current_symbol;
+    const is_binary = parser => {
+        switch (parser.current_state) {
+            case states_enum.expression       :
+            case states_enum.expression_no_in :
+                return get_last_non_comment_symbol(parser) !== null;
         }
+        return false;
+    };
 
-        let state_name = "expression";
-        if (parser.current_state === states_enum.expression_no_in) {
-            state_name = "expression_no_in";
-        }
-        parser.prepare_next_state(state_name, true);
+    const initialize = (symbol, current_token, parser) => {
+        const left     = get_last_non_comment_symbol(parser, true);
+        const operator = operator_definition.generate_new_symbol(parser);
+
+        prepare_next_expression(parser, true);
         const right = get_right_value(parser, symbol.precedence);
 
-        symbol.operator    = current_token.value;
         symbol.left        = left;
+        symbol.operator    = operator;
         symbol.right       = right;
-        symbol.pre_comment = pre_comment;
-        symbol.start       = get_start_position(pre_comment, left);
+        symbol.start       = left.start;
         symbol.end         = right.end;
     };
 
@@ -55,20 +56,14 @@ module.exports = function register_binary_operators (symbol_table) {
 		{
             id         : "Arithmetic operator",
 			precedence : 14,
-			is         : token => {
-				switch (token.value) { case '*' : case '%' : return true; }
-				return false;
-			},
+			is         : token => token.value === '*' || token.value === '%',
 		},
 
 		// {{{1 Arithmetic operator (13)
 		{
             id         : "Arithmetic operator",
 			precedence : 13,
-			is         : token => {
-				switch (token.value) { case '+' : case '-' : return true; }
-				return false;
-			},
+			is         : token => token.value === '+' || token.value === '-',
 		},
 
 		// {{{1 Bitwise shift operator (12)
@@ -76,7 +71,12 @@ module.exports = function register_binary_operators (symbol_table) {
             id         : "Bitwise shift operator",
 			precedence : 12,
 			is         : token => {
-				switch (token.value) { case "<<" : case ">>" : case ">>>" : return true; }
+				switch (token.value) {
+                    case "<<"  :
+                    case ">>"  :
+                    case ">>>" :
+                        return true;
+                }
 				return false;
 			},
 		},
@@ -158,7 +158,6 @@ module.exports = function register_binary_operators (symbol_table) {
 					case   "+=" :
 					case   "-=" :
 					case   "*=" :
-					case   "/=" :
 					case   "%=" :
 					case   "&=" :
 					case   "|=" :
@@ -181,43 +180,72 @@ module.exports = function register_binary_operators (symbol_table) {
 
         const is_operator_expression = operator_definition.is;
         operator_definition.is = (token, parser) => {
-            switch (parser.current_state) {
-                case states_enum.expression :
-                case states_enum.expression_no_in :
-                    return is_operator_expression(token);
-            }
-            return false;
+            return is_operator_expression(token) && is_binary(parser);
         };
 
 		symbol_table.register_symbol_definition(operator_definition);
 	});
 
-    const skeleton_expression_definition = {
-        type       : "Binary expression",
+    // Division operator
+    symbol_table.register_symbol_definition({
+        id         : "Arithmetic operator",
+        type       : "Binary operator",
+        precedence : 14,
+
+        is : (token, parser) => {
+            if (token.value === '/' && is_binary(parser)) {
+                const streamer = parser.tokenizer.streamer;
+                return streamer.at(streamer.cursor.index + 1) !== '=';
+            }
+            return false;
+        },
+        initialize : initialize
+    });
+
+    symbol_table.register_symbol_definition({
+        id         : "Assignment operator",
+        type       : "Binary operator",
+        precedence : 3,
+
+        is : (token, parser) => {
+            if (token.value === '/' && is_binary(parser)) {
+                const streamer = parser.tokenizer.streamer;
+                return streamer.at(streamer.cursor.index + 1) === '=';
+            }
+            return false;
+        },
+        initialize : (symbol, token, parser) => {
+            token.value += parser.tokenizer.streamer.get_next_character();
+            token.end = parser.tokenizer.streamer.get_cursor();
+
+            initialize(symbol, token, parser);
+        }
+    });
+
+    // Binary in operator
+    symbol_table.register_reserved_word("in", {
+        id         : "In operator",
+        type       : "Binary operator",
         precedence : 11,
-        is : (current_token, parser) => {
-            if (parser.current_state === states_enum.expression_no_in &&
-                current_token.value === "in") {
+
+        is : (token, parser) => {
+            if (parser.current_state === states_enum.expression_no_in) {
                 parser.throw_unexpected_token("Invalid `in` operator in for-loop's expression");
             }
 
-            if (parser.current_state === states_enum.expression && parser.current_symbol !== null) {
-                let i = parser.previous_symbols.length;
-                while (i--) {
-                    if (parser.previous_symbols[i].id === "Comment") {
-                        continue;
-                    }
-                    return true;
-                }
-            }
-
-            return false;
+            return parser.current_state === states_enum.expression
+                && get_last_non_comment_symbol(parser) !== null;
         },
-        initialize : initialize,
-    };
+        initialize : initialize
+    });
 
-    ["in", "instanceof"].forEach(keyword => {
-        skeleton_expression_definition.id = `${ capitalize(keyword) } operator`;
-        symbol_table.register_reserved_word(keyword, skeleton_expression_definition);
+    // Binary instanceof operator
+    symbol_table.register_reserved_word("instanceof", {
+        id         : "Instanceof operator",
+        type       : "Binary operator",
+        precedence : 11,
+
+        is         : (token, parser) => is_binary(parser),
+        initialize : initialize
     });
 };

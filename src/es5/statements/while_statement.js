@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : while_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -38,7 +38,7 @@ module.exports = {
         parser.prepare_next_state(null, true);
         const statement = parser.get_next_symbol(precedence_enum.TERMINATION);
 
-        symbol.expression     = surrounded_expression;
+        symbol.expression  = surrounded_expression;
         symbol.statement   = statement;
         symbol.pre_comment = pre_comment;
         symbol.start       = get_start_position(pre_comment, current_token);

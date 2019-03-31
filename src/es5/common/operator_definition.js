@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : operator_definition.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-24
 * Author      : jeefo
 * Purpose     :
 * Description :

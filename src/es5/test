@@ -1,3 +1,14 @@
+a = {
+    get aa() {
+    },
+    set aa (value) {
+    },
+    property : value
+};
+[1,2,3];
+(1 + 2);
+fn();
+/*pre*/fn/*a*/(/*b*/);
 define(123, function () {
     function compare_by_id (a, b) {
         var result = 0;
@@ -24,10 +35,10 @@ b--;
  * @param : c (Something)
  */
 function /*a*/ name /*b*/ (/*c*/ a /*d*/, /*e*/ b /*f*/, /*g*/ c /*k*/) /*h*/ {
-    //CAMEL_CASE_REGEXP = /[A-Z]/g;
+    CAMEL_CASE_REGEXP = /[A-Z]/g;
 }
 fn = /*0*/ function /*a*/ zz /*b*/ (/*c*/ a /*d*/, /*e*/ b /*f*/, /*g*/ c /*k*/) {
-    //CAMEL_CASE_REGEXP = /[A-Z]/g;
+    CAMEL_CASE_REGEXP = /[A-Z]/g;
 };
 return 123;
 throw 1;
@@ -52,4 +63,27 @@ with (Math) {
     var TAU = PI * 2;
 }
 55.5e-2;
+var core_module       = jeefo.module("jeefo_core", []),
+    CAMEL_CASE_REGEXP = /[A-Z]/g
 
+snake_case = function (str) {
+    return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
+        return (pos ? '_' : '') + letter.toLowerCase();
+    });
+};
+a ? b : c;
+
+5 + 3 + +2;
+new Constructor;
+delete ZZ;
+typeof x;
+void 0;
+undefined;
+z in f;
+z instanceof f;
+f ** f;
+++a;
+a++;
+3 + a++;
+var EXTRACT_FILENAME = /filename[^;\\n=]*=((?:['\\"]).*?\\2|[^;\\n]*)/g;
+var HOST_CONSTRUCTOR_REGEX = /^\[object .+?Constructor\]$/; // 40

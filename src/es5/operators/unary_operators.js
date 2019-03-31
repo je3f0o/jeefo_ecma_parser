@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : unary_operators.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-29
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -105,8 +105,8 @@ module.exports = function register_unary_operators (symbol_table) {
         {
             id : "Prefix increment",
             is : (token, parser) => {
-                if (is_expression_state(null, parser)) {
-                    return token.value === "++";
+                if (token.value === "++") {
+                    return is_expression_state(null, parser);
                 }
                 return false;
             }
@@ -152,8 +152,9 @@ module.exports = function register_unary_operators (symbol_table) {
             id : "increment",
             is : (token, parser) => {
                 // No line termination
-                if (is_expression(parser)) {
-                    return token.value === "++";
+                if (token.value === "++" && is_expression(parser)) {
+                    const last_symbol = get_last_non_comment_symbol(parser);
+                    return last_symbol !== null && last_symbol.end.line === token.start.line;
                 }
                 return false;
             }
@@ -161,8 +162,9 @@ module.exports = function register_unary_operators (symbol_table) {
         {
             id : "decrement",
             is : (token, parser) => {
-                if (is_expression(parser)) {
-                    return token.value === "--";
+                if (token.value === "--" && is_expression(parser)) {
+                    const last_symbol = get_last_non_comment_symbol(parser);
+                    return last_symbol !== null && last_symbol.end.line === token.start.line;
                 }
                 return false;
             }

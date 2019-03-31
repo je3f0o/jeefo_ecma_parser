@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_call_expression.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-03-20
+* Updated at  : 2019-03-29
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,12 +15,11 @@
 
 // ignore:end
 
-const SymbolDefinition            = require("@jeefo/parser/src/symbol_definition"),
-      precedence_enum             = require("../enums/precedence_enum"),
-      is_expression               = require("../helpers/is_expression"),
-      get_start_position          = require("../helpers/get_start_position"),
-      get_current_state_name      = require("../helpers/get_current_state_name"),
-      get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
+const SymbolDefinition                = require("@jeefo/parser/src/symbol_definition"),
+      is_expression                   = require("../helpers/is_expression"),
+      get_current_state_name          = require("../helpers/get_current_state_name"),
+      get_last_non_comment_symbol     = require("../helpers/get_last_non_comment_symbol"),
+      get_comma_separated_expressions = require("../helpers/get_comma_separated_expressions");
 
 const arguments_list_definition = new SymbolDefinition({
     id         : "Arguments list",
@@ -29,70 +28,35 @@ const arguments_list_definition = new SymbolDefinition({
 
     is         : () => {},
     initialize : (symbol, current_token, parser) => {
-        const expressions        = [];
-        const current_state_name = get_current_state_name(parser);
+        const expression_name = get_current_state_name(parser);
+        parser.change_state("delimiter");
 
-        parser.current_symbol   = null;
-        parser.previous_symbols = [];
-        parser.change_state("expression");
+        symbol.open_parenthesis  = parser.next_symbol_definition.generate_new_symbol(parser);
+        symbol.expressions       = get_comma_separated_expressions(parser, ')');
+        symbol.close_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
+        symbol.start             = symbol.open_parenthesis.start;
+        symbol.end               = symbol.close_parenthesis.end;
 
-        const open_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
-        parser.prepare_next_state("expression", true);
-
-        LOOP:
-        while (true) {
-            if (parser.next_token.value === ')') {
-                break;
-            }
-
-            expressions.push(parser.get_next_symbol(precedence_enum.COMMA));
-
-            if (parser.next_token === null) {
-                parser.throw_unexpected_end_of_stream();
-            }
-
-            switch (parser.next_token.value) {
-                case ',' :
-                    parser.prepare_next_state("expression", true);
-                    break;
-                case ')' :
-                    break LOOP;
-                default:
-                    parser.throw_unexpected_token();
-            }
-        }
-
-        parser.expect(')', parser => parser.next_token.value === ')');
-        const close_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
-        parser.prepare_next_state(current_state_name);
-
-        symbol.open_parenthesis  = open_parenthesis;
-        symbol.expressions       = expressions;
-        symbol.close_parenthesis = close_parenthesis;
-        symbol.start             = open_parenthesis.start;
-        symbol.end               = close_parenthesis.end;
+        parser.change_state(expression_name);
+        parser.prepare_next_symbol_definition();
     }
 });
 
 module.exports = {
-    id         : "Function call",
+    id         : "Function call expression",
 	type       : "Expression",
 	precedence : 19,
 
     is : (current_token, parser) => {
-        if (is_expression(parser)) {
-            return current_token.value === '(' && get_last_non_comment_symbol(parser) !== null;
-        }
-        return false;
+        return current_token.value === '('
+            && is_expression(parser)
+            && get_last_non_comment_symbol(parser) !== null;
     },
 
 	initialize : (symbol, current_token, parser) => {
-        const callee         = get_last_non_comment_symbol(parser);
-        const arguments_list = arguments_list_definition.generate_new_symbol(parser);
-
-        symbol.callee         = callee;
-        symbol.arguments_list = arguments_list;
-        symbol.start          = get_start_position(callee.pre_comment, callee);
-        symbol.end            = arguments_list.end;
+        symbol.callee         = get_last_non_comment_symbol(parser);
+        symbol.arguments_list = arguments_list_definition.generate_new_symbol(parser);
+        symbol.start          = symbol.callee.start;
+        symbol.end            = symbol.arguments_list.end;
     },
 };

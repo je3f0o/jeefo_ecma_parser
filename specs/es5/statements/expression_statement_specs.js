@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement_specs.js
 * Created at  : 2019-02-22
-* Updated at  : 2019-03-05
+* Updated at  : 2019-03-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,188 +17,142 @@
 
 const expect          = require("expect.js"),
       parser          = require("../../../src/es5_parser.js"),
-      precedence_enum = require("../../../src/es5/enums/precedence_enum");
+      precedence_enum = require("../../../src/es5/enums/precedence_enum"),
+      test_substring  = require("../../helpers/test_substring");
 
 describe("Expression statement >", () => {
     const test_cases = [
         // {{{1 null
         {
-            code   : "null",
-            source : "null",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "null",
+            source     : "null",
             expression : expression => {
                 expect(expression.id).to.be("Null literal");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 true
         {
-            code : "true",
-            source : "true",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "true",
+            source     : "true",
             expression : expression => {
                 expect(expression.id).to.be("Boolean literal");
                 expect(expression.token.value).to.be("true");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 false
         {
-            code : "false",
-            source : "false",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "false",
+            source     : "false",
             expression : expression => {
                 expect(expression.id).to.be("Boolean literal");
                 expect(expression.token.value).to.be("false");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 undefined
         {
-            code : "undefined",
-            source : "undefined",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "undefined",
+            source     : "undefined",
             expression : expression => {
                 expect(expression.id).to.be("Undefined literal");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 identifier
         {
-            code : "identifier",
-            source : "identifier",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "identifier",
+            source     : "identifier",
             expression : expression => {
                 expect(expression.id).to.be("Identifier");
                 expect(expression.token.value).to.be("identifier");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 3.14
         {
-            code : "3.14",
-            source : "3.14",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "3.14",
+            source     : "3.14",
             expression : expression => {
                 expect(expression.id).to.be("Numeric literal");
                 expect(expression.token.value).to.be("3.14");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 null \n null
         {
-            code   : "null",
-            source : "null \n null",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "null",
+            source     : "null \n null",
             expression : expression => {
                 expect(expression.id).to.be("Null literal");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 true \n false
         {
-            code   : "true",
-            source : "true \n false",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "true",
+            source     : "true \n false",
             expression : expression => {
                 expect(expression.id).to.be("Boolean literal");
                 expect(expression.token.value).to.be("true");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 id \n something
         {
-            code   : "id",
-            source : "id \n something",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "id",
+            source     : "id \n something",
             expression : expression => {
                 expect(expression.id).to.be("Identifier");
                 expect(expression.token.value).to.be("id");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 3.14 \n something
         {
-            code   : "3.14",
-            source : "3.14 \n something",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "3.14",
+            source     : "3.14 \n something",
             expression : expression => {
                 expect(expression.id).to.be("Numeric literal");
                 expect(expression.token.value).to.be("3.14");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 id = value \n something
         {
-            code   : "id = value",
-            source : "id = value \n something",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "id = value",
+            source     : "id = value \n something",
             expression : (expression, streamer) => {
                 expect(expression.id).to.be("Assignment operator");
 
@@ -209,22 +163,16 @@ describe("Expression statement >", () => {
                 expect(expression.right.token.value).to.be("value");
 
                 expect(streamer.substring_from_token(expression)).to.be("id = value");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 /* pre comment */ id = value /* post comment */;
         {
-            code   : "/* pre comment */ id = value /* post comment */;",
-            source : "/* pre comment */ id = value /* post comment */;",
-            asi    : false,
-            pre_comment : (comment, streamer) => {
-                expect(comment).not.to.be(null);
-                expect(streamer.substring_from_token(comment)).to.be("/* pre comment */");
-            },
-            post_comment : (comment, streamer) => {
-                expect(comment).not.to.be(null);
-                expect(streamer.substring_from_token(comment)).to.be("/* post comment */");
-            },
+            code       : "/* pre comment */ id = value /* post comment */;",
+            source     : "/* pre comment */ id = value /* post comment */;",
             expression : (expression, streamer) => {
                 expect(expression.id).to.be("Assignment operator");
 
@@ -234,21 +182,25 @@ describe("Expression statement >", () => {
                 expect(expression.right.id).to.be("Identifier");
                 expect(expression.right.token.value).to.be("value");
 
-                expect(streamer.substring_from_token(expression)).to.be("id = value");
-            }
+                expect(streamer.substring_from_token(expression)).to.be("/* pre comment */ id = value");
+            },
+            terminator : (terminator, streamer) => {
+                expect(terminator).not.to.be(null);
+                expect(terminator.id).to.be("Delimiter");
+                expect(terminator.type).to.be("Delimiter");
+                expect(terminator.precedence).to.be(-1);
+                expect(terminator.token.value).to.be(';');
+
+                expect(terminator.pre_comment).not.to.be(null);
+                test_substring("/* post comment */", streamer, terminator.pre_comment);
+                test_substring("/* post comment */;", streamer, terminator);
+            },
         },
 
         // {{{1 id \n = \n value \n something
         {
-            code   : "id \n = \n value",
-            source : "id \n = \n value \n something",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "id \n = \n value",
+            source     : "id \n = \n value \n something",
             expression : (expression, streamer) => {
                 expect(expression.id).to.be("Assignment operator");
 
@@ -259,20 +211,16 @@ describe("Expression statement >", () => {
                 expect(expression.right.token.value).to.be("value");
 
                 expect(streamer.substring_from_token(expression)).to.be("id \n = \n value");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
 
         // {{{1 123 + num * 5.3 - 6 % true ** null
         {
-            code   : "123 + num * 5.3 - 6 % true ** null",
-            source : "123 + num * 5.3 - 6 % true ** null",
-            asi    : true,
-            pre_comment : comment => {
-                expect(comment).to.be(null);
-            },
-            post_comment : comment => {
-                expect(comment).to.be(null);
-            },
+            code       : "123 + num * 5.3 - 6 % true ** null",
+            source     : "123 + num * 5.3 - 6 % true ** null",
             expression : (expression, streamer) => {
                 expect(expression.id).to.be("Arithmetic operator");
                 expect(expression.operator).to.be("-");
@@ -315,9 +263,12 @@ describe("Expression statement >", () => {
 
                 // Full expression
                 expect(streamer.substring_from_token(expression)).to.be("123 + num * 5.3 - 6 % true ** null");
-            }
+            },
+            terminator : terminator => {
+                expect(terminator).to.be(null);
+            },
         },
-        // }}}1 
+        // }}}1
     ];
 
     test_cases.forEach(test_case => {
@@ -337,20 +288,12 @@ describe("Expression statement >", () => {
                 expect(symbol.precedence).to.be(precedence_enum.STATEMENT);
             });
 
-            it("should be has correct pre_comment", () => {
-                test_case.pre_comment(symbol.pre_comment, streamer);
-            });
-
-            it("should be has correct post_comment", () => {
-                test_case.pre_comment(symbol.pre_comment, streamer);
-            });
-
             it("should be has correct expression", () => {
                 test_case.expression(symbol.expression, streamer);
             });
 
-            it("should be right ASI", () => {
-                expect(symbol.ASI).to.be(test_case.asi);
+            it("should be has correct terminator", () => {
+                test_case.terminator(symbol.terminator, streamer);
             });
 
             it(`cursor index should be move ${ test_case.code.length } characters to right`, () => {

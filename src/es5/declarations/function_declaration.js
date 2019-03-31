@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_declaration.js
 * Created at  : 2019-01-29
-* Updated at  : 2019-03-05
+* Updated at  : 2019-03-26
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,11 +14,12 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-const states_enum        = require("../enums/states_enum"),
-      precedence_enum    = require("../enums/precedence_enum"),
-      get_parameters     = require("../helpers/get_parameters"),
-      get_pre_comment    = require("../helpers/get_pre_comment"),
-      get_start_position = require("../helpers/get_start_position");
+const states_enum            = require("../enums/states_enum"),
+      precedence_enum        = require("../enums/precedence_enum"),
+      get_parameters         = require("../helpers/get_parameters"),
+      get_pre_comment        = require("../helpers/get_pre_comment"),
+      get_start_position     = require("../helpers/get_start_position"),
+      get_current_state_name = require("../helpers/get_current_state_name");
 
 module.exports = {
     id         : "Function declaration",
@@ -34,13 +35,14 @@ module.exports = {
         return false;
     },
     initialize : (symbol, current_token, parser) => {
-        let name = null;
+        let name = null, expression_name;
         const pre_comment             = get_pre_comment(parser),
               is_function_declaration = parser.current_state === states_enum.statement;
 
         if (! is_function_declaration) {
-            symbol.id   = "Function expression";
-            symbol.type = "Expression";
+            symbol.id       = "Function expression";
+            symbol.type     = "Expression";
+            expression_name = get_current_state_name(parser);
         }
 
         parser.prepare_next_state("expression", true);
@@ -65,10 +67,10 @@ module.exports = {
         symbol.start       = get_start_position(pre_comment, current_token);
         symbol.end         = body.end;
 
-        if (! is_function_declaration) {
-            parser.next_token    = current_token;
-            parser.is_terminated = false;
-            parser.change_state("expression");
+        if (is_function_declaration) {
+            parser.terminate(symbol);
+        } else {
+            parser.prepare_next_state(expression_name);
         }
     }
 };

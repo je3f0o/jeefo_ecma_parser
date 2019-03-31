@@ -1,10 +1,10 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators_specs.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-02-25
+* Updated at  : 2019-03-30
 * Author      : jeefo
 * Purpose     : Easier to develop. Please make me happy :)
-* Description : Describe what Binary operator and unit test every single case. 
+* Description : Describe what Binary operator and unit test every single case.
 *             : Make sure it is working correctly.
 _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
@@ -16,9 +16,10 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:end
 
 const expect = require("expect.js"),
-      parser = require("../../../src/es5_parser.js");
+      parser = require("../../../src/es5/parser.js");
 
 describe("Binary operators >", () => {
+    // {{{1 make_number_literal_validation(number)
     const make_number_literal_validation = number => {
         number = number.toString();
 
@@ -29,6 +30,7 @@ describe("Binary operators >", () => {
         };
     };
 
+    // {{{1 make_identifier_validation(id)
     const make_identifier_validation = id => {
         return (symbol, streamer) => {
             expect(symbol.id).to.be("Identifier");
@@ -37,16 +39,29 @@ describe("Binary operators >", () => {
         };
     };
 
-    const make_assignment_operator_test = (operator) => {
+    // {{{1 make_operator_test(value)
+    const make_operator_test = (value) => {
+        const fn = symbol => {
+            expect(symbol.id).to.be("Operator");
+            expect(symbol.token.value).to.be(value);
+            expect(symbol.pre_comment).to.be(null);
+        };
+        fn.value = value;
+        return fn;
+    };
+
+    // {{{1 make_assignment_operator_test(operator)
+    const make_assignment_operator_test = operator => {
 		return {
             id         : "Assignment operator",
             source     : `id ${ operator } 5`,
 			precedence : 3,
-			operator   : operator,
             left       : make_identifier_validation("id"),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test(operator)
 		};
     };
+    // }}}1
 
     const test_cases = [
 		// {{{1 Exponentiation operator (15)
@@ -54,9 +69,9 @@ describe("Binary operators >", () => {
             id         : "Exponentiation operator",
             source     : "5 ** 5",
 			precedence : 15,
-			operator   : "**",
             left       : make_number_literal_validation(5),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("**")
 		},
 
 		// {{{1 Arithmetic operator (14)
@@ -64,17 +79,25 @@ describe("Binary operators >", () => {
             id         : "Arithmetic operator",
             source     : "5 * 10",
 			precedence : 14,
-			operator   : "*",
             left       : make_number_literal_validation(5),
             right      : make_number_literal_validation(10),
+			operator   : make_operator_test("*")
 		},
 		{
             id         : "Arithmetic operator",
             source     : "5 % 10",
 			precedence : 14,
-			operator   : "%",
             left       : make_number_literal_validation(5),
             right      : make_number_literal_validation(10),
+			operator   : make_operator_test("%")
+		},
+		{
+            id         : "Arithmetic operator",
+            source     : "10 / 2",
+			precedence : 14,
+            left       : make_number_literal_validation(10),
+            right      : make_number_literal_validation(2),
+			operator   : make_operator_test("/")
 		},
 
 		// {{{1 Arithmetic operator (13)
@@ -82,17 +105,17 @@ describe("Binary operators >", () => {
             id         : "Arithmetic operator",
             source     : "10 + 5",
 			precedence : 13,
-			operator   : "+",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("+")
 		},
 		{
             id         : "Arithmetic operator",
             source     : "10 - 5",
 			precedence : 13,
-			operator   : "-",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("-")
 		},
 
 		// {{{1 Bitwise shift operator (12)
@@ -100,25 +123,25 @@ describe("Binary operators >", () => {
             id         : "Bitwise shift operator",
             source     : "10 >> 5",
 			precedence : 12,
-			operator   : ">>",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test(">>")
 		},
 		{
             id         : "Bitwise shift operator",
             source     : "10 << 5",
 			precedence : 12,
-			operator   : "<<",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("<<")
 		},
 		{
             id         : "Bitwise shift operator",
             source     : "10 >>> 5",
 			precedence : 12,
-			operator   : ">>>",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test(">>>")
 		},
 
 		// {{{1 Comparision operator (11)
@@ -126,33 +149,33 @@ describe("Binary operators >", () => {
             id         : "Comparision operator",
             source     : "10 > 5",
 			precedence : 11,
-			operator   : ">",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test(">")
 		},
 		{
             id         : "Comparision operator",
             source     : "10 < 5",
 			precedence : 11,
-			operator   : "<",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("<")
 		},
 		{
             id         : "Comparision operator",
             source     : "10 >= 5",
 			precedence : 11,
-			operator   : ">=",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test(">=")
 		},
 		{
             id         : "Comparision operator",
             source     : "10 <= 5",
 			precedence : 11,
-			operator   : "<=",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("<=")
 		},
 
 		// {{{1 Equality operator (10)
@@ -160,33 +183,33 @@ describe("Binary operators >", () => {
             id         : "Equality operator",
             source     : "10 == 5",
 			precedence : 10,
-			operator   : "==",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("==")
 		},
 		{
             id         : "Equality operator",
             source     : "10 != 5",
 			precedence : 10,
-			operator   : "!=",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("!=")
 		},
 		{
             id         : "Equality operator",
             source     : "10 === 5",
 			precedence : 10,
-			operator   : "===",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("===")
 		},
 		{
             id         : "Equality operator",
             source     : "10 !== 5",
 			precedence : 10,
-			operator   : "!==",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("!==")
 		},
 
 		// {{{1 Bitwise and operator (9)
@@ -194,9 +217,9 @@ describe("Binary operators >", () => {
             id         : "Bitwise and operator",
             source     : "10 & 5",
 			precedence : 9,
-			operator   : "&",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("&")
 		},
 
 		// {{{1 Bitwise xor operator (8)
@@ -204,9 +227,9 @@ describe("Binary operators >", () => {
             id         : "Bitwise xor operator",
             source     : "10 ^ 5",
 			precedence : 8,
-			operator   : "^",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("^")
 		},
 
 		// {{{1 Bitwise or operator (7)
@@ -214,9 +237,9 @@ describe("Binary operators >", () => {
             id         : "Bitwise or operator",
             source     : "10 | 5",
 			precedence : 7,
-			operator   : "|",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("|")
 		},
 
 		// {{{1 Logical and operator (6)
@@ -224,9 +247,9 @@ describe("Binary operators >", () => {
             id         : "Logical and operator",
             source     : "10 && 5",
 			precedence : 6,
-			operator   : "&&",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("&&")
 		},
 
 		// {{{1 Logical or operator (5)
@@ -234,9 +257,9 @@ describe("Binary operators >", () => {
             id         : "Logical or operator",
             source     : "10 || 5",
 			precedence : 5,
-			operator   : "||",
             left       : make_number_literal_validation(10),
             right      : make_number_literal_validation(5),
+			operator   : make_operator_test("||")
 		},
 
 		// {{{1 Assignment operator (3)
@@ -261,7 +284,10 @@ describe("Binary operators >", () => {
             parser.tokenizer.init(test_case.source);
             parser.prepare_next_state("expression");
 
-            const symbol   = parser.get_next_symbol(0);
+            let symbol;
+            try {
+                symbol = parser.get_next_symbol(0);
+            } catch (e) {}
             const streamer = parser.tokenizer.streamer;
 
             it(`should be ${ test_case.id }`, () => {
@@ -270,8 +296,8 @@ describe("Binary operators >", () => {
                 expect(symbol.precedence).to.be(test_case.precedence);
             });
 
-            it(`should be operator: '${ test_case.operator }'`, () => {
-                expect(symbol.operator).to.be(test_case.operator);
+            it(`should be operator: '${ test_case.operator.value }'`, () => {
+                test_case.operator(symbol.operator, streamer);
             });
 
             it("should be in exact range", () => {

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : do_while_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -51,7 +51,7 @@ module.exports = {
         symbol.pre_comment   = pre_comment;
         symbol.statement     = statement;
         symbol.inner_comment = inner_comment;
-        symbol.token         = current_token;
+        symbol.do_token      = current_token;
         symbol.expression    = surrounded_expression;
         symbol.post_comment  = asi ? null : parser.current_symbol;
         symbol.ASI           = asi;

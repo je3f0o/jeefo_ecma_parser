@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : es5_parser.js
+* File Name   : parser.js
 * Created at  : 2017-05-22
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,35 +15,27 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:end
 
 const JeefoParser      = require("@jeefo/parser"),
-      states_enum      = require("./es5/enums/states_enum"),
-      es5_tokenizer    = require("./es5/tokenizer"),
-      ignore_comments  = require("./es5/helpers/ignore_comments"),
-      es5_symbol_table = require("./es5/symbol_table");
+      states_enum      = require("./enums/states_enum"),
+      es5_tokenizer    = require("./tokenizer"),
+      ignore_comments  = require("./helpers/ignore_comments"),
+      es5_symbol_table = require("./symbol_table");
 
 const parser = new JeefoParser("ECMA Script 5", es5_tokenizer, es5_symbol_table);
 Object.keys(states_enum).forEach((key) => {
     parser.state.add(key, states_enum[key], key === "statement");
 });
 
-parser.onpreparation = parser => {
-    if (parser.next_token.id             === "Identifier" &&
-        parser.next_symbol_definition    !== null         &&
-        parser.next_symbol_definition.id === "Expression statement") {
-        const current_token             = parser.next_token,
-              current_symbol_definition = parser.next_symbol_definition;
+const delimiters = ['{'];
 
-        parser.prepare_next_symbol_definition();
-
-        const next_token = parser.next_token;
-        parser.next_token             = current_token;
-        parser.next_symbol_definition = current_symbol_definition;
-        Object.assign(parser.tokenizer.streamer.cursor, current_token.end);
-
-        if (next_token !== null && next_token.value === ':') {
-            return parser.change_state("labelled_statement");
-        }
+function try_terminate (current_symbol, parser) {
+    if (current_symbol.end.line < parser.next_token.start.line) {
+        parser.terminate(current_symbol);
+    } else {
+        parser.throw_unexpected_token();
     }
+}
 
+parser.onpreparation = parser => {
     let current_symbol = null;
     if (parser.current_symbol !== null && parser.current_symbol.id !== "Comment") {
         current_symbol = parser.current_symbol;
@@ -54,13 +46,20 @@ parser.onpreparation = parser => {
 
     switch (current_symbol.type) {
         case "Primitive" :
+            if (parser.next_token.id === "Identifier" &&
+                parser.next_symbol_definition !== null &&
+                parser.next_symbol_definition.type === "Binary operator") {
+                break;
+            }
+
             switch (parser.next_token.id) {
                 case "Number" :
                 case "Identifier" :
-                    if (current_symbol.end.line < parser.next_token.start.line) {
-                        parser.terminate(current_symbol);
-                    } else {
-                        parser.throw_unexpected_token();
+                    try_terminate(current_symbol, parser);
+                    break;
+                case "Delimiter" :
+                    if (delimiters.includes(parser.next_token.value)) {
+                        try_terminate(current_symbol, parser);
                     }
                     break;
             }
@@ -169,13 +168,6 @@ if (true) {
 }
 
 let zz = `
-var core_module = jeefo.module("jeefo_core", []),
-CAMEL_CASE_REGEXP = /[A-Z]/g,
-snake_case = function (str) {
-    return str.replace(CAMEL_CASE_REGEXP, function (letter, pos) {
-        return (pos ? '_' : '') + letter.toLowerCase();
-    });
-};
 delete ZZ.ff;
 typeof x;
 throw z,a,b;

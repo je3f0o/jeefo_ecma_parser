@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : delimiters.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-29
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,7 +15,8 @@
 
 // ignore:end
 
-const get_start_position = require("./helpers/get_start_position");
+const states_enum        = require("./enums/states_enum"),
+      get_start_position = require("./helpers/get_start_position");
 
 module.exports = function register_delimiter_symbol_definitions (symbol_table) {
     symbol_table.register_symbol_definition({
@@ -23,14 +24,15 @@ module.exports = function register_delimiter_symbol_definitions (symbol_table) {
         type       : "Delimiter",
         precedence : -1,
 
-        is : token => {
+        is : (token, parser) => {
             switch (token.value) {
                 case '(' : case ')' :
                 case '[' : case ']' :
                 case '{' : case '}' :
-                //case ',' :
-                case ':' :
+                case ':' : case ';' :
                     return true;
+                case ',' :
+                    return parser.current_state === states_enum.delimiter;
             }
             return false;
         },
@@ -44,17 +46,6 @@ module.exports = function register_delimiter_symbol_definitions (symbol_table) {
             symbol.token       = current_token;
             symbol.start       = get_start_position(pre_comment, current_token);
             symbol.end         = current_token.end;
-        }
-    });
-
-    symbol_table.register_symbol_definition({
-        id         : "Terminator",
-        type       : "Delimiter",
-        precedence : -1,
-
-        is : token => token.value === ';',
-        initialize : (symbol, current_token, parser) => {
-            parser.throw_unexpected_token("Terminator shouldn't be called.");
         }
     });
 };

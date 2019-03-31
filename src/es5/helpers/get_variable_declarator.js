@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : get_variable_declarator.js
 * Created at  : 2019-03-15
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-29
 * Author      : jeefo
 * Purpose     : Hiding long named variables and make it simple short named
 *             : function for easier to use.

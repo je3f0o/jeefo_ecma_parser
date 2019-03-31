@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : switch_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-11
+* Updated at  : 2019-03-21
 * Author      : jeefo
 * Purpose     :
 * Description :

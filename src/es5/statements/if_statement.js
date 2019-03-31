@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : if_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-24
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,8 +16,7 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 const states_enum               = require("../enums/states_enum"),
       precedence_enum           = require("../enums/precedence_enum"),
-      get_pre_comment           = require("../helpers/get_pre_comment"),
-      get_start_position        = require("../helpers/get_start_position"),
+      keyword_definition        = require("../common/keyword_definition"),
       get_surrounded_expression = require("../helpers/get_surrounded_expression");
 
 module.exports = function register_if_statement (symbol_table) {
@@ -28,13 +27,12 @@ module.exports = function register_if_statement (symbol_table) {
 
         is         : (current_token, parser) => parser.current_state === states_enum.if_statement,
         initialize : (symbol, current_token, parser) => {
-            const pre_comment = get_pre_comment(parser);
+            const keyword = keyword_definition.generate_new_symbol(parser);
             parser.prepare_next_state(null, true);
 
-            symbol.pre_comment = pre_comment;
-            symbol.token       = current_token;
+            symbol.keyword     = keyword;
             symbol.statement   = parser.get_next_symbol(precedence_enum.TERMINATION);
-            symbol.start       = get_start_position(pre_comment, current_token);
+            symbol.start       = keyword.start;
             symbol.end         = symbol.statement.end;
         }
     });
@@ -46,10 +44,10 @@ module.exports = function register_if_statement (symbol_table) {
 
         is         : (token, parser) => parser.current_state === states_enum.statement,
         initialize : (symbol, current_token, parser) => {
-            const pre_comment = get_pre_comment(parser);
+            const keyword = keyword_definition.generate_new_symbol(parser);
             let else_statement = null;
 
-            // Conditional expression
+            // Surrounded expression
             parser.prepare_next_state(null, true);
             parser.expect('(', parser => parser.next_token.value === '(');
             const surrounded_expression = get_surrounded_expression(parser);
@@ -64,11 +62,11 @@ module.exports = function register_if_statement (symbol_table) {
                 else_statement = parser.get_next_symbol(precedence_enum.TERMINATION);
             }
 
+            symbol.keyword        = keyword;
             symbol.expression     = surrounded_expression;
             symbol.statement      = statement;
             symbol.else_statement = else_statement;
-            symbol.pre_comment    = pre_comment;
-            symbol.start          = get_start_position(pre_comment, current_token);
+            symbol.start          = keyword.start;
             symbol.end            = else_statement ? else_statement.end : statement.end;
 
             parser.terminate(symbol);

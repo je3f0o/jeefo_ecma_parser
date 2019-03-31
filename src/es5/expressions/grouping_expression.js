@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : grouping_expression.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-02-26
+* Updated at  : 2019-03-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,39 +14,32 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-const states_enum = require("../enums/states_enum");
-/*
-var GroupingExpression = function () {};
-GroupingExpression.prototype = {
-	null_denotation : function (scope) {
-		var start = scope.current_token.start;
-
-		scope.advance();
-		this.expression = scope.expression(0);
-
-		if (scope.current_token.delimiter === ')') {
-			this.start = start;
-			this.end   = scope.current_token.end;
-
-			scope.current_expression = this;
-		} else {
-			scope.current_token.error_unexpected_token();
-		}
-
-		return this;
-	},
-	statement_denotation : require("../denotations/expression_statement_denotation")
-};
-*/
+const precedence_enum                 = require("../enums/precedence_enum"),
+      is_expression                   = require("../helpers/is_expression"),
+      get_current_state_name          = require("../helpers/get_current_state_name"),
+      get_last_non_comment_symbol     = require("../helpers/get_last_non_comment_symbol"),
+      get_comma_separated_expressions = require("../helpers/get_comma_separated_expressions");
 
 module.exports = {
 	id         : "Grouping expression",
     type       : "Expression",
-	precedence : 20,
+	precedence : precedence_enum.GROUPING_EXPRESSION,
 
-	is         : (token, parser) => parser.current_state === states_enum.expression && token.value === '(',
+	is : (token, parser) => {
+        return token.value === '('
+            && is_expression(parser)
+            && get_last_non_comment_symbol(parser) === null;
+    },
     initialize : (symbol, current_token, parser) => {
-        console.log(parser);
-        parser.throw_unexpected_token("Implement");
+        const expression_name = get_current_state_name(parser);
+        parser.change_state("delimiter");
+
+        symbol.open_parenthesis  = parser.next_symbol_definition.generate_new_symbol(parser);
+        symbol.expression        = get_comma_separated_expressions(parser, ')');
+        symbol.close_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
+        symbol.start             = symbol.open_parenthesis.start;
+        symbol.end               = symbol.close_parenthesis.end;
+
+        parser.prepare_next_state(expression_name, true);
     }
 };

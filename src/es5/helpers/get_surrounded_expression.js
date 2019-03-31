@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : get_surrounded_expression.js
 * Created at  : 2019-03-02
-* Updated at  : 2019-03-19
+* Updated at  : 2019-03-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,6 +26,7 @@ const surrounded_expression_definition = new SymbolDefinition({
 
     is         : () => {},
     initialize : (symbol, current_token, parser) => {
+        parser.change_state("delimiter");
         const open_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
 
         parser.prepare_next_state("expression", true);
@@ -34,10 +35,10 @@ const surrounded_expression_definition = new SymbolDefinition({
         }
 
         parser.post_comment = null;
-        let expression = get_right_value(parser, precedence_enum.TERMINATION);
-
-        parser.current_symbol = parser.post_comment;
+        const expression = get_right_value(parser, precedence_enum.TERMINATION);
         parser.expect(')', parser => parser.next_token.value === ')');
+
+        parser.current_symbol   = parser.post_comment;
         const close_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
 
         symbol.open_parenthesis  = open_parenthesis;
