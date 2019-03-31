@@ -26,11 +26,9 @@
   ],
   "devDependencies": {
     "expect.js": "^0.3.1",
-    "mocha": "^3.5.0"
+    "mocha": "^6.0.2"
   },
   "dependencies": {
-    "@jeefo/parser": "^0.0.1",
-    "jeefo_command": "^0.0.20",
-    "jeefo_utils": "^0.0.5"
+    "@jeefo/parser": "^0.0.1"
   }
 }
