@@ -32,11 +32,15 @@ Coming soon...
 
 ## Author
 
-- Д.Батхишиг (A.K.A je3f0o)
+- Д.Батхишиг (A.K.A [https://github.com/je3f0o](je3f0o))
 
 ## Maintainer
 
 - [https://github.com/je3f0o](https://github.com/je3f0o) (je3f0o@gmail.com)
+
+## References
+
+- [https://www.ecma-international.org/ecma-262/5.1](https://www.ecma-international.org/ecma-262/5.1)
 
 ## LICENSE
 The MIT License
