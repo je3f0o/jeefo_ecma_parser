@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : try_statement_specs.js
 * Created at  : 2019-02-21
-* Updated at  : 2019-03-11
+* Updated at  : 2019-03-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,9 +16,9 @@
 // ignore:end
 
 const expect                   = require("expect.js"),
-      parser                   = require("../../../src/es5_parser.js"),
-      precedence_enum          = require("../../../src/es5/enums/precedence_enum"),
-      UnexpectedTokenException = require("@jeefo/parser/src/unexpected_token_exception");
+      UnexpectedTokenException = require("@jeefo/parser/src/unexpected_token_exception"),
+      parser                   = require("../parser.js"),
+      precedence_enum          = require("../../../src/es5/enums/precedence_enum");
 
 describe("Try statement >", () => {
     describe("Valid cases >", () => {

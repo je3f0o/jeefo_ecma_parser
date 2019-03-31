@@ -20,7 +20,7 @@ source code ends with comment.
 
 ## Install
 
-`npm i jeefo_javascript_parser` or `yarn add jeefo_javascript_parser`
+`yarn add jeefo_javascript_parser`
 
 ## Dependencies
 

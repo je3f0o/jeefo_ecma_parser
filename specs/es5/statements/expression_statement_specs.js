@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement_specs.js
 * Created at  : 2019-02-22
-* Updated at  : 2019-03-28
+* Updated at  : 2019-03-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,7 +16,7 @@
 // ignore:end
 
 const expect          = require("expect.js"),
-      parser          = require("../../../src/es5_parser.js"),
+      parser          = require("../../../src/es5/parser.js"),
       precedence_enum = require("../../../src/es5/enums/precedence_enum"),
       test_substring  = require("../../helpers/test_substring");
 
