@@ -24,7 +24,7 @@ source code ends with comment.
 
 ## Dependencies
 
-- @jeefo/parser
+- [@jeefo/parser](https://github.com/je3f0o/jeefo_parser)
 
 ## Documantation
 
