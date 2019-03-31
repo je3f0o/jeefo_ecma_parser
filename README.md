@@ -40,7 +40,7 @@ Coming soon...
 
 ## References
 
-- ECMA Script 5.1 specs <https://www.ecma-international.org/ecma-262/5.1>
+- ECMA Script 5.1 specs - <https://www.ecma-international.org/ecma-262/5.1>
 
 ## LICENSE
 The MIT License
