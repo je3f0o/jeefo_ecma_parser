@@ -2,12 +2,13 @@
 
 "ECMA Script 5" and "ECMA Script 6" Abstract syntax tree parser written in
 NodeJS.
+
 Very fast execution and clean code design.
 
 ## Goal
 
 There are many existed parsers do not get any information about comma separator
-or delimiter characters like '(', ')', '{', '}' etc...
+or delimiter characters like (, ), {, } etc...
 So I wanted to write a parser do not lose a single non whitespace character from
 the source code. Also I don't want to get complicated AST objects has leading
 comments, trailing comments and inner comments... Which is very confusing in
