@@ -128,22 +128,7 @@ class A extends B {
     static set [computed] (v) {}
 }
 
-for (var $var, z = z in expr) {}
-// For-in statement
-// --------------------------
 for ($var in expr) {}
-for (object.member in expr) {}
-for (object[computed_mement] in expr) {}
-for ({} in expr) {}
-for ([] in expr) {}
-
-for (var $var in expr) {}
-for (var {} in expr) {}
-for (var [] in expr) {}
-
-// ES5 non-strict mode
-for (var $var = init in expr) {}
-
 // For-of statement
 // --------------------------
 for ($var of expr) {}
@@ -166,6 +151,7 @@ for (var {} = {}; i < arguments.length; ++i) {}
 
 // Error cases
 //for (var {}; i < arguments.length; ++i) {}
+//for (var $var, z = z in expr) {}
 
 /*
 let id

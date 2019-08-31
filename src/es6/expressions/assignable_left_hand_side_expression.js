@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignable_left_hand_side_expression.js
 * Created at  : 2019-08-30
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }                 = require("../enums/precedence_enum");
-const { assignable_left_expression } = require("../enums/states_enum");
+const { EXPRESSION }            = require("../enums/precedence_enum");
+const { assignable_expression } = require("../enums/states_enum");
 const {
     is_destructuring_binding_pattern
 } = require("../helpers");
@@ -58,12 +58,11 @@ module.exports = {
     precedence : EXPRESSION,
 
     is : (token, parser) => {
-        return parser.current_state === assignable_left_expression;
+        return parser.current_state === assignable_expression;
     },
     initialize : (node, token, parser) => {
-        parser.current_state  = parser.prev_state;
-        const expression_name = parser.get_current_state_name();
-        parser.change_state(expression_name);
+        const expression_name = parser.get_state_name(parser.prev_state);
+        parser.change_state(expression_name, false);
 
         if (! is_valid_binding_definition(parser.next_node_definition)) {
             parser.throw_unexpected_token();
@@ -100,20 +99,11 @@ module.exports = {
                     }
                     parser.throw_unexpected_token();
                     break;
-                case "Delimiter" :
-                case "In operator":
-                    break LOOP;
+                case "Terminal symbol"       :
                 case "Assignment expression" :
-                    if (parser.next_token.value !== '=') {
-                        parser.throw_unexpected_token();
-                    }
-                    break LOOP;
-                case "Identifier" :
-                    if (parser.next_token.value !== "of") {
-                        parser.throw_unexpected_token();
-                    }
                     break LOOP;
                 default:
+                console.log(parser. next_node_definition);
                     parser.throw_unexpected_token(
                         `Invalid next_node_definition: ${
                             parser.next_node_definition.id

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -41,12 +41,11 @@ module.exports = [
     "var_statement",
     "lexical_declaration",
 
-    "for_in",
-    "for_of",
-    "for_expression",
-    "for_in_expression",
-    "for_of_expression",
-    "for_expression_controller",
+    // For loop
+    "for_binding",
+    "for_of_header",
+    "for_declaration",
+    "es5_legacy_variable_declaration_no_in",
 
     "class_tail",
     "class_body",

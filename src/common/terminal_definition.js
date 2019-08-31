@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : terminal_definition.js
 * Created at  : 2019-08-12
-* Updated at  : 2019-08-21
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -20,7 +20,7 @@ const { get_pre_comment }     = require("../helpers");
 
 module.exports = new AST_Node_Definition({
     id         : "Terminal symbol",
-    type       : "Token",
+    type       : "Terminal symbol token",
     precedence : -1,
 
     is         : () => {},

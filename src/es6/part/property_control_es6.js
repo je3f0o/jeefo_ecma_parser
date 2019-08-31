@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : property_control_es6.js
 * Created at  : 2019-08-28
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,11 @@
 
 // ignore:end
 
-const { PROPERTY_CONTROL_ES6 }   = require("../enums/precedence_enum");
-const { is_assign, is_asterisk } = require("../../helpers");
+const { PROPERTY_CONTROL_ES6 } = require("../enums/precedence_enum");
+const {
+    is_asterisk,
+    is_assign_token,
+} = require("../../helpers");
 const {
     reference_id,
     property_list,
@@ -45,7 +48,7 @@ module.exports = {
 
         if (is_asterisk(token)) {
             parser.current_state = method_definition;
-        } else if (is_assign(next_token)) {
+        } else if (is_assign_token(next_token)) {
             parser.current_state = cover_initialized_name;
         } else if (is_possible_reference_id(next_token)) {
             parser.current_state = reference_id;

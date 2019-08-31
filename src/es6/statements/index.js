@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,7 +15,7 @@
 
 // ignore:end
 
-const { TERMINAL_TOKEN }  = require("../enums/precedence_enum");
+const { STATEMENT }       = require("../enums/precedence_enum");
 const { get_pre_comment } = require("../../helpers");
 const {
     statement,
@@ -24,8 +24,8 @@ const {
 
 const var_keyword = {
     id         : "Var keyword",
-    type       : "Token",
-    precedence : TERMINAL_TOKEN,
+    type       : "Terminal symbol token",
+    precedence : STATEMENT,
 
     is         : (token, parser) => parser.current_state === statement,
     initialize : (node, token, parser) => {

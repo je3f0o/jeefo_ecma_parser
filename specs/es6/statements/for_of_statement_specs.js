@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : for_in_statement_specs.js
-* Created at  : 2019-08-30
+* File Name   : for_of_statement_specs.js
+* Created at  : 2019-09-01
 * Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
@@ -27,74 +27,59 @@ const {
     test_substring,
 } = require("../../helpers");
 
-describe("For in statement >", () => {
+describe("For of statement >", () => {
     const valid_test_cases = [
-        // for ($var in expr) {}
+        // for ($var of expr) {}
         {
-            code   : "for ($var in expr) {}",
-            source : "for ($var in expr) {}",
+            code   : "for ($var of expr) {}",
+            source : "for ($var of expr) {}",
             expression (node, streamer) {
-                expect(node.id).to.be("For in header");
+                expect(node.id).to.be("For of header");
                 expect(node.binding.id).to.be(
                     "Assignable left hand side expression"
                 );
-                test_terminal(node.operator, "in");
+                test_terminal(node.operator, "of");
                 test_substring(node.expression, "expr", streamer);
-                test_substring(node, "$var in expr", streamer);
+                test_substring(node, "$var of expr", streamer);
             },
         },
 
-        // for (var $var in expr) {}
+        // for (var $var of expr) {}
         {
-            code   : "for (var $var in expr) {}",
-            source : "for (var $var in expr) {}",
+            code   : "for (var $var of expr) {}",
+            source : "for (var $var of expr) {}",
             expression (node, streamer) {
-                expect(node.id).to.be("For in header");
+                expect(node.id).to.be("For of header");
                 expect(node.binding.id).to.be("For binding");
-                test_terminal(node.operator, "in");
+                test_terminal(node.operator, "of");
                 test_substring(node.expression, "expr", streamer);
-                test_substring(node, "var $var in expr", streamer);
+                test_substring(node, "var $var of expr", streamer);
             },
         },
 
-        // for (var $var = init in expr) {}
+        // for (let $var of expr) {}
         {
-            code   : "for (var $var = init in expr) {}",
-            source : "for (var $var = init in expr) {}",
+            code   : "for (let $var of expr) {}",
+            source : "for (let $var of expr) {}",
             expression (node, streamer) {
-                expect(node.id).to.be("For in header");
-                expect(node.binding.id).to.be(
-                    "ES5 legacy variable declaration no in"
-                );
-                test_terminal(node.operator, "in");
-                test_substring(node.expression, "expr", streamer);
-                test_substring(node, "var $var = init in expr", streamer);
-            },
-        },
-
-        // for (let $var in expr) {}
-        {
-            code   : "for (let $var in expr) {}",
-            source : "for (let $var in expr) {}",
-            expression (node, streamer) {
-                expect(node.id).to.be("For in header");
+                expect(node.id).to.be("For of header");
                 expect(node.binding.id).to.be("For declaration");
-                test_terminal(node.operator, "in");
+                test_terminal(node.operator, "of");
                 test_substring(node.expression, "expr", streamer);
-                test_substring(node, "let $var in expr", streamer);
+                test_substring(node, "let $var of expr", streamer);
             },
         },
 
         // for (const $var in expr) {}
         {
-            code   : "for (const $var in expr) {}",
-            source : "for (const $var in expr) {}",
+            code   : "for (const $var of expr) {}",
+            source : "for (const $var of expr) {}",
             expression (node, streamer) {
-                expect(node.id).to.be("For in header");
+                expect(node.id).to.be("For of header");
                 expect(node.binding.id).to.be("For declaration");
-                test_terminal(node.operator, "in");
+                test_terminal(node.operator, "of");
                 test_substring(node.expression, "expr", streamer);
-                test_substring(node, "const $var in expr", streamer);
+                test_substring(node, "const $var of expr", streamer);
             },
         },
     ];
@@ -130,9 +115,9 @@ describe("For in statement >", () => {
 
     describe("Error cases >", () => {
         const error_test_cases = [
-            // for (var $var2 in
+            // for (var $var2 of
             {
-                source  : "for (var $var2 in",
+                source  : "for (var $var2 of",
                 message : "Unexpected end of stream",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
@@ -145,25 +130,10 @@ describe("For in statement >", () => {
                 }
             },
 
-            // for (var $var2 = z in
+            // for (var $var2 = z of
             {
-                source  : "for (var $var2 = z in",
-                message : "Unexpected end of stream",
-                error (error) {
-                    it(`should be throw: '${ this.message }'`, () => {
-                        expect(error.message).to.be(this.message);
-                    });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error).to.be.a(SyntaxError);
-                    });
-                }
-            },
-
-            // for (i = 1 in expr
-            {
-                source  : "for (i = 1 in expr",
-                message : "Invalid left-hand side in for-in loop",
+                source  : "for (var $var2 = z of",
+                message : "for-of loop variable declaration may not have an initializer.",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
                         expect(error.message).to.be(this.message);
@@ -179,10 +149,29 @@ describe("For in statement >", () => {
                 }
             },
 
-            // for (let i = 1 in expr
+            // for (i = 1 of expr
             {
-                source  : "for (let i = 1 in expr",
-                message : "for-in loop variable declaration may not have an initializer.",
+                source  : "for (i = 1 of expr",
+                message : "Invalid left-hand side in for-of loop",
+                error (error) {
+                    it(`should be throw: '${ this.message }'`, () => {
+                        expect(error.message).to.be(this.message);
+                    });
+
+                    it("should be instanceof UnexpectedTokenException", ()=>{
+                        expect(error).to.be.a(UnexpectedTokenException);
+                    });
+
+                    it("should be instanceof SyntaxError", () => {
+                        expect(error).to.be.a(SyntaxError);
+                    });
+                }
+            },
+
+            // for (let i = 1 of expr
+            {
+                source  : "for (let i = 1 of expr",
+                message : "for-of loop variable declaration may not have an initializer.",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
                         expect(error.message).to.be(this.message);

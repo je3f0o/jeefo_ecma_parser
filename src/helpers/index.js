@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -44,7 +44,11 @@ module.exports = {
     is_open_square_bracket  : is_delimiter('['),
     is_close_square_bracket : is_delimiter(']'),
 
-    is_assign (token) {
+    is_assign (parser) {
+        if (! parser.parse) {
+            throw new Error("Got it")
+        }
+        const { next_token:token } = parser;
         return token.id === "Operator" && token.value === '=';
     },
 
@@ -88,7 +92,11 @@ module.exports = {
     },
 
     parse_asignment_expression (parser) {
-        return parser.parse_next_node(1);
+        const expression = parser.parse_next_node(1);
+        if (! expression) {
+            parser.throw_unexpected_token();
+        }
+        return expression;
     },
 
     get_pre_comment (parser) {

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : identifier_definition.js
 * Created at  : 2019-08-05
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,17 @@
 
 // ignore:end
 
-const { PRIMITIVE }       = require("../enums/precedence_enum");
-const { is_expression }   = require("../helpers");
-const { get_pre_comment } = require("../../helpers");
+const { PRIMITIVE }        = require("../enums/precedence_enum");
+const { is_expression }    = require("../helpers");
+const { get_pre_comment }  = require("../../helpers");
+const { expression_no_in } = require("../enums/states_enum");
+
+const is_of_operator = (token, parser) => {
+    if (parser.current_state === expression_no_in) {
+        // TOOD: refactor
+        return token.value === "of";
+    }
+};
 
 module.exports = {
     id         : "Identifier",
@@ -26,6 +34,10 @@ module.exports = {
 
     is : (token, parser) => {
         if (is_expression(parser) && token.id === "Identifier") {
+            if (is_of_operator(token, parser)) {
+                // TOOD: refactor
+                return false;
+            }
             /*
             if (token.value === "this") {
                 return false;

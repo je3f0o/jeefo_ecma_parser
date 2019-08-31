@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -59,20 +59,29 @@ module.exports = ast_node_table => {
         "./expressions/binding_element",
         "./expressions/binding_identifier",
         "./expressions/formal_parameter_list",
+
         "./common/class_tail",
         "./common/class_body",
+        "./common/terminal_symbol",
 
+        "./expressions/initializer",
+
+        "./expressions/for_in_header",
+        "./expressions/for_of_header",
+        "./expressions/for_iterator_header",
         "./expressions/for_iterator_condition",
         "./expressions/for_iterator_initializer",
-        "./expressions/for_iterator_expression",
-        "./expressions/for_in_expression",
-        "./expressions/for_of_expression",
 
         "./expressions/assignable_left_hand_side_expression",
 
         "./controllers/for_expression_controller",
+
+        "./declarations/for_binding",
+        "./declarations/for_declaration",
+        "./declarations/assignable_declaration",
         "./declarations/variable_declaration_no_in",
         "./declarations/variable_declaration_list_no_in",
+        "./declarations/es5_legacy_variable_declaration_no_in",
     ].forEach(path => {
         ast_node_table.register_node_definition(require(path));
     });

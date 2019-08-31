@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,14 +15,14 @@
 
 // ignore:end
 
-const { TERMINAL_TOKEN }           = require("../enums/precedence_enum");
+const { STATEMENT }                = require("../enums/precedence_enum");
 const { get_pre_comment }          = require("../../helpers");
 const { statement, var_statement } = require("../enums/states_enum");
 
 const let_or_const = {
     id         : "Let or const keyword",
     type       : "Token",
-    precedence : TERMINAL_TOKEN,
+    precedence : STATEMENT,
 
     is         : (token, parser) => parser.current_state === statement,
     initialize : (node, token, parser) => {

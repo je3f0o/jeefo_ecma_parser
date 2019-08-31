@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : initializer_definition.js
-* Created at  : 2019-08-12
+* File Name   : initializer.js
+* Created at  : 2019-09-01
 * Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
@@ -15,35 +15,28 @@
 
 // ignore:end
 
-const { AST_Node_Definition } = require("@jeefo/parser");
-const { terminal_definition } = require("../../common");
-const {
-    is_assign_token,
-    parse_asignment_expression,
-} = require("../../helpers");
+const { EXPRESSION }                 = require("../enums/precedence_enum");
+const { initializer }                = require("../enums/states_enum");
+const { parse_asignment_expression } = require("../../helpers");
 
-module.exports = new AST_Node_Definition({
+module.exports = {
     id         : "Initializer",
     type       : "Expression",
-    precedence : -1,
+    precedence : EXPRESSION,
 
-    is         : () => {},
+    is         : (_, parser) => parser.current_state === initializer,
     initialize : (node, token, parser) => {
-        let assign_operator, expression;
-        const expression_name = parser.get_current_state_name();
+        const prev_state_name = parser.get_state_name(parser.prev_state);
 
+        let assign_operator, expression;
         if (parser.prev_node && parser.prev_node.assign_operator) {
             ({ assign_operator, expression } = parser.prev_node);
-        } else if (is_assign_token(token)) {
-            assign_operator = terminal_definition.generate_new_node(parser);
-
-            parser.prepare_next_state(expression_name, true);
-            expression = parse_asignment_expression(parser);
-            if (! expression) {
-                parser.throw_unexpected_token();
-            }
         } else {
-            parser.throw_unexpected_token();
+            parser.change_state("delimiter");
+            assign_operator = parser.generate_next_node(parser);
+
+            parser.prepare_next_state(prev_state_name, true);
+            expression = parse_asignment_expression(parser);
         }
 
         node.assign_operator = assign_operator;
@@ -51,4 +44,4 @@ module.exports = new AST_Node_Definition({
         node.start           = assign_operator.start;
         node.end             = expression.end;
     }
-});
+};

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,11 +32,17 @@ module.exports = [
     "variable_declaration_no_in",
     "variable_declaration_list_no_in",
 
+    "initializer",
+
+    "for_in_header",
+    "for_iterator_header",
+    "for_header_controller",
+
     "for_iterator_condition",
     "for_iterator_initializer",
-    "for_iterator_expression",
 
-    "assignable_left_expression",
+    "assignable_declaration",
+    "assignable_expression",
 
     "try_statement",
     "case_clause",

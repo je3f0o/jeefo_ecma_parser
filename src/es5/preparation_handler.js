@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preparation_handler.js
 * Created at  : 2019-06-28
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -58,19 +58,15 @@ const is_possible_ASI = (() => {
     };
 })();
 
-const binary_identifies = [
+const binary_identifiers = [
     "in", "instanceof"
 ];
 
 const is_of_operator = parser => {
-    const _is_of_operator = (
+    return (
         parser.current_state    === expression_no_in &&
         parser.next_token.value === "of"
     );
-    if (_is_of_operator) {
-        parser.current_state = of_operator;
-        return true;
-    }
 };
 
 module.exports = parser => {
@@ -92,10 +88,12 @@ module.exports = parser => {
             try_terminate(prev_node, parser);
             break;
         case "Identifier" :
-            if (binary_identifies.includes(parser.next_token.value)) {
+            if (binary_identifiers.includes(parser.next_token.value)) {
                 return;
             }
-            if (is_of_operator(parser)) { return; }
+            if (is_of_operator(parser)) {
+                return;
+            }
             try_terminate(prev_node, parser);
             break;
         case "Delimiter" :
