@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : numeric_literal.js
+* File Name   : number.js
 * Created at  : 2019-03-05
-* Updated at  : 2019-03-05
+* Updated at  : 2019-06-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,26 +10,28 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const delimiters   = require("./delimiters"),
-      white_spaces = require("./white_spaces");
+const delimiters   = require("./delimiters");
+const white_spaces = require("./white_spaces");
 
-const hex_digits    = "0123456789abcdefABCDEF",
-      hex_indicator = "xX";
+const hex_digits    = "0123456789abcdefABCDEF";
+const hex_indicator = "xX";
 
-// {{{1 Parse hex integer
-function parse_hex_integer (streamer, current_index, length) {
-    let next_character = streamer.at(current_index + length);
+function parse_hex_integer (streamer, start_index, length) {
+    let next_character = streamer.at(start_index + length);
 
     while (next_character) {
         if (hex_digits.includes(next_character)) {
             length += 1;
-            next_character = streamer.at(current_index + length);
-        } else if (delimiters.includes(next_character) || white_spaces.includes(next_character)) {
+            next_character = streamer.at(start_index + length);
+        } else if (
+            delimiters.includes(next_character) ||
+            white_spaces.includes(next_character)
+        ) {
             break;
         } else {
             throw new SyntaxError("Invalid or unexpected token");
@@ -39,9 +41,8 @@ function parse_hex_integer (streamer, current_index, length) {
     return length;
 }
 
-// {{{1 Parse integer
-function parse_integer (streamer, current_index, length) {
-    let next_character     = streamer.at(current_index + length),
+function parse_integer (streamer, start_index, length) {
+    let next_character     = streamer.at(start_index + length),
         is_potential_octal = next_character >= '0' && next_character <= '7';
 
     while (next_character) {
@@ -51,8 +52,11 @@ function parse_integer (streamer, current_index, length) {
             }
 
             length += 1;
-            next_character = streamer.at(current_index + length);
-        } else if (delimiters.includes(next_character) || white_spaces.includes(next_character)) {
+            next_character = streamer.at(start_index + length);
+        } else if (
+            delimiters.includes(next_character) ||
+            white_spaces.includes(next_character)
+        ) {
             break;
         } else {
             throw new SyntaxError("Invalid or unexpected token");
@@ -62,18 +66,17 @@ function parse_integer (streamer, current_index, length) {
     return { length, is_potential_octal };
 }
 
-// {{{1 Parse decimal
-function parse_decimal (streamer, current_index, length) {
-    let next_character = streamer.at(current_index + length);
+function parse_decimal (streamer, start_index, length) {
+    let next_character = streamer.at(start_index + length);
 
     if (next_character === '.') {
         length += 1;
-        next_character = streamer.at(current_index + length);
+        next_character = streamer.at(start_index + length);
 
         while (next_character) {
             if (next_character >= '0' && next_character <= '9') {
                 length += 1;
-                next_character = streamer.at(current_index + length);
+                next_character = streamer.at(start_index + length);
             } else {
                 break;
             }
@@ -82,13 +85,13 @@ function parse_decimal (streamer, current_index, length) {
 
     if (next_character === 'e' || next_character === 'E') {
         length += 1;
-        next_character = streamer.at(current_index + length);
+        next_character = streamer.at(start_index + length);
 
         if (next_character === '-') {
             length += 1;
-            next_character = streamer.at(current_index + length);
+            next_character = streamer.at(start_index + length);
         }
-        
+
         if (next_character < '0' && next_character > '9') {
             throw new SyntaxError("Invalid or unexpected token");
         }
@@ -96,7 +99,7 @@ function parse_decimal (streamer, current_index, length) {
         while (next_character) {
             if (next_character >= '0' && next_character <= '9') {
                 length += 1;
-                next_character = streamer.at(current_index + length);
+                next_character = streamer.at(start_index + length);
             } else {
                 break;
             }
@@ -113,7 +116,6 @@ function parse_decimal (streamer, current_index, length) {
 
     return length;
 }
-// }}}1
 
 module.exports = {
     id       : "Number",
@@ -123,20 +125,19 @@ module.exports = {
         if (current_character >= '0' && current_character <= '9') {
             return true;
         } else if (current_character === '.') {
-            const next_character = streamer.at(streamer.cursor.index + 1);
+            const next_character = streamer.get_next_character();
             return next_character >= '0' && next_character <= '9';
         }
-        return false;
     },
 
     initialize : (token, current_character, streamer) => {
-        const start = streamer.get_cursor();
+        const start = streamer.clone_cursor_position();
 
         let type, length;
 
         if (current_character === '0') {
-            const next_character = streamer.at(start.index + 1);
-            
+            const next_character = streamer.get_next_character();
+
             if (hex_indicator.includes(next_character)) {
                 type   = "Hex integer";
                 length = parse_hex_integer(streamer, start.index, 2);
@@ -171,7 +172,10 @@ module.exports = {
                 if (next_character >= '0' && next_character <= '9') {
                     length += 1;
                     next_character = streamer.at(start.index + length);
-                } else if (delimiters.includes(next_character) || white_spaces.includes(next_character)) {
+                } else if (
+                    delimiters.includes(next_character) ||
+                    white_spaces.includes(next_character)
+                ) {
                     break;
                 } else {
                     throw new SyntaxError("Invalid or unexpected token");
@@ -182,11 +186,11 @@ module.exports = {
             length = parse_decimal(streamer, start.index, length);
         }
 
-        streamer.move_cursor(length - 1);
+        streamer.cursor.move(length - 1);
 
-        token.value = streamer.string.substring(start.index, start.index + length);
+        token.value = streamer.substring_from_offset(start.index);
         token.type  = type;
         token.start = start;
-        token.end   = streamer.get_cursor();
+        token.end   = streamer.clone_cursor_position();
     }
 };

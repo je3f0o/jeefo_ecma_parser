@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : try_statement_specs.js
 * Created at  : 2019-02-21
-* Updated at  : 2019-03-31
+* Updated at  : 2019-08-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,237 +10,218 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const expect                   = require("expect.js"),
-      UnexpectedTokenException = require("@jeefo/parser/src/unexpected_token_exception"),
-      parser                   = require("../parser.js"),
-      precedence_enum          = require("../../../src/es5/enums/precedence_enum");
+const expect                       = require("expect.js");
+const { UnexpectedTokenException } = require("@jeefo/parser");
+
+const parser          = require("../parser.js");
+const precedence_enum = require("../../../src/es5/enums/precedence_enum");
+
+const {
+    test_range,
+    test_keyword,
+    test_for_each,
+    test_statement,
+    test_substring,
+    test_delimiter
+} = require("../../helpers");
 
 describe("Try statement >", () => {
     describe("Valid cases >", () => {
         const valid_test_cases = [
-            // {{{1 try {} catch (e) {}
+            // try {} catch (e) {}
             {
+                code   : "try {} catch (e) {}",
                 source : "try {} catch (e) {}",
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
+                keyword : (node, streamer) => {
+                    test_keyword("try", null, node, streamer);
                 },
-                block : block => {
-                    expect(block.id).to.be("Block statement");
-                    expect(block.type).to.be("Statement");
-
-                    expect(block.pre_comment).to.be(null);
+                block : (node, streamer) => {
+                    expect(node.id).to.be("Block statement");
+                    test_substring("{}", streamer, node);
                 },
-                handler : (statement, streamer) => {
-                    expect(statement.id).to.be("Catch block");
-                    expect(statement.type).to.be("Statement");
+                handler : (node, streamer) => {
+                    expect(node.id).to.be("Catch block");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(-1);
 
-                    expect(statement.pre_comment).to.be(null);
+                    test_keyword("catch", null, node.keyword, streamer);
 
                     // Parameter
-                    expect(statement.parameter.identifier).not.to.be(null);
-                    expect(statement.parameter.identifier.id).to.be("Identifier");
-                    expect(statement.parameter.identifier.token.value).to.be('e');
-                    expect(streamer.substring_from_token(statement.parameter)).to.be("(e)");
+                    expect(node.parameter).not.to.be(null);
+                    expect(node.parameter.id).to.be("Identifier");
+                    expect(node.parameter.value).to.be('e');
+                    test_substring("e", streamer, node.parameter);
 
-                    // open parenthesis
-                    expect(statement.parameter.open_parenthesis.pre_comment).to.be(null);
-                    expect(streamer.substring_from_token(statement.parameter.open_parenthesis)).to.be("(");
-
-                    // close parenthesis
-                    expect(statement.parameter.close_parenthesis.pre_comment).to.be(null);
-                    expect(streamer.substring_from_token(statement.parameter.close_parenthesis)).to.be(")");
+                    // parenthesis
+                    test_delimiter("(", null, node.open_parenthesis, streamer);
+                    test_delimiter(")", null, node.close_parenthesis, streamer);
 
                     // Block
-                    expect(statement.block).not.to.be(null);
-                    expect(statement.block.id).to.be("Block statement");
-                    expect(streamer.substring_from_token(statement.block)).to.be("{}");
+                    expect(node.block.id).to.be("Block statement");
 
-                    expect(streamer.substring_from_token(statement)).to.be("catch (e) {}");
+                    test_substring("catch (e) {}", streamer, node);
                 },
                 finalizer : statement => {
                     expect(statement).to.be(null);
                 }
             },
 
-            // {{{1 try {} finally {},
+            // try {} finally {},
             {
+                code   : "try {} finally {}",
                 source : "try {} finally {}",
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
+                keyword : (node, streamer) => {
+                    test_keyword("try", null, node, streamer);
                 },
-                block : block => {
-                    expect(block.id).to.be("Block statement");
-                    expect(block.type).to.be("Statement");
+                block : (node, streamer) => {
+                    expect(node.id).to.be("Block statement");
+                    test_substring("{}", streamer, node);
+                },
+                handler : node => {
+                    expect(node).to.be(null);
+                },
+                finalizer : (node, streamer) => {
+                    expect(node.id).to.be("Finally block");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(-1);
 
-                    expect(block.pre_comment).to.be(null);
-                },
-                handler : statement => {
-                    expect(statement).to.be(null);
-                },
-                finalizer : (statement, streamer) => {
-                    expect(statement.id).to.be("Finally block");
-                    expect(statement.type).to.be("Statement");
+                    test_keyword("finally", null, node.keyword, streamer);
 
-                    expect(streamer.substring_from_token(statement)).to.be("finally {}");
+                    test_substring("finally {}", streamer, node);
                 }
             },
 
-            // {{{1 try {} catch (e) {} finally {},
+            // try {} catch (e) {} finally {},
             {
+                code   : "try {} catch (e) {} finally {}",
                 source : "try {} catch (e) {} finally {}",
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
+                keyword : (node, streamer) => {
+                    test_keyword("try", null, node, streamer);
                 },
-                block : block => {
-                    expect(block.id).to.be("Block statement");
-                    expect(block.type).to.be("Statement");
-
-                    expect(block.pre_comment).to.be(null);
+                block : (node, streamer) => {
+                    expect(node.id).to.be("Block statement");
+                    test_substring("{}", streamer, node);
                 },
-                handler : (statement, streamer) => {
-                    expect(statement.id).to.be("Catch block");
-                    expect(statement.type).to.be("Statement");
+                handler : (node, streamer) => {
+                    expect(node.id).to.be("Catch block");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(-1);
 
-                    expect(statement.pre_comment).to.be(null);
+                    test_keyword("catch", null, node.keyword, streamer);
 
                     // Parameter
-                    expect(statement.parameter.identifier).not.to.be(null);
-                    expect(statement.parameter.identifier.id).to.be("Identifier");
-                    expect(statement.parameter.identifier.token.value).to.be('e');
-                    expect(streamer.substring_from_token(statement.parameter)).to.be("(e)");
+                    expect(node.parameter).not.to.be(null);
+                    expect(node.parameter.id).to.be("Identifier");
+                    expect(node.parameter.value).to.be('e');
+                    test_substring("e", streamer, node.parameter);
 
-                    // open parenthesis
-                    expect(statement.parameter.open_parenthesis.pre_comment).to.be(null);
-                    expect(streamer.substring_from_token(statement.parameter.open_parenthesis)).to.be("(");
-
-                    // close parenthesis
-                    expect(statement.parameter.close_parenthesis.pre_comment).to.be(null);
-                    expect(streamer.substring_from_token(statement.parameter.close_parenthesis)).to.be(")");
+                    // parenthesis
+                    test_delimiter("(", null, node.open_parenthesis, streamer);
+                    test_delimiter(")", null, node.close_parenthesis, streamer);
 
                     // Block
-                    expect(statement.block).not.to.be(null);
-                    expect(statement.block.id).to.be("Block statement");
-                    expect(streamer.substring_from_token(statement.block)).to.be("{}");
+                    expect(node.block.id).to.be("Block statement");
 
-                    expect(streamer.substring_from_token(statement)).to.be("catch (e) {}");
+                    test_substring("catch (e) {}", streamer, node);
                 },
-                finalizer : (statement, streamer) => {
-                    expect(statement.id).to.be("Finally block");
-                    expect(statement.type).to.be("Statement");
+                finalizer : (node, streamer) => {
+                    expect(node.id).to.be("Finally block");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(-1);
 
-                    expect(streamer.substring_from_token(statement)).to.be("finally {}");
+                    test_keyword("finally", null, node.keyword, streamer);
+
+                    test_substring("finally {}", streamer, node);
                 }
             },
 
-            // {{{1 /*a*/try/*b*/{}/*c*/catch/*d*/(/*e*/e/*f*/)/*g*/{}/*h*/finally/*i*/{}
+            // /*a*/try/*b*/{}/*c*/catch/*d*/(/*e*/e/*f*/)/*g*/{}/*h*/finally/*i*/{}
             {
+                code   : "try/*b*/{}/*c*/catch/*d*/(/*e*/e/*f*/)/*g*/{}/*h*/finally/*i*/{}",
                 source : "/*a*/try/*b*/{}/*c*/catch/*d*/(/*e*/e/*f*/)/*g*/{}/*h*/finally/*i*/{}",
-                pre_comment : (comment, streamer) => {
-                    expect(comment).not.to.be(null);
-                    expect(streamer.substring_from_token(comment)).to.be("/*a*/");
-                },
-                block : (block, streamer) => {
-                    expect(block.id).to.be("Block statement");
-                    expect(block.type).to.be("Statement");
+                offset : "/*a*/".length,
 
-                    expect(block.pre_comment).not.to.be(null);
-                    expect(streamer.substring_from_token(block)).to.be("/*b*/{}");
+                keyword : (node, streamer) => {
+                    test_keyword("try", "/*a*/", node, streamer);
                 },
-                handler : (statement, streamer) => {
-                    expect(statement.id).to.be("Catch block");
-                    expect(statement.type).to.be("Statement");
+                block : (node, streamer) => {
+                    expect(node.id).to.be("Block statement");
+                    test_substring("{}", streamer, node);
+                },
+                handler : (node, streamer) => {
+                    expect(node.id).to.be("Catch block");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(-1);
 
-                    expect(statement.pre_comment).not.to.be(null);
-                    expect(streamer.substring_from_token(statement.pre_comment)).to.be("/*c*/");
+                    test_keyword("catch", "/*c*/", node.keyword, streamer);
 
                     // Parameter
-                    expect(statement.parameter.identifier).not.to.be(null);
-
-                    expect(statement.parameter.identifier.id).to.be("Identifier");
-                    expect(statement.parameter.identifier.token.value).to.be("e");
-                    expect(streamer.substring_from_token(statement.parameter.identifier.pre_comment)).to.be("/*e*/");
-                    expect(streamer.substring_from_token(statement.parameter.identifier)).to.be("/*e*/e");
-
-                    expect(streamer.substring_from_token(statement.parameter)).to.be("/*d*/(/*e*/e/*f*/)");
+                    expect(node.parameter).not.to.be(null);
+                    expect(node.parameter.id).to.be("Identifier");
+                    expect(node.parameter.value).to.be('e');
+                    test_substring("e", streamer, node.parameter);
 
                     // open parenthesis
-                    expect(streamer.substring_from_token(statement.parameter.open_parenthesis.pre_comment)).to.be("/*d*/");
-                    expect(streamer.substring_from_token(statement.parameter.open_parenthesis)).to.be("/*d*/(");
-
-                    // close parenthesis
-                    expect(streamer.substring_from_token(statement.parameter.close_parenthesis.pre_comment)).to.be("/*f*/");
-                    expect(streamer.substring_from_token(statement.parameter.close_parenthesis)).to.be("/*f*/)");
-
-                    expect(streamer.substring_from_token(statement.parameter.identifier)).to.be("/*e*/e");
-                    expect(streamer.substring_from_token(statement.parameter)).to.be("/*d*/(/*e*/e/*f*/)");
+                    test_delimiter("(", "/*d*/", node.open_parenthesis, streamer);
+                    test_delimiter(")", "/*f*/", node.close_parenthesis, streamer);
 
                     // Block
-                    expect(statement.block).not.to.be(null);
-                    expect(statement.block.id).to.be("Block statement");
-                    expect(streamer.substring_from_token(statement.block)).to.be("/*g*/{}");
+                    expect(node.block.id).to.be("Block statement");
 
-                    expect(streamer.substring_from_token(statement)).to.be("/*c*/catch/*d*/(/*e*/e/*f*/)/*g*/{}");
+                    test_substring("catch/*d*/(/*e*/e/*f*/)/*g*/{}", streamer, node);
                 },
-                finalizer : (statement, streamer) => {
-                    expect(statement.id).to.be("Finally block");
-                    expect(statement.type).to.be("Statement");
+                finalizer : (node, streamer) => {
+                    expect(node.id).to.be("Finally block");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(-1);
 
-                    expect(streamer.substring_from_token(statement)).to.be("/*h*/finally/*i*/{}");
+                    test_keyword("finally", "/*h*/", node.keyword, streamer);
+
+                    test_substring("finally/*i*/{}", streamer, node);
                 }
             }
-            // }}}1
         ];
 
-        valid_test_cases.forEach(test_case => {
-            describe(`Test against source text '${ test_case.source.replace(/\n/g, "\\n") }'`, () => {
-                parser.tokenizer.init(test_case.source);
-                parser.prepare_next_state();
+        test_for_each(valid_test_cases, test_case => {
+            parser.tokenizer.init(test_case.source);
+            parser.prepare_next_state();
 
-                const symbol   = parser.get_next_symbol(precedence_enum.TERMINATION);
-                const streamer = parser.tokenizer.streamer;
+            const streamer = parser.tokenizer.streamer;
+            let node;
+            try {
+                node = parser.parse_next_node(precedence_enum.TERMINATION);
+            } catch (e) {}
 
-                it("should be Do while statement", () => {
-                    expect(symbol.id).to.be("Try statement");
-                    expect(symbol.type).to.be("Statement");
-                });
+            test_statement(node, "Try");
 
-                it("should be has correct pre_comment", () => {
-                    test_case.pre_comment(symbol.pre_comment, streamer);
-                });
-
-                it("should be has correct Block statement", () => {
-                    test_case.block(symbol.block, streamer);
-                });
-
-                it("should be has correct handler", () => {
-                    test_case.handler(symbol.handler, streamer);
-                });
-
-                it("should be has correct finalizer", () => {
-                    test_case.finalizer(symbol.finalizer, streamer);
-                });
-
-                it(`cursor index should be move ${ test_case.source.length } characters to right`, () => {
-                    const last_index = test_case.source.length - 1;
-                    expect(streamer.get_current_character()).to.be(test_case.source.charAt(last_index));
-                    expect(streamer.cursor.index).to.be(last_index);
-                });
-
-                it(`should be in correct range`, () => {
-                    expect(streamer.substring_from_token(symbol)).to.be(test_case.source);
-                });
+            it("should be has correct keyword", () => {
+                test_case.keyword(node.keyword, streamer);
             });
+
+            it("should be has correct Block statement", () => {
+                test_case.block(node.block, streamer);
+            });
+
+            it("should be has correct handler", () => {
+                test_case.handler(node.handler, streamer);
+            });
+
+            it("should be has correct finalizer", () => {
+                test_case.finalizer(node.finalizer, streamer);
+            });
+
+            test_range(test_case, node, streamer);
         });
     });
 
     describe("Invalid cases >", () => {
         const error_test_cases = [
-            // {{{1 try
+            // try
             {
                 source : "try",
                 error : error => {
@@ -254,7 +235,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {}
+            // try {}
             {
                 source : "try {}",
                 error : error => {
@@ -268,7 +249,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try /*c*/ a
+            // try /*c*/ a
             {
                 source : "try /*c*/ a",
                 error : error => {
@@ -286,7 +267,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} /*c*/ a
+            // try {} /*c*/ a
             {
                 source : "try {} /*c*/ a",
                 error : error => {
@@ -304,7 +285,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} catch
+            // try {} catch
             {
                 source : "try {} catch",
                 error : error => {
@@ -318,7 +299,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} catch /*c*/ a
+            // try {} catch /*c*/ a
             {
                 source : "try {} catch /*c*/ a",
                 error : error => {
@@ -336,7 +317,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} catch (/* comment */)
+            // try {} catch (/* comment */)
             {
                 source : "try {} catch (/* comment */)",
                 error : error => {
@@ -354,7 +335,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} catch (e)
+            // try {} catch (e)
             {
                 source : "try {} catch (e)",
                 error : error => {
@@ -368,7 +349,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} catch (e) /*c*/ a
+            // try {} catch (e) /*c*/ a
             {
                 source : "try {} catch (e) /*c*/ a",
                 error : error => {
@@ -386,7 +367,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} finally
+            // try {} finally
             {
                 source : "try {} finally",
                 error : error => {
@@ -400,7 +381,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} finally /*c*/ a
+            // try {} finally /*c*/ a
             {
                 source : "try {} finally /*c*/ a",
                 error : error => {
@@ -418,7 +399,7 @@ describe("Try statement >", () => {
                 }
             },
 
-            // {{{1 try {} catch (e) {} finally /*c*/ a
+            // try {} catch (e) {} finally /*c*/ a
             {
                 source : "try {} catch (e) {} finally /*c*/ a",
                 error : error => {
@@ -435,21 +416,18 @@ describe("Try statement >", () => {
                     });
                 }
             }
-            // }}}1
         ];
 
-        error_test_cases.forEach(test_case => {
-            describe(`Test against source text '${ test_case.source.replace(/\n/g, "\\n") }'`, () => {
-                parser.tokenizer.init(test_case.source);
-                parser.prepare_next_state();
+        test_for_each(error_test_cases, test_case => {
+            parser.tokenizer.init(test_case.source);
+            parser.prepare_next_state();
 
-                try {
-                    parser.get_next_symbol(precedence_enum.TERMINATION);
-                    expect("throw").to.be("failed");
-                } catch (e) {
-                    test_case.error(e);
-                }
-            });
+            try {
+                parser.parse_next_node(precedence_enum.TERMINATION);
+                expect("throw").to.be("failed");
+            } catch (e) {
+                test_case.error(e);
+            }
         });
     });
 });

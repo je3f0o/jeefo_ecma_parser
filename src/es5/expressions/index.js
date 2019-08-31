@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-02-10
-* Updated at  : 2019-03-29
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,15 +10,26 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-module.exports = function register_expression_symbol_definitions (symbol_table) {
-    symbol_table.register_symbol_definition(require("./grouping_expression"));
-    symbol_table.register_symbol_definition(require("./member_expression"));
-    symbol_table.register_symbol_definition(require("./computed_member_expression"));
-    symbol_table.register_symbol_definition(require("./function_call_expression"));
-    symbol_table.register_symbol_definition(require("./sequence_expression"));
+module.exports = ast_node_table => {
+    [
+        "property_name",
+        "getter_method",
+        "setter_method",
+        "function_body",
+        "member_expression",
+        "grouping_expression",
+        "sequence_expression",
+        "function_expression",
+        "formal_parameter_list",
+        "parenthesized_expression",
+        "function_call_expression",
+        "computed_member_expression",
+    ].forEach(path => {
+        ast_node_table.register_node_definition(require(`./${ path }`));
+    });
 };

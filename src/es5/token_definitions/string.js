@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : string.js
 * Created at  : 2019-03-05
-* Updated at  : 2019-03-07
+* Updated at  : 2019-06-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,8 +10,8 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
@@ -19,19 +19,19 @@ module.exports = {
     id       : "String",
     priority : 1,
 
-	is         : current_character => current_character === '"' || current_character === "'",
+	is         : char => char === '"' || char === "'",
     initialize : (token, current_character, streamer) => {
-        const start = streamer.get_cursor(),
-              quote = current_character;
+        const start = streamer.clone_cursor_position();
+        const quote = current_character;
 
-        let length         = 1,
-            current_index  = start.index,
-            virtual_length = 1,
-            next_character = streamer.at(current_index + length);
+        let length         = 1;
+        let current_index  = start.index;
+        let virtual_length = 1;
+        let next_character = streamer.at(current_index + length);
 
         while (true) {
             if (next_character === null) {
-                throw new SyntaxError("Invalid or unexpected token");
+                throw new SyntaxError("Invalid string token");
             }
 
             if (next_character === '\t') {
@@ -53,9 +53,9 @@ module.exports = {
 
                 switch (next_character) {
                     case '\n' :
-                        streamer.move_cursor(length - 1);
-                        next_character = streamer.get_next_character();
-                        current_index  = streamer.cursor.index;
+                        streamer.cursor.move(length - 1);
+                        next_character = streamer.next();
+                        current_index  = streamer.cursor.position.index;
                         length = virtual_length = 0;
                         break;
                     case quote :
@@ -80,11 +80,12 @@ module.exports = {
             }
         }
 
-        streamer.move_cursor(length, virtual_length);
+        streamer.cursor.move(length, virtual_length);
 
-        token.value = streamer.string.substring(start.index + 1, streamer.cursor.index);
+        const end_index = streamer.cursor.position.index;
+        token.value = streamer.string.substring(start.index + 1, end_index);
         token.quote = quote;
         token.start = start;
-        token.end   = streamer.get_cursor();
+        token.end   = streamer.clone_cursor_position();
     }
 };

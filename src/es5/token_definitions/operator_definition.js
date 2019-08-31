@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : operator_definition.js
 * Created at  : 2019-03-27
-* Updated at  : 2019-03-27
+* Updated at  : 2019-06-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,8 +10,8 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
@@ -41,30 +41,28 @@ module.exports = {
             // Ternary operator
 			case '?' :
 				return true;
-            // division operator
-            // TODO: think about rule. it is not following ecma specs
+            // divide assign operator
 			case '/' :
-				return streamer.at(streamer.cursor.index + 1) === '=';
+				return streamer.is_next_character('=');
 		}
 	},
 
     initialize : (token, current_character, streamer) => {
         let length = 0;
-        const start         = streamer.get_cursor();
-        const current_index = streamer.cursor.index;
+        const start = streamer.clone_cursor_position();
 
-        function iterative_operator (max_length) {
+        const iterative_operator = max_length => {
             for (let i = 1; i <= max_length; ++i) {
-                const next_character = streamer.at(current_index + i);
+                const next_char = streamer.at(start.index + i);
 
-                if (next_character === current_character && i < max_length) {
+                if (next_char === current_character && i < max_length) {
                     length += 1;
-                } else if (next_character === '=') {
+                } else if (next_char === '=') {
                     length += 1;
                     break;
                 }
             }
-        }
+        };
 
         switch (current_character) {
             // Operators:
@@ -73,10 +71,10 @@ module.exports = {
             //     !== ===
             case '!' :
             case '=' :
-                if (streamer.at(current_index + 1) === '=') {
+                if (streamer.is_next_character('=')) {
                     length = 1;
 
-                    if (streamer.at(current_index + 2) === '=') {
+                    if (streamer.at(start.index + 2) === '=') {
                         length = 2;
                     }
                 }
@@ -89,18 +87,23 @@ module.exports = {
             case '|' :
             case '+' :
             case '-' :
-                const next_character = streamer.at(current_index + 1);
-                if (next_character === '=' || next_character === current_character) {
+                const next_char = streamer.get_next_character();
+                if (next_char === '=' || next_char === current_character) {
                     length = 1;
                 }
                 break;
-            // Operators:
-            //     /  %  ^
-            //     /= %= ^=
+            // Which is only divide assign operator /=
+            // We already check it inside `is()` method
             case '/' :
+                length = 1;
+                break;
+
+            // Operators:
+            //     %  ^
+            //     %= ^=
             case '%' :
             case '^' :
-                if (streamer.at(current_index + 1) === '=') {
+                if (streamer.is_next_character('=')) {
                     length = 1;
                 }
                 break;
@@ -126,11 +129,11 @@ module.exports = {
         }
 
         if (length) {
-            streamer.move_cursor(length);
+            streamer.cursor.move(length);
         }
 
-        token.value = streamer.substring_from(current_index);
+        token.value = streamer.substring_from_offset(start.index);
         token.start = start;
-        token.end   = streamer.get_cursor();
+        token.end   = streamer.clone_cursor_position();
     },
 };

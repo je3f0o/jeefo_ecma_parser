@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : delimiter_definition.js
 * Created at  : 2019-03-08
-* Updated at  : 2019-03-08
+* Updated at  : 2019-06-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,8 +10,8 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
@@ -32,6 +32,7 @@ module.exports = {
     },
     initialize : (token, current_character, streamer) => {
         token.value = current_character;
-        token.start = token.end = streamer.get_cursor();
+        token.start = streamer.clone_cursor_position();
+        token.end   = streamer.clone_cursor_position();
     },
 };

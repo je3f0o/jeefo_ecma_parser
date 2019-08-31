@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : identifier_specs.js
 * Created at  : 2019-02-04
-* Updated at  : 2019-02-25
+* Updated at  : 2019-08-05
 * Author      : jeefo
 * Purpose     : Easier to develop. Please make me happy :)
 * Description : Describe what is Identifier and unit test every single case.
@@ -10,32 +10,34 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const expect = require("expect.js"),
-      parser = require("../../../src/es5_parser.js");
+const expect          = require("expect.js");
+const parser          = require("../parser.js");
+const test_source     = require("../../helpers/test_source");
+const precedence_enum = require("../../../src/es5/enums/precedence_enum");
 
 describe("Identifier >", () => {
-    const reserved_words = parser.symbol_table.get_reserved_words();
+    const reserved_words = parser.ast_node_table.get_reserved_words();
 
-    const expression_reserved_words = [
+    const primitive_reserved_words = [
         "null",
         "true",
         "false",
         "undefined",
     ];
 
-    expression_reserved_words.forEach(reserved_word => {
-        describe(`Test against reserved word '${ reserved_word }'`, () => {
+    primitive_reserved_words.forEach(reserved_word => {
+        describe(`Test against reserved word: '${ reserved_word }'`, () => {
             it("should not be Identifier", () => {
                 parser.tokenizer.init(reserved_word);
                 parser.prepare_next_state("expression");
 
-                expect(parser.next_symbol_definition).not.to.be(null);
-                expect(parser.next_symbol_definition.id).not.to.be("Identifier");
+                expect(parser.next_node_definition).not.to.be(null);
+                expect(parser.next_node_definition.id).not.to.be("Identifier");
             });
         });
     });
@@ -48,16 +50,16 @@ describe("Identifier >", () => {
     ];
 
     statement_reserved_words.forEach(reserved_word => {
-        describe(`Test against reserved word '${ reserved_word }'`, () => {
+        describe(`Test against reserved word: '${ reserved_word }'`, () => {
             it("should not be Identifier", () => {
                 parser.tokenizer.init(reserved_word);
                 parser.prepare_next_state();
 
                 expect(reserved_words.includes(reserved_word)).to.be(true);
-                expect(parser.next_symbol_definition).not.to.be(null);
+                expect(parser.next_node_definition).not.to.be(null);
 
-                expect(parser.next_symbol_definition.id).not.to.be("Identifier");
-                expect(parser.next_symbol_definition.id).not.to.be("Expression statement");
+                expect(parser.next_node_definition.id).not.to.be("Identifier");
+                expect(parser.next_node_definition.id).not.to.be("Expression statement");
             });
         });
     });
@@ -71,45 +73,45 @@ describe("Identifier >", () => {
     ];
 
     other_reserved_words.forEach(reserved_word => {
-        describe(`Test against reserved word '${ reserved_word }'`, () => {
+        describe(`Test against reserved word: '${ reserved_word }'`, () => {
             it("should not be Identifier", () => {
                 parser.tokenizer.init(reserved_word);
                 parser.prepare_next_state();
 
                 expect(reserved_words.includes(reserved_word)).to.be(true);
-                expect(parser.next_symbol_definition).to.be(null);
+                expect(parser.next_node_definition).to.be(null);
             });
         });
     });
 
     const source = "identifier";
-    describe(`Test against source text '${ source }'`, () => {
+    test_source(source, () => {
         parser.tokenizer.init(source);
         parser.prepare_next_state("expression");
 
         const streamer = parser.tokenizer.streamer;
-        let symbol;
+        let node;
         try {
-            symbol = parser.next_symbol_definition.generate_new_symbol(parser);
+            node = parser.generate_next_node();
         } catch (e) {}
 
         it(`cursor index should be move ${ source.length } characters to right`, () => {
             expect(streamer.get_current_character()).to.be('r');
-            expect(streamer.cursor.index).to.be(source.length - 1);
+            expect(streamer.cursor.position.index).to.be(source.length - 1);
         });
 
         it(`should be in correct range`, () => {
-            expect(streamer.substring_from_token(symbol)).to.be(source);
+            expect(streamer.substring_from_token(node)).to.be(source);
         });
 
         it("should be Identifier", () => {
-            expect(symbol.id).to.be("Identifier");
-            expect(symbol.token.value).to.be(source);
+            expect(node.id).to.be("Identifier");
+            expect(node.value).to.be(source);
         });
 
         it("should be Primitive", () => {
-            expect(symbol.type).to.be("Primitive");
-            expect(symbol.precedence).to.be(31);
+            expect(node.type).to.be("Primitive");
+            expect(node.precedence).to.be(precedence_enum.PRIMITIVE);
         });
     });
 });

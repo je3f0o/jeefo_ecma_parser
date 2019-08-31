@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_declaration.js
 * Created at  : 2019-01-29
-* Updated at  : 2019-03-26
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,68 +9,58 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum            = require("../enums/states_enum"),
-      precedence_enum        = require("../enums/precedence_enum"),
-      get_parameters         = require("../helpers/get_parameters"),
-      get_pre_comment        = require("../helpers/get_pre_comment"),
-      get_start_position     = require("../helpers/get_start_position"),
-      get_current_state_name = require("../helpers/get_current_state_name");
+const { DECLARATION }         = require("../enums/precedence_enum");
+const { is_expression }       = require("../helpers");
+const { terminal_definition } = require("../../common");
+const {
+    statement,
+    function_expression,
+} = require("../enums/states_enum");
+const {
+    is_identifier,
+    is_open_curly,
+} = require("../../helpers");
 
 module.exports = {
     id         : "Function declaration",
     type       : "Declaration",
-    precedence : 31,
+    precedence : DECLARATION,
 
-    is : (tokem, parser) => {
-        switch (parser.current_state) {
-            case states_enum.statement  :
-            case states_enum.expression :
-                return true;
+    is : (token, parser) => {
+        if (parser.current_state === statement) {
+            return true;
+        } else if (is_expression(parser)) {
+            parser.prev_state    = parser.current_state;
+            parser.current_state = function_expression;
         }
-        return false;
     },
-    initialize : (symbol, current_token, parser) => {
-        let name = null, expression_name;
-        const pre_comment             = get_pre_comment(parser),
-              is_function_declaration = parser.current_state === states_enum.statement;
 
-        if (! is_function_declaration) {
-            symbol.id       = "Function expression";
-            symbol.type     = "Expression";
-            expression_name = get_current_state_name(parser);
-        }
+    initialize : (node, current_token, parser) => {
+        const keyword = terminal_definition.generate_new_node(parser);
 
         parser.prepare_next_state("expression", true);
+        parser.expect("identifier", is_identifier);
+        const name = parser.generate_next_node();
 
-        if (is_function_declaration || parser.next_token.id === "Identifier") {
-            parser.expect("identifier", parser => parser.next_symbol_definition.id === "Identifier");
-            name = parser.next_symbol_definition.generate_new_symbol(parser);
-            parser.prepare_next_state("expression", true);
-        }
+        parser.prepare_next_state("formal_parameter_list", true);
+        const parameters = parser.generate_next_node();
 
-        parser.expect('(', parser => parser.next_token.value === '(');
-        const parameters = get_parameters(parser);
+        parser.prepare_next_state("function_body", true);
+        parser.expect('{', is_open_curly);
+        const body = parser.generate_next_node();
 
-        parser.prepare_next_state("block_statement", true);
-        parser.expect('{', parser => parser.next_token.value === '{');
-        const body = parser.get_next_symbol(precedence_enum.TERMINATION);
+        node.keyword     = keyword;
+        node.name        = name;
+        node.parameters  = parameters;
+        node.body        = body;
+        node.start       = keyword.start;
+        node.end         = body.end;
 
-        symbol.name        = name;
-        symbol.parameters  = parameters;
-        symbol.body        = body;
-        symbol.pre_comment = pre_comment;
-        symbol.start       = get_start_position(pre_comment, current_token);
-        symbol.end         = body.end;
-
-        if (is_function_declaration) {
-            parser.terminate(symbol);
-        } else {
-            parser.prepare_next_state(expression_name);
-        }
+        parser.terminate(node);
     }
 };

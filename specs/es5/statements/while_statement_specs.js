@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : while_statement_specs.js
 * Created at  : 2019-02-21
-* Updated at  : 2019-03-31
+* Updated at  : 2019-08-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,149 +10,149 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
 const expect                   = require("expect.js"),
       UnexpectedTokenException = require("@jeefo/parser/src/unexpected_token_exception"),
       parser                   = require("../parser.js"),
+      test_keyword             = require("../../helpers/test_keyword"),
+      test_delimiter           = require("../../helpers/test_delimiter"),
+      test_substring           = require("../../helpers/test_substring"),
       precedence_enum          = require("../../../src/es5/enums/precedence_enum");
 
 describe("While statement >", () => {
     describe("Valid cases >", () => {
         const valid_test_cases = [
-            // {{{1 while (true);
+            // while (true);
             {
                 code   : "while (true);",
                 source : "while (true);",
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
-                },
-                expression : expression => {
-                    expect(expression.id).to.be("Surrounded expression");
-                    expect(expression.type).to.be("Expression");
 
-                    expect(expression.expression.id).to.be("Boolean literal");
-                    expect(expression.expression.token.value).to.be("true");
+                keyword : (node, streamer) => {
+                    test_keyword("while", null, node, streamer);
                 },
-                statement : statement => {
-                    expect(statement.id).to.be("Empty statement");
-                    expect(statement.type).to.be("Statement");
-                }
+                open : (node, streamer) => {
+                    test_delimiter("(", null, node, streamer);
+                },
+                close : (node, streamer) => {
+                    test_delimiter(")", null, node, streamer);
+                },
+                expression : (node, streamer) => {
+                    expect(node.type).to.be("Primitive");
+                    test_substring("true", streamer, node);
+                },
+                statement : (node, streamer) => {
+                    expect(node.type).to.be("Statement");
+                    test_substring(";", streamer, node);
+                },
             },
 
-            // {{{1 while (true) {}
-            {
-                code   : "while (true) {}",
-                source : "while (true) {}",
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
-                },
-                expression : expression => {
-                    expect(expression.id).to.be("Surrounded expression");
-                    expect(expression.type).to.be("Expression");
-
-                    expect(expression.expression.id).to.be("Boolean literal");
-                    expect(expression.expression.token.value).to.be("true");
-                },
-                statement : statement => {
-                    expect(statement.id).to.be("Block statement");
-                    expect(statement.type).to.be("Statement");
-                }
-            },
-
-            // {{{1 "while (true) /*comment*/ a /*comment*/\nb",
+            // while (true) /*comment*/ a /*comment*/\nb
             {
                 code   : "while (true) /*comment*/ a",
                 source : "while (true) /*comment*/ a /*comment*/\nb",
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
-                },
-                expression : expression => {
-                    expect(expression.id).to.be("Surrounded expression");
-                    expect(expression.type).to.be("Expression");
 
-                    expect(expression.expression.id).to.be("Boolean literal");
-                    expect(expression.expression.token.value).to.be("true");
+                keyword : (node, streamer) => {
+                    test_keyword("while", null, node, streamer);
                 },
-                statement : (statement, streamer) => {
-                    expect(statement.id).to.be("Expression statement");
-                    expect(statement.type).to.be("Statement");
-
-                    expect(streamer.substring_from_token(statement)).to.be("/*comment*/ a");
-                }
+                open : (node, streamer) => {
+                    test_delimiter("(", null, node, streamer);
+                },
+                close : (node, streamer) => {
+                    test_delimiter(")", null, node, streamer);
+                },
+                expression : (node, streamer) => {
+                    expect(node.type).to.be("Primitive");
+                    test_substring("true", streamer, node);
+                },
+                statement : (node, streamer) => {
+                    expect(node.type).to.be("Statement");
+                    expect(node.terminator).to.be(null);
+                    test_substring("a", streamer, node);
+                },
             },
 
-            // {{{1 /*a*/while/*b*/(/*c*/true/*d*/)/*e*/;
+            // /*a*/while/*b*/(/*c*/true/*d*/)/*e*/;
             {
-                code   : "/*a*/while/*b*/(/*c*/true/*d*/)/*e*/;",
+                code   : "while/*b*/(/*c*/true/*d*/)/*e*/;",
                 source : "/*a*/while/*b*/(/*c*/true/*d*/)/*e*/;",
-                pre_comment : (comment, streamer) => {
-                    expect(streamer.substring_from_token(comment)).to.be("/*a*/");
-                    expect(comment.value).to.be("a");
-                    expect(comment.is_inline).to.be(false);
+                offset : "/*a*/".length,
+
+                keyword : (node, streamer) => {
+                    test_keyword("while", "/*a*/", node, streamer);
                 },
-                expression : (expression, streamer) => {
-                    expect(expression.id).to.be("Surrounded expression");
-                    expect(expression.type).to.be("Expression");
-
-                    expect(expression.expression.id).to.be("Boolean literal");
-                    expect(expression.expression.token.value).to.be("true");
-                    expect(streamer.substring_from_token(expression.expression.pre_comment)).to.be("/*c*/");
-                    expect(streamer.substring_from_token(expression.expression)).to.be("/*c*/true");
-
-                    expect(streamer.substring_from_token(expression.open_parenthesis)).to.be("/*b*/(");
-                    expect(streamer.substring_from_token(expression.close_parenthesis)).to.be("/*d*/)");
+                open : (node, streamer) => {
+                    test_delimiter("(", "/*b*/", node, streamer);
                 },
-                statement : (statement, streamer) => {
-                    expect(statement.id).to.be("Empty statement");
-                    expect(statement.type).to.be("Statement");
-
-                    expect(statement.pre_comment).not.to.be(null);
-                    expect(streamer.substring_from_token(statement)).to.be("/*e*/;");
-                }
+                close : (node, streamer) => {
+                    test_delimiter(")", "/*d*/", node, streamer);
+                },
+                expression : (node, streamer) => {
+                    expect(node.type).to.be("Primitive");
+                    test_substring("true", streamer, node);
+                },
+                statement : (node, streamer) => {
+                    expect(node.type).to.be("Statement");
+                    test_substring(";", streamer, node);
+                },
             },
-            // }}}1
         ];
 
         valid_test_cases.forEach(test_case => {
-            describe(`Test against source text '${ test_case.source.replace(/\n/g, "\\n") }'`, () => {
+            const text = test_case.source.replace(/\n/g, "\\n");
+            describe(`Test against source text '${ text }'`, () => {
                 parser.tokenizer.init(test_case.source);
                 parser.prepare_next_state();
 
-                let symbol;
-                try {
-                    symbol = parser.get_next_symbol(precedence_enum.TERMINATION);
-                } catch (e) {}
                 const streamer = parser.tokenizer.streamer;
+                let node;
+                try {
+                    node = parser.parse_next_node(
+                        precedence_enum.TERMINATION
+                    );
+                } catch (e) {
+                    console.log(e);
+                    process.exit();
+                    }
 
                 it("should be While statement", () => {
-                    expect(symbol.id).to.be("While statement");
-                    expect(symbol.type).to.be("Statement");
+                    expect(node.id).to.be("While statement");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(precedence_enum.STATEMENT);
                 });
 
-                it("should be has correct pre_comment", () => {
-                    test_case.pre_comment(symbol.pre_comment, streamer);
+                it("should be has correct keyword", () => {
+                    test_case.keyword(node.keyword, streamer);
                 });
 
-                it("should be has correct Surrounded expression", () => {
-                    test_case.expression(symbol.expression, streamer);
+                it("should be has correct open_parenthesis", () => {
+                    test_case.open(node.open_parenthesis, streamer);
+                });
+
+                it("should be has correct expression", () => {
+                    test_case.expression(node.expression, streamer);
+                });
+
+                it("should be has correct close_parenthesis", () => {
+                    test_case.close(node.close_parenthesis, streamer);
                 });
 
                 it("should be has correct Statement", () => {
-                    test_case.statement(symbol.statement, streamer);
-                });
-
-                it(`cursor index should be move ${ test_case.source.length } characters to right`, () => {
-                    const last_index = test_case.code.length - 1;
-                    expect(streamer.get_current_character()).to.be(test_case.source.charAt(last_index));
-                    expect(streamer.cursor.index).to.be(last_index);
+                    test_case.statement(node.statement, streamer);
                 });
 
                 it(`should be in correct range`, () => {
-                    expect(streamer.substring_from_token(symbol)).to.be(test_case.code);
+                    let index = (test_case.offset || 0);
+                    index += test_case.code.length - 1;
+
+                    test_substring(test_case.code, streamer, node);
+                    expect(streamer.get_current_character()).to.be(
+                        test_case.source.charAt(index)
+                    );
+                    expect(streamer.cursor.position.index).to.be(index);
                 });
             });
         });
@@ -160,7 +160,7 @@ describe("While statement >", () => {
 
     describe("Invalid cases >", () => {
         const error_test_cases = [
-            // {{{1 while
+            // while
             {
                 source : "while",
                 error : error => {
@@ -174,7 +174,7 @@ describe("While statement >", () => {
                 }
             },
 
-            // {{{1 while ;
+            // while ;
             {
                 source : "while ;",
                 error : error => {
@@ -192,7 +192,7 @@ describe("While statement >", () => {
                 }
             },
 
-            // {{{1 while /* comment */ a
+            // while /* comment */ a
             {
                 source : "while /* comment */ a",
                 error : error => {
@@ -210,7 +210,7 @@ describe("While statement >", () => {
                 }
             },
 
-            // {{{1 while ()
+            // while ()
             {
                 source : "while ()",
                 error : error => {
@@ -228,7 +228,7 @@ describe("While statement >", () => {
                 }
             },
 
-            // {{{1 while (/* comment */)
+            // while (/* comment */)
             {
                 source : "while (/* comment */)",
                 error : error => {
@@ -246,7 +246,7 @@ describe("While statement >", () => {
                 }
             },
 
-            // {{{1 while (false)
+            // while (false
             {
                 source : "while (false)",
                 error : error => {
@@ -259,7 +259,20 @@ describe("While statement >", () => {
                     });
                 }
             },
-            // }}}1
+
+            // while (false)
+            {
+                source : "while (false)",
+                error : error => {
+                    it("should be throw: Unexpected end of stream", () => {
+                        expect(error.message).to.be("Unexpected end of stream");
+                    });
+
+                    it("should be instanceof SyntaxError", () => {
+                        expect(error instanceof SyntaxError).to.be(true);
+                    });
+                }
+            },
         ];
 
         error_test_cases.forEach(test_case => {
@@ -268,7 +281,7 @@ describe("While statement >", () => {
                 parser.prepare_next_state();
 
                 try {
-                    parser.get_next_symbol(precedence_enum.TERMINATION);
+                    parser.parse_next_node(precedence_enum.TERMINATION);
                     expect("throw").to.be("failed");
                 } catch (e) {
                     test_case.error(e);

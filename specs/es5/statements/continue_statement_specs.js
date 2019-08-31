@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : continue_statement_specs.js
 * Created at  : 2019-03-01
-* Updated at  : 2019-03-31
+* Updated at  : 2019-08-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,161 +10,146 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const expect                   = require("expect.js"),
-      UnexpectedTokenException = require("@jeefo/parser/src/unexpected_token_exception"),
-	  parser                   = require("../../../src/es5/parser"),
-      precedence_enum          = require("../../../src/es5/enums/precedence_enum");
+const expect                       = require("expect.js");
+const { UnexpectedTokenException } = require("@jeefo/parser");
+
+const parser          = require("../parser.js");
+const precedence_enum = require("../../../src/es5/enums/precedence_enum");
+
+const {
+    test_range,
+    test_keyword,
+    test_for_each,
+    test_statement,
+    test_substring,
+    test_delimiter,
+} = require("../../helpers");
 
 describe("Continue statement >", () => {
-    describe("Valid cases >", () => {
-        const valid_test_cases = [
-            // {{{1 continue;
+    const test = test_cases => {
+        test_for_each(test_cases, test_case => {
+            parser.tokenizer.init(test_case.source);
+            parser.prepare_next_state();
+
+            const streamer = parser.tokenizer.streamer;
+            let node;
+            try {
+                node = parser.parse_next_node(precedence_enum.TERMINATION);
+            } catch (e) {}
+
+            test_statement(node, "Continue");
+
+            it("should be has correct keyword", () => {
+                test_keyword("continue", null, node.keyword, streamer);
+            });
+
+            it("should be has correct identifier", () => {
+                test_case.identifier(node.identifier, streamer);
+            });
+
+            it("should be has correct terminator", () => {
+                test_case.terminator(node.terminator, streamer);
+            });
+
+            test_range(test_case, node, streamer);
+        });
+    };
+
+    describe("Semicolon terminated >", () => {
+        test([
+            // continue;
             {
                 code   : "continue;",
                 source : "continue;",
-                asi    : false,
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
+
+                identifier : node => {
+                    expect(node).to.be(null);
                 },
-                post_comment : comment => {
-                    expect(comment).to.be(null);
-                },
-                identifier : identifier => {
-                    expect(identifier).to.be(null);
+                terminator : (node, streamer) => {
+                    test_delimiter(';', null, node, streamer);
                 }
             },
 
-            // {{{1 continue id;
+            // continue /*a*/ label /*b*/;
             {
-                code   : "continue id;",
-                source : "continue id;",
-                asi    : false,
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
+                code   : "continue /*a*/ label /*b*/;",
+                source : "continue /*a*/ label /*b*/;",
+
+                keyword : (node, streamer) => {
+                    test_keyword("continue", null, node, streamer);
                 },
-                post_comment : comment => {
-                    expect(comment).to.be(null);
+                identifier : (node, streamer) => {
+                    expect(node).not.to.be(null);
+                    test_substring("label", streamer, node);
                 },
-                identifier : identifier => {
-                    expect(identifier).not.to.be(null);
-                    expect(identifier.id).to.be("Identifier");
+                terminator : (node, streamer) => {
+                    test_delimiter(';', "/*b*/", node, streamer);
                 }
             },
+        ]);
+    });
 
-            // {{{1 continue /* comment */ \n id;
+    describe("Automatic semicolon insertion >", () => {
+        test([
+            // continue
             {
                 code   : "continue",
-                source : "continue \n id;",
-                asi    : true,
-                pre_comment : comment => {
-                    expect(comment).to.be(null);
+                source : "continue",
+
+                identifier : node => {
+                    expect(node).to.be(null);
                 },
-                post_comment : comment => {
-                    expect(comment).to.be(null);
-                },
-                identifier : identifier => {
-                    expect(identifier).to.be(null);
+                terminator : node => {
+                    expect(node).to.be(null);
                 }
             },
 
-            // {{{1 /* pre comment */ continue /* id comment */ id /* post comment */;
+            // continue\n label;
             {
-                code   : "/* pre comment */ continue /* id comment */ id /* post comment */;",
-                source : "/* pre comment */ continue /* id comment */ id /* post comment */;",
-                asi    : false,
-                pre_comment : (comment, streamer) => {
-                    expect(comment).not.to.be(null);
-                    expect(streamer.substring_from_token(comment)).to.be("/* pre comment */");
+                code   : "continue",
+                source : "continue\n label;",
+
+                identifier : node => {
+                    expect(node).to.be(null);
                 },
-                post_comment : (comment, streamer) => {
-                    expect(comment).not.to.be(null);
-                    expect(streamer.substring_from_token(comment)).to.be("/* post comment */");
-                },
-                identifier : (identifier, streamer) => {
-                    expect(identifier).not.to.be(null);
-                    expect(identifier.id).to.be("Identifier");
-                    expect(identifier.pre_comment).not.to.be(null);
-                    expect(streamer.substring_from_token(identifier.pre_comment)).to.be("/* id comment */");
+                terminator : node => {
+                    expect(node).to.be(null);
                 }
             },
-            // }}}1
-        ];
 
-        valid_test_cases.forEach(test_case => {
-            describe(`Test against source text '${ test_case.source.replace(/\n/g, "\\n") }'`, () => {
-                parser.tokenizer.init(test_case.source);
-                parser.prepare_next_state();
+            // continue label\n;
+            {
+                code   : "continue label",
+                source : "continue label\n;",
 
-                const streamer = parser.tokenizer.streamer;
-                let symbol;
-                try {
-                    symbol = parser.next_symbol_definition.generate_new_symbol(parser);
-                } catch (e) {}
-
-                it("should be Continue statement", () => {
-                    expect(symbol.id).to.be("Continue statement");
-                });
-
-                it("should be has correct pre_comment", () => {
-                    test_case.pre_comment(symbol.pre_comment, streamer);
-                });
-
-                it("should be has correct post_comment", () => {
-                    test_case.post_comment(symbol.post_comment, streamer);
-                });
-
-                it("should be has correct identifier", () => {
-                    test_case.identifier(symbol.identifier, streamer);
-                });
-
-                it("should be right ASI", () => {
-                    expect(symbol.ASI).to.be(test_case.asi);
-                });
-
-                it(`cursor index should be move ${ test_case.code.length } characters to right`, () => {
-                    const last_index = test_case.code.length - 1;
-                    expect(streamer.get_current_character()).to.be(test_case.source.charAt(last_index));
-                    expect(streamer.cursor.index).to.be(last_index);
-                });
-
-                it(`should be in correct range`, () => {
-                    expect(streamer.substring_from_token(symbol)).to.be(test_case.code);
-                });
-            });
-        });
+                identifier : (node, streamer) => {
+                    expect(node).not.to.be(null);
+                    test_substring("label", streamer, node);
+                },
+                terminator : node => {
+                    expect(node).to.be(null);
+                }
+            },
+        ]);
     });
 
     describe("Invalid cases >", () => {
         const error_test_cases = [
-            // {{{1 continue
+            // continue 123;
             {
-                source : "continue",
+                source : "continue 123;",
                 error : error => {
-                    it("should be throw: Unexpected end of stream", () => {
-                        expect(error.message).to.be("Unexpected end of stream");
+                    it("should be throw: Expected an identifier instead saw: 123", () => {
+                        expect(error.message).to.be("Expected an identifier instead saw: 123");
                     });
 
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error instanceof SyntaxError).to.be(true);
-                    });
-                }
-            },
-
-            // {{{1 continue 1
-            {
-                source : "continue 1",
-                error : error => {
-                    it("should be throw: Unexpected token", () => {
-                        expect(error.message).to.be("Unexpected token");
-                    });
-
-                    it("should be has token value: 1", () => {
-                        expect(error.token.value).to.be("1");
+                    it("should be has token value: 123", () => {
+                        expect(error.token.value).to.be("123");
                     });
 
                     it("should be instanceof UnexpectedTokenException", () => {
@@ -172,21 +157,18 @@ describe("Continue statement >", () => {
                     });
                 }
             },
-            // }}}1
         ];
 
-        error_test_cases.forEach(test_case => {
-            describe(`Test against source text '${ test_case.source }'`, () => {
-                parser.tokenizer.init(test_case.source);
-                parser.prepare_next_state();
+        test_for_each(error_test_cases, test_case => {
+            parser.tokenizer.init(test_case.source);
+            parser.prepare_next_state();
 
-                try {
-                    parser.get_next_symbol(precedence_enum.TERMINATION);
-                    expect("throw").to.be("failed");
-                } catch (e) {
-                    test_case.error(e);
-                }
-            });
+            try {
+                parser.parse_next_node(precedence_enum.TERMINATION);
+                expect("throw").to.be("failed");
+            } catch (e) {
+                test_case.error(e);
+            }
         });
     });
 });

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators_specs.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-03-31
+* Updated at  : 2019-08-06
 * Author      : jeefo
 * Purpose     : Easier to develop. Please make me happy :)
 * Description : Describe what Binary operator and unit test every single case.
@@ -10,174 +10,178 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const expect = require("expect.js"),
-      parser = require("../../../src/es5/parser.js");
+const expect      = require("expect.js");
+const parser      = require("../parser.js");
+const test_source = require("../../helpers/test_source");
 
 describe("Binary operators >", () => {
-    // {{{1 test_id(symbol, streamer)
-    const test_id = (symbol, streamer) => {
-        expect(symbol.id).to.be("Identifier");
-        expect(symbol.token.value).to.be("id");
-        expect(streamer.substring_from_token(symbol)).to.be('id');
+    const test_id = (node, streamer) => {
+        expect(node.id).to.be("Identifier");
+        expect(node.value).to.be("id");
+        expect(streamer.substring_from_token(node)).to.be('id');
     };
 
-    // {{{1 test_number(symbol, streamer)
-    const test_number = (symbol, streamer) => {
-        expect(symbol.id).to.be("Numeric literal");
-        expect(symbol.token.value).to.be('5');
-        expect(streamer.substring_from_token(symbol)).to.be('5');
+    const test_number = (node, streamer) => {
+        expect(node.id).to.be("Numeric literal");
+        expect(node.value).to.be('5');
+        expect(streamer.substring_from_token(node)).to.be('5');
     };
 
-    // {{{1 make_operator_test(operator)
     const make_operator_tester = (id, precedence, operator) => {
 		return {
-            id         : id,
+            id         : `${id} operator`,
             source     : `id ${ operator } 5`,
 			precedence : precedence,
+            op         : operator,
             left       : test_id,
             right      : test_number,
-			operator   : symbol => {
-                expect(symbol.id).to.be("Operator");
-                expect(symbol.token.value).to.be(operator);
-                expect(symbol.pre_comment).to.be(null);
+			operator   : node => {
+                expect(node.id).to.be("Operator");
+                expect(node.value).to.be(operator);
+                expect(node.pre_comment).to.be(null);
             }
 		};
     };
-    // }}}1
 
     const test_cases = [
-		// {{{1 Exponentiation operator (15)
-        make_operator_tester("Exponentiation operator", 15, "**"),
+		// Exponentiation operator (15)
+        make_operator_tester("Exponentiation", 15, "**"),
 
-		// {{{1 Arithmetic operator (14)
-        make_operator_tester("Arithmetic operator", 14, "*"),
-        make_operator_tester("Arithmetic operator", 14, "%"),
-        make_operator_tester("Arithmetic operator", 14, "/"),
+		// Arithmetic operator (14)
+        make_operator_tester("Arithmetic", 14, "*"),
+        make_operator_tester("Arithmetic", 14, "%"),
+        make_operator_tester("Arithmetic", 14, "/"),
 
-		// {{{1 Arithmetic operator (13)
-        make_operator_tester("Arithmetic operator", 13, "+"),
-        make_operator_tester("Arithmetic operator", 13, "-"),
+		// Arithmetic operator (13)
+        make_operator_tester("Arithmetic", 13, "+"),
+        make_operator_tester("Arithmetic", 13, "-"),
 
-		// {{{1 Bitwise shift operator (12)
-        make_operator_tester("Bitwise shift operator", 12, "<<"),
-        make_operator_tester("Bitwise shift operator", 12, ">>"),
-        make_operator_tester("Bitwise shift operator", 12, ">>>"),
+		// Bitwise shift operator (12)
+        make_operator_tester("Bitwise shift", 12, "<<"),
+        make_operator_tester("Bitwise shift", 12, ">>"),
+        make_operator_tester("Bitwise shift", 12, ">>>"),
 
-		// {{{1 Comparision operator (11)
-        make_operator_tester("Comparision operator" , 11 , ">"),
-        make_operator_tester("Comparision operator" , 11 , "<"),
-        make_operator_tester("Comparision operator" , 11 , ">="),
-        make_operator_tester("Comparision operator" , 11 , "<="),
-        make_operator_tester("In operator"          , 11 , "in"),
-        make_operator_tester("Instanceof operator"  , 11 , "instanceof"),
+		// Comparision operator (11)
+        make_operator_tester("Comparision" , 11 , ">"),
+        make_operator_tester("Comparision" , 11 , "<"),
+        make_operator_tester("Comparision" , 11 , ">="),
+        make_operator_tester("Comparision" , 11 , "<="),
+        make_operator_tester("In"          , 11 , "in"),
+        make_operator_tester("Instanceof"  , 11 , "instanceof"),
 
-		// {{{1 Equality operator (10)
-        make_operator_tester("Equality operator", 10, "=="),
-        make_operator_tester("Equality operator", 10, "!="),
-        make_operator_tester("Equality operator", 10, "==="),
-        make_operator_tester("Equality operator", 10, "!=="),
+		// Equality operator (10)
+        make_operator_tester("Equality", 10, "=="),
+        make_operator_tester("Equality", 10, "!="),
+        make_operator_tester("Equality", 10, "==="),
+        make_operator_tester("Equality", 10, "!=="),
 
-		// {{{1 Bitwise and operator (9)
-        make_operator_tester("Bitwise and operator", 9, "&"),
+		// Bitwise and operator (9)
+        make_operator_tester("Bitwise and", 9, "&"),
 
-		// {{{1 Bitwise xor operator (8)
-        make_operator_tester("Bitwise xor operator", 8, "^"),
+		// Bitwise xor operator (8)
+        make_operator_tester("Bitwise xor", 8, "^"),
 
-		// {{{1 Bitwise or operator (7)
-        make_operator_tester("Bitwise or operator", 7, "|"),
+		// Bitwise or operator (7)
+        make_operator_tester("Bitwise or", 7, "|"),
 
-		// {{{1 Logical and operator (6)
-        make_operator_tester("Logical and operator", 6, "&&"),
+		// Logical and operator (6)
+        make_operator_tester("Logical and", 6, "&&"),
 
-		// {{{1 Logical or operator (5)
-        make_operator_tester("Logical or operator", 5, "||"),
+		// Logical or operator (5)
+        make_operator_tester("Logical or", 5, "||"),
 
-		// {{{1 Assignment operator (3)
-        make_operator_tester("Assignment operator", 3, '='),
-        make_operator_tester("Assignment operator", 3, "+="),
-        make_operator_tester("Assignment operator", 3, "-="),
-        make_operator_tester("Assignment operator", 3, "*="),
-        make_operator_tester("Assignment operator", 3, "/="),
-        make_operator_tester("Assignment operator", 3, "%="),
-        make_operator_tester("Assignment operator", 3, "&="),
-        make_operator_tester("Assignment operator", 3, "|="),
-        make_operator_tester("Assignment operator", 3, "^="),
-        make_operator_tester("Assignment operator", 3, "**="),
-        make_operator_tester("Assignment operator", 3, "<<="),
-        make_operator_tester("Assignment operator", 3, ">>="),
-        make_operator_tester("Assignment operator", 3, ">>>="),
+		// Assignment operator (3)
+        make_operator_tester("Assignment", 3, '='),
+        make_operator_tester("Assignment", 3, "+="),
+        make_operator_tester("Assignment", 3, "-="),
+        make_operator_tester("Assignment", 3, "*="),
+        make_operator_tester("Assignment", 3, "/="),
+        make_operator_tester("Assignment", 3, "%="),
+        make_operator_tester("Assignment", 3, "&="),
+        make_operator_tester("Assignment", 3, "|="),
+        make_operator_tester("Assignment", 3, "^="),
+        make_operator_tester("Assignment", 3, "**="),
+        make_operator_tester("Assignment", 3, "<<="),
+        make_operator_tester("Assignment", 3, ">>="),
+        make_operator_tester("Assignment", 3, ">>>="),
 
-		// {{{1 Commented expression
+		// Commented expression
 		{
-            id         : "Arithmetic operator",
-            source     : `/*a*/ id /*b*/ + /*c*/ 5`,
-			precedence : 13,
-            left       : (symbol, streamer) => {
-                expect(symbol.id).to.be("Identifier");
-                expect(symbol.token.value).to.be("id");
-                expect(symbol.pre_comment).not.to.be(null);
+            id           : "Arithmetic operator",
+            source       : "/*a*/ id /*b*/ + /*c*/ 5",
+            expected_src : "id /*b*/ + /*c*/ 5",
+			precedence   : 13,
+            left : (node, streamer) => {
+                expect(node.id).to.be("Identifier");
+                expect(node.value).to.be("id");
+                expect(node.pre_comment).not.to.be(null);
 
-                expect(streamer.substring_from_token(symbol.pre_comment)).to.be("/*a*/");
-                expect(streamer.substring_from_token(symbol)).to.be("/*a*/ id");
+                expect(streamer.substring_from_token(
+                    node.pre_comment
+                )).to.be("/*a*/");
             },
-            right      : (symbol, streamer) => {
-                expect(symbol.id).to.be("Numeric literal");
-                expect(symbol.token.value).to.be("5");
-                expect(symbol.pre_comment).not.to.be(null);
+            right : (node, streamer) => {
+                expect(node.id).to.be("Numeric literal");
+                expect(node.value).to.be("5");
+                expect(node.pre_comment).not.to.be(null);
 
-                expect(streamer.substring_from_token(symbol.pre_comment)).to.be("/*c*/");
-                expect(streamer.substring_from_token(symbol)).to.be("/*c*/ 5");
+                expect(streamer.substring_from_token(
+                    node.pre_comment
+                )).to.be("/*c*/");
             },
-			operator   : (symbol, streamer) => {
-                expect(symbol.id).to.be("Operator");
-                expect(symbol.token.value).to.be('+');
-                expect(symbol.pre_comment).not.to.be(null);
+			operator : (node, streamer) => {
+                expect(node.id).to.be("Operator");
+                expect(node.value).to.be('+');
+                expect(node.pre_comment).not.to.be(null);
 
-                expect(streamer.substring_from_token(symbol.pre_comment)).to.be("/*b*/");
-                expect(streamer.substring_from_token(symbol)).to.be("/*b*/ +");
+                expect(streamer.substring_from_token(
+                    node.pre_comment
+                )).to.be("/*b*/");
             }
 		}
-        // }}}1
     ];
 
     test_cases.forEach(test_case => {
-        describe(`Test against source text '${ test_case.source }'`, () => {
+        test_source(test_case.source, () => {
             parser.tokenizer.init(test_case.source);
             parser.prepare_next_state("expression");
 
-            let symbol;
-            try {
-                symbol = parser.get_next_symbol(0);
-            } catch (e) {}
             const streamer = parser.tokenizer.streamer;
+            let node;
+            try {
+                node = parser.parse_next_node(0);
+            } catch (e) {}
 
             it(`should be ${ test_case.id }`, () => {
-                expect(symbol.id).to.be(test_case.id);
-                expect(symbol.type).to.be("Binary operator");
-                expect(symbol.precedence).to.be(test_case.precedence);
+                expect(node.id).to.be(test_case.id);
+                expect(node.type).to.be("Binary operator");
+                expect(node.precedence).to.be(test_case.precedence);
             });
 
-            it(`should be operator: '${ test_case.operator.value }'`, () => {
-                test_case.operator(symbol.operator, streamer);
+            it(`should be operator: '${ test_case.op }'`, () => {
+                test_case.operator(node.operator, streamer);
             });
 
             it("should be in exact range", () => {
-                expect(streamer.substring_from_token(symbol)).to.be(test_case.source);
-                expect(streamer.get_current_character()).to.be('');
-                expect(streamer.cursor.index).to.be(test_case.source.length);
+                const src = test_case.expected_src || test_case.source;
+                expect(streamer.substring_from_token(node)).to.be(src);
+                expect(streamer.get_current_character()).to.be(null);
+                expect(streamer.cursor.position.index).to.be(
+                    test_case.source.length
+                );
             });
 
-            it("should be correct left symbol", () => {
-                test_case.left(symbol.left, streamer);
+            it("should be correct left node", () => {
+                test_case.left(node.left, streamer);
             });
 
-            it("should be correct right symbol", () => {
-                test_case.right(symbol.right, streamer);
+            it("should be correct right node", () => {
+                test_case.right(node.right, streamer);
             });
         });
     });

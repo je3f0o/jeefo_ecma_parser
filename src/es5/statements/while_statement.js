@@ -1,47 +1,44 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : while_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-23
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+* Reference   : https://www.ecma-international.org/ecma-262/5.1/#sec-12.6.2
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum               = require("../enums/states_enum"),
-      precedence_enum           = require("../enums/precedence_enum"),
-      get_pre_comment           = require("../helpers/get_pre_comment"),
-      get_start_position        = require("../helpers/get_start_position"),
-      get_surrounded_expression = require("../helpers/get_surrounded_expression");
+const { statement }              = require("../enums/states_enum");
+const { terminal_definition }    = require("../../common");
+const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
 
 module.exports = {
 	id         : "While statement",
 	type       : "Statement",
-	precedence : 31,
+	precedence : STATEMENT,
 
-    is         : (token, parser) => parser.current_state === states_enum.statement,
-    initialize : (symbol, current_token, parser) => {
-        const pre_comment = get_pre_comment(parser);
+	is         : (token, parser) => parser.current_state === statement,
+    initialize : (node, current_token, parser) => {
+        const keyword = terminal_definition.generate_new_node(parser);
 
-        // Surrounded expression
-        parser.prepare_next_state(null, true);
-        parser.expect('(', parser => parser.next_token.value === '(');
-        const surrounded_expression = get_surrounded_expression(parser);
+        parser.prepare_next_state("parenthesized_expression", true);
+        const expression = parser.generate_next_node();
 
         // Statement
         parser.prepare_next_state(null, true);
-        const statement = parser.get_next_symbol(precedence_enum.TERMINATION);
+        const statement = parser.parse_next_node(TERMINATION);
 
-        symbol.expression  = surrounded_expression;
-        symbol.statement   = statement;
-        symbol.pre_comment = pre_comment;
-        symbol.start       = get_start_position(pre_comment, current_token);
-        symbol.end         = statement.end;
+        node.keyword           = keyword;
+        node.expression        = expression.expression;
+        node.statement         = statement;
+        node.start             = keyword.start;
+        node.end               = statement.end;
     }
 };

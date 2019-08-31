@@ -1,56 +1,55 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : throw_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-01
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
+* Reference   : https://www.ecma-international.org/ecma-262/5.1/#sec-12.13
 .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum        = require("../enums/states_enum"),
-      precedence_enum    = require("../enums/precedence_enum"),
-      get_pre_comment    = require("../helpers/get_pre_comment"),
-      get_start_position = require("../helpers/get_start_position");
+const { statement }              = require("../enums/states_enum");
+const { get_right_value }        = require("../helpers");
+const { terminal_definition }    = require("../../common");
+const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
 
 module.exports = {
 	id         : "Throw statement",
 	type       : "Statement",
-	precedence : 31,
+	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === states_enum.statement,
-    initialize : (symbol, current_token, parser) => {
-        let asi        = true,
-            end        = current_token.end,
-            expression = null;
-        const pre_comment = get_pre_comment(parser);
+	is         : (token, parser) => parser.current_state === statement,
+    initialize : (node, current_token, parser) => {
+        let terminator = null;
+        const keyword  = terminal_definition.generate_new_node(parser);
 
         parser.prepare_next_state("expression", true);
-        if (parser.next_token.start.line > current_token.start.line) {
+        if (parser.next_token.start.line > keyword.start.line) {
             parser.throw_unexpected_token("Illegal newline after throw");
-        } else {
-            parser.expect("expression", parser => parser.next_token.value !== ';');
-            expression = parser.get_next_symbol(precedence_enum.TERMINATION);
-            if (parser.next_token && parser.next_token.value === ';') {
-                asi = false;
-                end = parser.next_token.end;
-            } else {
-                end = expression.end;
-            }
+        }
+        parser.post_comment = null;
+        const expression = get_right_value(parser, TERMINATION);
+        parser.prev_node = parser.post_comment;
+
+        if (parser.next_token            !== null &&
+            parser.next_token.value      === ';'  &&
+            parser.next_token.start.line === expression.end.line) {
+            terminator = parser.generate_next_node();
         }
 
-        symbol.expression  = expression;
-        symbol.ASI         = asi;
-        symbol.pre_comment = pre_comment;
-        symbol.start       = get_start_position(pre_comment, current_token);
-        symbol.end         = end;
+        node.keyword    = keyword;
+        node.expression = expression;
+        node.terminator = terminator;
+        node.start      = keyword.start;
+        node.end        = (terminator || expression).end;
 
-        parser.terminate(symbol);
+        parser.terminate(node);
     }
 };

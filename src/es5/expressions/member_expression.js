@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : member_expression.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-03-19
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,35 +10,46 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const operator_definition     = require("../common/operator_definition"),
-      is_expression           = require("../helpers/is_expression"),
-      prepare_next_expression = require("../helpers/prepare_next_expression");
+const { is_expression }     = require("../helpers");
+const { MEMBER_EXPRESSION } = require("../enums/precedence_enum");
+const {
+    is_identifier_name,
+    is_reference_operator,
+} = require("../../helpers");
+const {
+    identifier_name,
+    terminal_definition,
+} = require("../../common");
 
 module.exports = {
     id         : "Member expression",
 	type       : "Expression",
-	precedence : 19,
+	precedence : MEMBER_EXPRESSION,
 
-    is : (current_token, parser) =>
-        is_expression(parser) && current_token.value === '.',
+    is : (token, parser) => {
+        return is_expression(parser) && is_reference_operator(token);
+    },
+	initialize : (node, current_token, parser) => {
+        const object   = parser.prev_node;
+        const operator = terminal_definition.generate_new_node(parser);
 
-	initialize : (symbol, current_token, parser) => {
-        const object   = parser.current_symbol;
-        const operator = operator_definition.generate_new_symbol(parser);
+        const { current_state } = parser;
+        parser.prepare_next_state("expression", true);
+        parser.expect("IdentifierName", is_identifier_name);
+        const property = identifier_name.generate_new_node(parser);
 
-        prepare_next_expression(parser, true);
-        parser.expect("identifier", parser => parser.next_symbol_definition.id === "Identifier");
-        const property = parser.get_next_symbol(symbol.precedence);
+        node.object   = object;
+        node.operator = operator;
+        node.property = property;
+        node.start    = object.start;
+        node.end      = property.end;
 
-        symbol.object   = object;
-        symbol.operator = operator;
-        symbol.property = property;
-        symbol.start    = object.start;
-        symbol.end      = property.end;
+        parser.ending_index  = node.end.index;
+        parser.current_state = current_state;
     },
 };

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : debugger_statement.js
 * Created at  : 2019-03-01
-* Updated at  : 2019-03-03
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,43 +10,36 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum        = require("../enums/states_enum"),
-      get_pre_comment    = require("../helpers/get_pre_comment"),
-      get_start_position = require("../helpers/get_start_position");
+const { statement }           = require("../enums/states_enum");
+const { STATEMENT }           = require("../enums/precedence_enum");
+const { is_terminator }       = require("../../helpers");
+const { terminal_definition } = require("../../common");
 
 module.exports = {
 	id         : "Debugger statement",
 	type       : "Statement",
-	precedence : 31,
+	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === states_enum.statement,
-    initialize : (symbol, current_token, parser) => {
-        let asi          = true,
-            end          = current_token.end,
-            post_comment = null;
-        const pre_comment = get_pre_comment(parser);
+	is         : (token, parser) => parser.current_state === statement,
+    initialize : (node, current_token, parser) => {
+        const keyword = terminal_definition.generate_new_node(parser);
 
+        let terminator = null;
         parser.prepare_next_state();
-        if (parser.next_token            !== null &&
-            parser.next_token.start.line === current_token.start.line) {
-            if (parser.next_token.value === ';') {
-                end = parser.next_token.end;
-            } else {
-                parser.throw_unexpected_token();
-            }
+        if (is_terminator(parser)) {
+            terminator = terminal_definition.generate_new_node(parser);
         }
 
-        symbol.ASI          = asi;
-        symbol.pre_comment  = pre_comment;
-        symbol.post_comment = post_comment;
-        symbol.start        = get_start_position(pre_comment, current_token);
-        symbol.end          = end;
+        node.keyword    = keyword;
+        node.terminator = terminator;
+        node.start      = keyword.start;
+        node.end        = (terminator || keyword).end;
 
-        parser.terminate(symbol);
+        parser.terminate(node);
     }
 };

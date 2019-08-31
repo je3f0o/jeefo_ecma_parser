@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : conditional_operator.js
 * Created at  : 2019-03-28
-* Updated at  : 2019-03-28
+* Updated at  : 2019-08-27
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,47 +10,66 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const precedence_enum             = require("../enums/precedence_enum"),
-      operator_definition         = require("../common/operator_definition"),
-      is_expression               = require("../helpers/is_expression"),
-      get_current_state_name      = require("../helpers/get_current_state_name"),
-      get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
+const { TERNARY } = require("../enums/precedence_enum");
+const {
+    terminal_definition : terminal
+} = require("../../common");
+const {
+    is_expression,
+    prepare_next_expression,
+} = require("../helpers");
+const {
+    is_colon,
+    is_operator_token,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 module.exports = {
     id         : "Conditional operator",
     type       : "Ternary operator",
-    precedence : precedence_enum.TERNARY,
+    precedence : TERNARY,
 
-    is : (token, parser) =>
-        token.value === '?'   &&
-        is_expression(parser) &&
-        get_last_non_comment_symbol(parser) !== null,
+    is : (token, parser) => {
+        if (is_expression(parser) && is_operator_token(token, '?')) {
+            return get_last_non_comment_node(parser) !== null;
+        }
+    },
+    initialize : (node, current_token, parser) => {
+        const condition         = get_last_non_comment_node(parser);
+        const question_operator = terminal.generate_new_node(parser);
+        const { current_state } = parser;
 
-    initialize : (symbol, current_token, parser) => {
-        const condition         = parser.current_symbol;
-        const expression_name   = get_current_state_name(parser);
-        const question_operator = operator_definition.generate_new_symbol(parser);
+        prepare_next_expression(parser, true);
+        let expression = parser.parse_next_node(TERNARY);
+        if (expression === null) {
+            parser.throw_unexpected_token();
+        }
+        const truthy_expression = get_last_non_comment_node(parser);
 
-        parser.prepare_next_state("expression", true);
-        const truthy_expression = parser.get_next_symbol(precedence_enum.TERMINATION);
+        parser.expect(':', is_colon);
+        const colon_operator = terminal.generate_new_node(parser);
 
-        parser.expect(':', parser => parser.next_token.value === ':');
-        const colon_operator = operator_definition.generate_new_symbol(parser);
+        prepare_next_expression(parser, true);
+        expression = parser.parse_next_node(TERNARY);
+        if (expression === null) {
+            parser.throw_unexpected_token();
+        }
+        const falsy_expression = get_last_non_comment_node(parser);
 
-        parser.prepare_next_state(expression_name, true);
-        const falsy_expression = parser.get_next_symbol(precedence_enum.TERMINATION);
+        node.condition         = condition;
+        node.question_operator = question_operator;
+        node.truthy_expression = truthy_expression;
+        node.colon_operator    = colon_operator;
+        node.falsy_expression  = falsy_expression;
+        node.start             = condition.start;
+        node.end               = falsy_expression.end;
 
-        symbol.condition         = condition;
-        symbol.question_operator = question_operator;
-        symbol.truthy_expression = truthy_expression;
-        symbol.colon_operator    = colon_operator;
-        symbol.falsy_expression  = falsy_expression;
-        symbol.start             = condition.start;
-        symbol.end               = falsy_expression.end;
+        parser.ending_index  = node.end.index;
+        parser.current_state = current_state;
     }
 };

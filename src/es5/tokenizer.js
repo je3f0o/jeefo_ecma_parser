@@ -1,74 +1,65 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2019-03-27
+* Updated at  : 2019-06-28
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+* Reference   :
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const Tokenizer  = require("jeefo_tokenizer"),
-	  delimiters = require("./token_definitions/delimiters");
+const JeefoTokenizer = require("@jeefo/parser").JeefoTokenizer;
+const delimiters     = require("./token_definitions/delimiters");
 
-const es5_tokenizer = new Tokenizer();
+const es5_tokenizer = new JeefoTokenizer();
 
 es5_tokenizer.
-// Identifier {{{1
+// Identifier
 register({
     id       : "Identifier",
     priority : 0,
 
     is         : () => true,
-    initialize : (token, current_character, streamer) => {
-        const start = streamer.get_cursor();
+    initialize : (token, _, streamer) => {
+        const start = streamer.clone_cursor_position();
         let length = 1;
 
         while (true) {
-            let next_character = streamer.at(start.index + length);
-            if (next_character === null || next_character <= ' ' || delimiters.includes(next_character)) {
-                break;
-            }
+            let character = streamer.at(start.index + length);
+            if (character === null ||
+                character <= ' '   ||
+                delimiters.includes(character)) { break; }
 
             length += 1;
         }
 
-        streamer.move_cursor(length - 1);
+        streamer.cursor.move(length - 1);
 
-        token.value = streamer.substring_from(start.index);
+        token.value = streamer.substring_from_offset(start.index);
         token.start = start;
-        token.end   = streamer.get_cursor();
+        token.end   = streamer.clone_cursor_position();
     },
 }).
 
-// Slash {{{1
+// Slash
 register({
     id       : "Slash",
-    priority : 50,
+    priority : 19,
 
-	is : (current_character, streamer) => {
-		if (current_character === '/') {
-			switch (streamer.at(streamer.cursor.index + 1)) {
-                case '*' :
-                case '/' :
-                    return false;
-            }
-			return true;
-		}
-        return false;
-	},
+	is         : current_character => current_character === '/',
     initialize : (token, current_character, streamer) => {
-        token.value = '/';
-        token.start = token.end = streamer.get_cursor();
+        token.value = current_character;
+        token.start = streamer.clone_cursor_position();
+        token.end   = streamer.clone_cursor_position();
     },
 });
-// }}}1
 
 es5_tokenizer.register(require("./token_definitions/delimiter_definition"));
 es5_tokenizer.register(require("./token_definitions/comment"));

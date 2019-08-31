@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : computed_member_expression.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-03-19
+* Updated at  : 2019-08-29
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,57 +10,59 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const precedence_enum             = require("../enums/precedence_enum"),
-      operator_definition         = require("../common/operator_definition"),
-      is_expression               = require("../helpers/is_expression"),
-      prepare_next_expression     = require("../helpers/prepare_next_expression"),
-      get_current_state_name      = require("../helpers/get_current_state_name"),
-      get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
+const { is_expression }       = require("../helpers");
+const { terminal_definition } = require("../../common");
+const {
+    TERMINATION,
+    MEMBER_EXPRESSION,
+} = require("../enums/precedence_enum");
+const {
+    is_delimiter_token,
+    is_close_square_bracket,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 module.exports = {
     id         : "Computed member expression",
 	type       : "Expression",
-	precedence : 19,
+	precedence : MEMBER_EXPRESSION,
 
-    is : (current_token, parser) => {
-        if (is_expression(parser) && current_token.value === '[') {
-            const lvalue = get_last_non_comment_symbol(parser);
+    is : (token, parser) => {
+        if (is_expression(parser) && is_delimiter_token(token, '[')) {
+            const lvalue = get_last_non_comment_node(parser);
             if (lvalue !== null) {
                 // TODO: check lvalue
                 return true;
             }
         }
-        return false;
     },
 
-	initialize : (symbol, current_token, parser) => {
-        const object = parser.current_symbol;
+	initialize : (node, current_token, parser) => {
+        const object = get_last_non_comment_node(parser);
+        const prev_state = parser.current_state;
 
-        const state_name = get_current_state_name(parser);
-        parser.current_symbol   = null;
-        parser.previous_symbols = [];
-        parser.change_state(state_name);
+        parser.change_state("delimiter");
+        const open = terminal_definition.generate_new_node(parser);
 
-        const open_square_bracket = operator_definition.generate_new_symbol(parser);
+        parser.prepare_next_state("expression", true);
+        const expression = parser.parse_next_node(TERMINATION);
 
-        prepare_next_expression(parser, true);
-        const expression = parser.get_next_symbol(precedence_enum.TERMINATION);
+        parser.expect(']', is_close_square_bracket);
+        const close = terminal_definition.generate_new_node(parser);
 
-        parser.expect(']', parser => parser.next_token.value === ']');
-        const close_square_bracket = operator_definition.generate_new_symbol(parser);
+        node.object               = object;
+        node.open_square_bracket  = open;
+        node.expression           = expression;
+        node.close_square_bracket = close;
+        node.start                = object.start;
+        node.end                  = close.end;
 
-        symbol.object               = object;
-        symbol. open_square_bracket = open_square_bracket;
-        symbol.expression           = expression;
-        symbol.close_square_bracket = close_square_bracket;
-        symbol.start                = object.start;
-        symbol.end                  = close_square_bracket.end;
-
-        parser.prepare_next_state(state_name);
+        parser.ending_index  = node.end.index;
+        parser.current_state = prev_state;
     },
 };

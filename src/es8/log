@@ -1,0 +1,4186 @@
+----------------------------
+AST_Node {
+  id: 'String literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment:
+   AST_Node {
+     id: 'Comment',
+     type: 'Primitive',
+     precedence: 32,
+     previous_comment:
+      AST_Node {
+        id: 'Comment',
+        type: 'Primitive',
+        precedence: 32,
+        previous_comment: null,
+        value:
+         '-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.\n* File Name   : binary_operators.js\n* Created at  : 2019-01-24\n* Updated at  : 2019-08-06\n* Author      : jeefo\n* Purpose     :\n* Description :\n* Reference   :\n.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.',
+        is_inline: false,
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     value: 'ignore:start',
+     is_inline: true,
+     start:
+      CursorPosition { index: 320, line: 10, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 335, line: 10, column: 16, virtual_column: 16 } },
+  value: 'use strict',
+  quote: '"',
+  start:
+   CursorPosition { index: 336, line: 11, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 347, line: 11, column: 12, virtual_column: 12 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 348, line: 11, column: 13, virtual_column: 13 },
+  end:
+   CursorPosition { index: 348, line: 11, column: 13, virtual_column: 13 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'String literal',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment:
+      AST_Node {
+        id: 'Comment',
+        type: 'Primitive',
+        precedence: 32,
+        previous_comment: [AST_Node],
+        value: 'ignore:start',
+        is_inline: true,
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     value: 'use strict',
+     quote: '"',
+     start:
+      CursorPosition { index: 336, line: 11, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 347, line: 11, column: 12, virtual_column: 12 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 348, line: 11, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 348, line: 11, column: 13, virtual_column: 13 } },
+  start:
+   CursorPosition { index: 336, line: 11, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 348, line: 11, column: 13, virtual_column: 13 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment:
+   AST_Node {
+     id: 'Comment',
+     type: 'Primitive',
+     precedence: 32,
+     previous_comment:
+      AST_Node {
+        id: 'Comment',
+        type: 'Primitive',
+        precedence: 32,
+        previous_comment: [AST_Node],
+        value: 'exported',
+        is_inline: false,
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     value: 'ignore:end',
+     is_inline: true,
+     start:
+      CursorPosition { index: 379, line: 16, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 392, line: 16, column: 14, virtual_column: 14 } },
+  value: 'const',
+  start:
+   CursorPosition { index: 394, line: 18, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 398, line: 18, column: 5, virtual_column: 5 } }
+--------
+Token {
+  value: 'states_enum',
+  start:
+   CursorPosition { index: 400, line: 18, column: 7, virtual_column: 7 },
+  end:
+   CursorPosition { index: 410, line: 18, column: 17, virtual_column: 17 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'require',
+  start:
+   CursorPosition { index: 422, line: 18, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 428, line: 18, column: 35, virtual_column: 35 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 429, line: 18, column: 36, virtual_column: 36 },
+  end:
+   CursorPosition { index: 429, line: 18, column: 36, virtual_column: 36 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'String literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: '../enums/states_enum',
+  quote: '"',
+  start:
+   CursorPosition { index: 430, line: 18, column: 37, virtual_column: 37 },
+  end:
+   CursorPosition { index: 451, line: 18, column: 58, virtual_column: 58 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 452, line: 18, column: 59, virtual_column: 59 },
+  end:
+   CursorPosition { index: 452, line: 18, column: 59, virtual_column: 59 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'require',
+     start:
+      CursorPosition { index: 422, line: 18, column: 29, virtual_column: 29 },
+     end:
+      CursorPosition { index: 428, line: 18, column: 35, virtual_column: 35 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 429, line: 18, column: 36, virtual_column: 36 },
+     end:
+      CursorPosition { index: 452, line: 18, column: 59, virtual_column: 59 } },
+  start:
+   CursorPosition { index: 422, line: 18, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 452, line: 18, column: 59, virtual_column: 59 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 453, line: 18, column: 60, virtual_column: 60 },
+  end:
+   CursorPosition { index: 453, line: 18, column: 60, virtual_column: 60 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment:
+      AST_Node {
+        id: 'Comment',
+        type: 'Primitive',
+        precedence: 32,
+        previous_comment: [AST_Node],
+        value: 'ignore:end',
+        is_inline: true,
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     value: 'const',
+     start:
+      CursorPosition { index: 394, line: 18, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 398, line: 18, column: 5, virtual_column: 5 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 453, line: 18, column: 60, virtual_column: 60 },
+     end:
+      CursorPosition { index: 453, line: 18, column: 60, virtual_column: 60 } },
+  start:
+   CursorPosition { index: 394, line: 18, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 453, line: 18, column: 60, virtual_column: 60 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 455, line: 19, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 459, line: 19, column: 5, virtual_column: 5 } }
+--------
+Token {
+  value: 'operator_definition',
+  start:
+   CursorPosition { index: 461, line: 19, column: 7, virtual_column: 7 },
+  end:
+   CursorPosition { index: 479, line: 19, column: 25, virtual_column: 25 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'require',
+  start:
+   CursorPosition { index: 483, line: 19, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 489, line: 19, column: 35, virtual_column: 35 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 490, line: 19, column: 36, virtual_column: 36 },
+  end:
+   CursorPosition { index: 490, line: 19, column: 36, virtual_column: 36 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'String literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: '../common/operator_definition',
+  quote: '"',
+  start:
+   CursorPosition { index: 491, line: 19, column: 37, virtual_column: 37 },
+  end:
+   CursorPosition { index: 521, line: 19, column: 67, virtual_column: 67 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 522, line: 19, column: 68, virtual_column: 68 },
+  end:
+   CursorPosition { index: 522, line: 19, column: 68, virtual_column: 68 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'require',
+     start:
+      CursorPosition { index: 483, line: 19, column: 29, virtual_column: 29 },
+     end:
+      CursorPosition { index: 489, line: 19, column: 35, virtual_column: 35 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 490, line: 19, column: 36, virtual_column: 36 },
+     end:
+      CursorPosition { index: 522, line: 19, column: 68, virtual_column: 68 } },
+  start:
+   CursorPosition { index: 483, line: 19, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 522, line: 19, column: 68, virtual_column: 68 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 523, line: 19, column: 69, virtual_column: 69 },
+  end:
+   CursorPosition { index: 523, line: 19, column: 69, virtual_column: 69 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 455, line: 19, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 459, line: 19, column: 5, virtual_column: 5 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 523, line: 19, column: 69, virtual_column: 69 },
+     end:
+      CursorPosition { index: 523, line: 19, column: 69, virtual_column: 69 } },
+  start:
+   CursorPosition { index: 455, line: 19, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 523, line: 19, column: 69, virtual_column: 69 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 525, line: 20, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 529, line: 20, column: 5, virtual_column: 5 } }
+--------
+Token {
+  value: '{',
+  start:
+   CursorPosition { index: 531, line: 20, column: 7, virtual_column: 7 },
+  end:
+   CursorPosition { index: 531, line: 20, column: 7, virtual_column: 7 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'require',
+  start:
+   CursorPosition { index: 645, line: 25, column: 5, virtual_column: 5 },
+  end:
+   CursorPosition { index: 651, line: 25, column: 11, virtual_column: 11 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 652, line: 25, column: 12, virtual_column: 12 },
+  end:
+   CursorPosition { index: 652, line: 25, column: 12, virtual_column: 12 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'String literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: '../helpers',
+  quote: '"',
+  start:
+   CursorPosition { index: 653, line: 25, column: 13, virtual_column: 13 },
+  end:
+   CursorPosition { index: 664, line: 25, column: 24, virtual_column: 24 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 665, line: 25, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 665, line: 25, column: 25, virtual_column: 25 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'require',
+     start:
+      CursorPosition { index: 645, line: 25, column: 5, virtual_column: 5 },
+     end:
+      CursorPosition { index: 651, line: 25, column: 11, virtual_column: 11 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 652, line: 25, column: 12, virtual_column: 12 },
+     end:
+      CursorPosition { index: 665, line: 25, column: 25, virtual_column: 25 } },
+  start:
+   CursorPosition { index: 645, line: 25, column: 5, virtual_column: 5 },
+  end:
+   CursorPosition { index: 665, line: 25, column: 25, virtual_column: 25 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 666, line: 25, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 666, line: 25, column: 26, virtual_column: 26 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 525, line: 20, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 529, line: 20, column: 5, virtual_column: 5 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 666, line: 25, column: 26, virtual_column: 26 },
+     end:
+      CursorPosition { index: 666, line: 25, column: 26, virtual_column: 26 } },
+  start:
+   CursorPosition { index: 525, line: 20, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 666, line: 25, column: 26, virtual_column: 26 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'module',
+     start:
+      CursorPosition { index: 669, line: 27, column: 1, virtual_column: 1 },
+     end:
+      CursorPosition { index: 674, line: 27, column: 6, virtual_column: 6 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 675, line: 27, column: 7, virtual_column: 7 },
+     end:
+      CursorPosition { index: 675, line: 27, column: 7, virtual_column: 7 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'exports',
+     start:
+      CursorPosition { index: 676, line: 27, column: 8, virtual_column: 8 },
+     end:
+      CursorPosition { index: 682, line: 27, column: 14, virtual_column: 14 } },
+  start:
+   CursorPosition { index: 669, line: 27, column: 1, virtual_column: 1 },
+  end:
+   CursorPosition { index: 682, line: 27, column: 14, virtual_column: 14 } }
+--------
+Token {
+  value: '=',
+  start:
+   CursorPosition { index: 684, line: 27, column: 16, virtual_column: 16 },
+  end:
+   CursorPosition { index: 684, line: 27, column: 16, virtual_column: 16 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 744, line: 28, column: 5, virtual_column: 5 },
+  end:
+   CursorPosition { index: 748, line: 28, column: 9, virtual_column: 9 } }
+--------
+Token {
+  value: 'is_binary',
+  start:
+   CursorPosition { index: 750, line: 28, column: 11, virtual_column: 11 },
+  end:
+   CursorPosition { index: 758, line: 28, column: 19, virtual_column: 19 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 762, line: 28, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 767, line: 28, column: 28, virtual_column: 28 } }
+--------
+Token {
+  value: '=>',
+  start:
+   CursorPosition { index: 769, line: 28, column: 30, virtual_column: 30 },
+  end:
+   CursorPosition { index: 770, line: 28, column: 31, virtual_column: 31 },
+  id: 'Arrow',
+  priority: 21 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Arrow function',
+  type: 'Expression',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'is_expression',
+  start:
+   CursorPosition { index: 786, line: 29, column: 13, virtual_column: 13 },
+  end:
+   CursorPosition { index: 798, line: 29, column: 25, virtual_column: 25 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 799, line: 29, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 799, line: 29, column: 26, virtual_column: 26 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 800, line: 29, column: 27, virtual_column: 27 },
+  end:
+   CursorPosition { index: 805, line: 29, column: 32, virtual_column: 32 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 806, line: 29, column: 33, virtual_column: 33 },
+  end:
+   CursorPosition { index: 806, line: 29, column: 33, virtual_column: 33 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'is_expression',
+     start:
+      CursorPosition { index: 786, line: 29, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 798, line: 29, column: 25, virtual_column: 25 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 799, line: 29, column: 26, virtual_column: 26 },
+     end:
+      CursorPosition { index: 806, line: 29, column: 33, virtual_column: 33 } },
+  start:
+   CursorPosition { index: 786, line: 29, column: 13, virtual_column: 13 },
+  end:
+   CursorPosition { index: 806, line: 29, column: 33, virtual_column: 33 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 807, line: 29, column: 34, virtual_column: 34 },
+  end:
+   CursorPosition { index: 807, line: 29, column: 34, virtual_column: 34 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'get_last_non_comment_node',
+  start:
+   CursorPosition { index: 830, line: 30, column: 20, virtual_column: 20 },
+  end:
+   CursorPosition { index: 854, line: 30, column: 44, virtual_column: 44 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 855, line: 30, column: 45, virtual_column: 45 },
+  end:
+   CursorPosition { index: 855, line: 30, column: 45, virtual_column: 45 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 856, line: 30, column: 46, virtual_column: 46 },
+  end:
+   CursorPosition { index: 861, line: 30, column: 51, virtual_column: 51 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 862, line: 30, column: 52, virtual_column: 52 },
+  end:
+   CursorPosition { index: 862, line: 30, column: 52, virtual_column: 52 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'get_last_non_comment_node',
+     start:
+      CursorPosition { index: 830, line: 30, column: 20, virtual_column: 20 },
+     end:
+      CursorPosition { index: 854, line: 30, column: 44, virtual_column: 44 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 855, line: 30, column: 45, virtual_column: 45 },
+     end:
+      CursorPosition { index: 862, line: 30, column: 52, virtual_column: 52 } },
+  start:
+   CursorPosition { index: 830, line: 30, column: 20, virtual_column: 20 },
+  end:
+   CursorPosition { index: 862, line: 30, column: 52, virtual_column: 52 } }
+--------
+Token {
+  value: '!==',
+  start:
+   CursorPosition { index: 864, line: 30, column: 54, virtual_column: 54 },
+  end:
+   CursorPosition { index: 866, line: 30, column: 56, virtual_column: 56 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Equality operator',
+  type: 'Binary operator',
+  precedence: 10,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Null literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'null',
+  start:
+   CursorPosition { index: 868, line: 30, column: 58, virtual_column: 58 },
+  end:
+   CursorPosition { index: 871, line: 30, column: 61, virtual_column: 61 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 },
+  end:
+   CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Equality operator',
+  type: 'Binary operator',
+  precedence: 10,
+  left:
+   AST_Node {
+     id: 'Function call expression',
+     type: 'Expression',
+     precedence: 19,
+     callee:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'get_last_non_comment_node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     arguments:
+      AST_Node {
+        id: 'Arguments',
+        type: 'Expression',
+        precedence: -1,
+        open_parenthesis: [AST_Node],
+        list: [Array],
+        delimiters: [],
+        close_parenthesis: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 830, line: 30, column: 20, virtual_column: 20 },
+     end:
+      CursorPosition { index: 862, line: 30, column: 52, virtual_column: 52 } },
+  operator:
+   AST_Node {
+     id: 'Operator',
+     type: 'Operator',
+     precedence: -1,
+     pre_comment: null,
+     value: '!==',
+     start:
+      CursorPosition { index: 864, line: 30, column: 54, virtual_column: 54 },
+     end:
+      CursorPosition { index: 866, line: 30, column: 56, virtual_column: 56 } },
+  right:
+   AST_Node {
+     id: 'Null literal',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'null',
+     start:
+      CursorPosition { index: 868, line: 30, column: 58, virtual_column: 58 },
+     end:
+      CursorPosition { index: 871, line: 30, column: 61, virtual_column: 61 } },
+  start:
+   CursorPosition { index: 830, line: 30, column: 20, virtual_column: 20 },
+  end:
+   CursorPosition { index: 871, line: 30, column: 61, virtual_column: 61 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 },
+  end:
+   CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Return statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Keyword',
+     type: 'Keyword',
+     precedence: -1,
+     pre_comment: null,
+     value: 'return',
+     start:
+      CursorPosition { index: 823, line: 30, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 828, line: 30, column: 18, virtual_column: 18 } },
+  expression:
+   AST_Node {
+     id: 'Equality operator',
+     type: 'Binary operator',
+     precedence: 10,
+     left:
+      AST_Node {
+        id: 'Function call expression',
+        type: 'Expression',
+        precedence: 19,
+        callee: [AST_Node],
+        arguments: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Operator',
+        type: 'Operator',
+        precedence: -1,
+        pre_comment: null,
+        value: '!==',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     right:
+      AST_Node {
+        id: 'Null literal',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'null',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 830, line: 30, column: 20, virtual_column: 20 },
+     end:
+      CursorPosition { index: 871, line: 30, column: 61, virtual_column: 61 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 },
+     end:
+      CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 } },
+  start:
+   CursorPosition { index: 823, line: 30, column: 13, virtual_column: 13 },
+  end:
+   CursorPosition { index: 872, line: 30, column: 62, virtual_column: 62 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Block statement',
+  type: 'Statement',
+  precedence: 40,
+  open_curly_bracket:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: '{',
+     start:
+      CursorPosition { index: 809, line: 29, column: 36, virtual_column: 36 },
+     end:
+      CursorPosition { index: 809, line: 29, column: 36, virtual_column: 36 } },
+  statements:
+   [ AST_Node {
+       id: 'Return statement',
+       type: 'Statement',
+       precedence: 40,
+       keyword: [AST_Node],
+       expression: [AST_Node],
+       terminator: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  close_curly_bracket:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: '}',
+     start:
+      CursorPosition { index: 882, line: 31, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 882, line: 31, column: 9, virtual_column: 9 } },
+  start:
+   CursorPosition { index: 809, line: 29, column: 36, virtual_column: 36 },
+  end:
+   CursorPosition { index: 882, line: 31, column: 9, virtual_column: 9 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'If statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Keyword',
+     type: 'Keyword',
+     precedence: -1,
+     pre_comment: null,
+     value: 'if',
+     start:
+      CursorPosition { index: 782, line: 29, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 783, line: 29, column: 10, virtual_column: 10 } },
+  open_parenthesis:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: '(',
+     start:
+      CursorPosition { index: 785, line: 29, column: 12, virtual_column: 12 },
+     end:
+      CursorPosition { index: 785, line: 29, column: 12, virtual_column: 12 } },
+  expression:
+   AST_Node {
+     id: 'Function call expression',
+     type: 'Expression',
+     precedence: 19,
+     callee:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'is_expression',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     arguments:
+      AST_Node {
+        id: 'Arguments',
+        type: 'Expression',
+        precedence: -1,
+        open_parenthesis: [AST_Node],
+        list: [Array],
+        delimiters: [],
+        close_parenthesis: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 786, line: 29, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 806, line: 29, column: 33, virtual_column: 33 } },
+  close_parenthesis:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ')',
+     start:
+      CursorPosition { index: 807, line: 29, column: 34, virtual_column: 34 },
+     end:
+      CursorPosition { index: 807, line: 29, column: 34, virtual_column: 34 } },
+  statement:
+   AST_Node {
+     id: 'Block statement',
+     type: 'Statement',
+     precedence: 40,
+     open_curly_bracket:
+      AST_Node {
+        id: 'Delimiter',
+        type: 'Delimiter',
+        precedence: -1,
+        pre_comment: null,
+        value: '{',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     statements: [ [AST_Node] ],
+     close_curly_bracket:
+      AST_Node {
+        id: 'Delimiter',
+        type: 'Delimiter',
+        precedence: -1,
+        pre_comment: null,
+        value: '}',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 809, line: 29, column: 36, virtual_column: 36 },
+     end:
+      CursorPosition { index: 882, line: 31, column: 9, virtual_column: 9 } },
+  else_statement: null,
+  start:
+   CursorPosition { index: 782, line: 29, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 882, line: 31, column: 9, virtual_column: 9 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Arrow function',
+  type: 'Expression',
+  precedence: 40,
+  parameters:
+   AST_Node {
+     id: 'Arrow parameters',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis: null,
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis: null,
+     start:
+      CursorPosition { index: 762, line: 28, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 767, line: 28, column: 28, virtual_column: 28 } },
+  arrow_token:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '=>',
+     start:
+      CursorPosition { index: 769, line: 28, column: 30, virtual_column: 30 },
+     end:
+      CursorPosition { index: 770, line: 28, column: 31, virtual_column: 31 } },
+  body:
+   AST_Node {
+     id: 'Function body',
+     type: 'Expression',
+     precedence: -1,
+     open_curly_bracket:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '{',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     statement_list: [ [AST_Node] ],
+     close_curly_bracket:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '}',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 772, line: 28, column: 33, virtual_column: 33 },
+     end:
+      CursorPosition { index: 888, line: 32, column: 5, virtual_column: 5 } },
+  start:
+   CursorPosition { index: 762, line: 28, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 888, line: 32, column: 5, virtual_column: 5 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 889, line: 32, column: 6, virtual_column: 6 },
+  end:
+   CursorPosition { index: 889, line: 32, column: 6, virtual_column: 6 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 744, line: 28, column: 5, virtual_column: 5 },
+     end:
+      CursorPosition { index: 748, line: 28, column: 9, virtual_column: 9 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 889, line: 32, column: 6, virtual_column: 6 },
+     end:
+      CursorPosition { index: 889, line: 32, column: 6, virtual_column: 6 } },
+  start:
+   CursorPosition { index: 744, line: 28, column: 5, virtual_column: 5 },
+  end:
+   CursorPosition { index: 889, line: 32, column: 6, virtual_column: 6 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 896, line: 34, column: 5, virtual_column: 5 },
+  end:
+   CursorPosition { index: 900, line: 34, column: 9, virtual_column: 9 } }
+--------
+Token {
+  value: 'initialize',
+  start:
+   CursorPosition { index: 902, line: 34, column: 11, virtual_column: 11 },
+  end:
+   CursorPosition { index: 911, line: 34, column: 20, virtual_column: 20 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'node',
+  start:
+   CursorPosition { index: 916, line: 34, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 919, line: 34, column: 28, virtual_column: 28 } }
+--------
+Token {
+  value: ',',
+  start:
+   CursorPosition { index: 920, line: 34, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 920, line: 34, column: 29, virtual_column: 29 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Sequence expression',
+  type: 'Expression',
+  precedence: 1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'token',
+  start:
+   CursorPosition { index: 922, line: 34, column: 31, virtual_column: 31 },
+  end:
+   CursorPosition { index: 926, line: 34, column: 35, virtual_column: 35 } }
+--------
+Token {
+  value: ',',
+  start:
+   CursorPosition { index: 927, line: 34, column: 36, virtual_column: 36 },
+  end:
+   CursorPosition { index: 927, line: 34, column: 36, virtual_column: 36 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Sequence expression',
+  type: 'Expression',
+  precedence: 1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 929, line: 34, column: 38, virtual_column: 38 },
+  end:
+   CursorPosition { index: 934, line: 34, column: 43, virtual_column: 43 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 935, line: 34, column: 44, virtual_column: 44 },
+  end:
+   CursorPosition { index: 935, line: 34, column: 44, virtual_column: 44 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Grouping expression',
+  type: 'Expression',
+  precedence: 20,
+  open_parenthesis:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '(',
+     start:
+      CursorPosition { index: 915, line: 34, column: 24, virtual_column: 24 },
+     end:
+      CursorPosition { index: 915, line: 34, column: 24, virtual_column: 24 } },
+  list:
+   [ AST_Node {
+       id: 'Identifier',
+       type: 'Primitive',
+       precedence: 31,
+       pre_comment: null,
+       value: 'node',
+       start: [CursorPosition],
+       end: [CursorPosition] },
+     AST_Node {
+       id: 'Identifier',
+       type: 'Primitive',
+       precedence: 31,
+       pre_comment: null,
+       value: 'token',
+       start: [CursorPosition],
+       end: [CursorPosition] },
+     AST_Node {
+       id: 'Identifier',
+       type: 'Primitive',
+       precedence: 31,
+       pre_comment: null,
+       value: 'parser',
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters:
+   [ AST_Node {
+       id: 'Delimiter',
+       type: 'Delimiter',
+       precedence: -1,
+       pre_comment: null,
+       value: ',',
+       start: [CursorPosition],
+       end: [CursorPosition] },
+     AST_Node {
+       id: 'Delimiter',
+       type: 'Delimiter',
+       precedence: -1,
+       pre_comment: null,
+       value: ',',
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  close_parenthesis:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: ')',
+     start:
+      CursorPosition { index: 935, line: 34, column: 44, virtual_column: 44 },
+     end:
+      CursorPosition { index: 935, line: 34, column: 44, virtual_column: 44 } },
+  start:
+   CursorPosition { index: 915, line: 34, column: 24, virtual_column: 24 },
+  end:
+   CursorPosition { index: 935, line: 34, column: 44, virtual_column: 44 } }
+--------
+Token {
+  value: '=>',
+  start:
+   CursorPosition { index: 937, line: 34, column: 46, virtual_column: 46 },
+  end:
+   CursorPosition { index: 938, line: 34, column: 47, virtual_column: 47 },
+  id: 'Arrow',
+  priority: 21 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Arrow function',
+  type: 'Expression',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 950, line: 35, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 954, line: 35, column: 13, virtual_column: 13 } }
+--------
+Token {
+  value: 'left',
+  start:
+   CursorPosition { index: 956, line: 35, column: 15, virtual_column: 15 },
+  end:
+   CursorPosition { index: 959, line: 35, column: 18, virtual_column: 18 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'get_last_non_comment_node',
+  start:
+   CursorPosition { index: 967, line: 35, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 991, line: 35, column: 50, virtual_column: 50 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 992, line: 35, column: 51, virtual_column: 51 },
+  end:
+   CursorPosition { index: 992, line: 35, column: 51, virtual_column: 51 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 993, line: 35, column: 52, virtual_column: 52 },
+  end:
+   CursorPosition { index: 998, line: 35, column: 57, virtual_column: 57 } }
+--------
+Token {
+  value: ',',
+  start:
+   CursorPosition { index: 999, line: 35, column: 58, virtual_column: 58 },
+  end:
+   CursorPosition { index: 999, line: 35, column: 58, virtual_column: 58 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Sequence expression',
+  type: 'Expression',
+  precedence: 1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Boolean literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'true',
+  start:
+   CursorPosition { index: 1001, line: 35, column: 60, virtual_column: 60 },
+  end:
+   CursorPosition { index: 1004, line: 35, column: 63, virtual_column: 63 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 1005, line: 35, column: 64, virtual_column: 64 },
+  end:
+   CursorPosition { index: 1005, line: 35, column: 64, virtual_column: 64 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'get_last_non_comment_node',
+     start:
+      CursorPosition { index: 967, line: 35, column: 26, virtual_column: 26 },
+     end:
+      CursorPosition { index: 991, line: 35, column: 50, virtual_column: 50 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node], [AST_Node] ],
+     delimiters: [ [AST_Node] ],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 992, line: 35, column: 51, virtual_column: 51 },
+     end:
+      CursorPosition { index: 1005, line: 35, column: 64, virtual_column: 64 } },
+  start:
+   CursorPosition { index: 967, line: 35, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 1005, line: 35, column: 64, virtual_column: 64 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1006, line: 35, column: 65, virtual_column: 65 },
+  end:
+   CursorPosition { index: 1006, line: 35, column: 65, virtual_column: 65 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 950, line: 35, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 954, line: 35, column: 13, virtual_column: 13 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1006, line: 35, column: 65, virtual_column: 65 },
+     end:
+      CursorPosition { index: 1006, line: 35, column: 65, virtual_column: 65 } },
+  start:
+   CursorPosition { index: 950, line: 35, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1006, line: 35, column: 65, virtual_column: 65 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 1016, line: 36, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1020, line: 36, column: 13, virtual_column: 13 } }
+--------
+Token {
+  value: 'operator',
+  start:
+   CursorPosition { index: 1022, line: 36, column: 15, virtual_column: 15 },
+  end:
+   CursorPosition { index: 1029, line: 36, column: 22, virtual_column: 22 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'operator_definition',
+  start:
+   CursorPosition { index: 1033, line: 36, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 1051, line: 36, column: 44, virtual_column: 44 } }
+--------
+Token {
+  value: '.',
+  start:
+   CursorPosition { index: 1052, line: 36, column: 45, virtual_column: 45 },
+  end:
+   CursorPosition { index: 1052, line: 36, column: 45, virtual_column: 45 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'operator_definition',
+     start:
+      CursorPosition { index: 1033, line: 36, column: 26, virtual_column: 26 },
+     end:
+      CursorPosition { index: 1051, line: 36, column: 44, virtual_column: 44 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1052, line: 36, column: 45, virtual_column: 45 },
+     end:
+      CursorPosition { index: 1052, line: 36, column: 45, virtual_column: 45 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'generate_new_node',
+     start:
+      CursorPosition { index: 1053, line: 36, column: 46, virtual_column: 46 },
+     end:
+      CursorPosition { index: 1069, line: 36, column: 62, virtual_column: 62 } },
+  start:
+   CursorPosition { index: 1033, line: 36, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 1069, line: 36, column: 62, virtual_column: 62 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 1070, line: 36, column: 63, virtual_column: 63 },
+  end:
+   CursorPosition { index: 1070, line: 36, column: 63, virtual_column: 63 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 1071, line: 36, column: 64, virtual_column: 64 },
+  end:
+   CursorPosition { index: 1076, line: 36, column: 69, virtual_column: 69 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 1077, line: 36, column: 70, virtual_column: 70 },
+  end:
+   CursorPosition { index: 1077, line: 36, column: 70, virtual_column: 70 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'operator_definition',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'generate_new_node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1033, line: 36, column: 26, virtual_column: 26 },
+     end:
+      CursorPosition { index: 1069, line: 36, column: 62, virtual_column: 62 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node] ],
+     delimiters: [],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1070, line: 36, column: 63, virtual_column: 63 },
+     end:
+      CursorPosition { index: 1077, line: 36, column: 70, virtual_column: 70 } },
+  start:
+   CursorPosition { index: 1033, line: 36, column: 26, virtual_column: 26 },
+  end:
+   CursorPosition { index: 1077, line: 36, column: 70, virtual_column: 70 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1078, line: 36, column: 71, virtual_column: 71 },
+  end:
+   CursorPosition { index: 1078, line: 36, column: 71, virtual_column: 71 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 1016, line: 36, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1020, line: 36, column: 13, virtual_column: 13 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1078, line: 36, column: 71, virtual_column: 71 },
+     end:
+      CursorPosition { index: 1078, line: 36, column: 71, virtual_column: 71 } },
+  start:
+   CursorPosition { index: 1016, line: 36, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1078, line: 36, column: 71, virtual_column: 71 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 1113, line: 38, column: 33, virtual_column: 33 },
+  end:
+   CursorPosition { index: 1118, line: 38, column: 38, virtual_column: 38 } }
+--------
+Token {
+  value: ',',
+  start:
+   CursorPosition { index: 1119, line: 38, column: 39, virtual_column: 39 },
+  end:
+   CursorPosition { index: 1119, line: 38, column: 39, virtual_column: 39 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Sequence expression',
+  type: 'Expression',
+  precedence: 1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Boolean literal',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'true',
+  start:
+   CursorPosition { index: 1121, line: 38, column: 41, virtual_column: 41 },
+  end:
+   CursorPosition { index: 1124, line: 38, column: 44, virtual_column: 44 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 1125, line: 38, column: 45, virtual_column: 45 },
+  end:
+   CursorPosition { index: 1125, line: 38, column: 45, virtual_column: 45 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'prepare_next_expression',
+     start:
+      CursorPosition { index: 1089, line: 38, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1111, line: 38, column: 31, virtual_column: 31 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node], [AST_Node] ],
+     delimiters: [ [AST_Node] ],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1112, line: 38, column: 32, virtual_column: 32 },
+     end:
+      CursorPosition { index: 1125, line: 38, column: 45, virtual_column: 45 } },
+  start:
+   CursorPosition { index: 1089, line: 38, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1125, line: 38, column: 45, virtual_column: 45 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1126, line: 38, column: 46, virtual_column: 46 },
+  end:
+   CursorPosition { index: 1126, line: 38, column: 46, virtual_column: 46 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'Function call expression',
+     type: 'Expression',
+     precedence: 19,
+     callee:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'prepare_next_expression',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     arguments:
+      AST_Node {
+        id: 'Arguments',
+        type: 'Expression',
+        precedence: -1,
+        open_parenthesis: [AST_Node],
+        list: [Array],
+        delimiters: [Array],
+        close_parenthesis: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1089, line: 38, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1125, line: 38, column: 45, virtual_column: 45 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1126, line: 38, column: 46, virtual_column: 46 },
+     end:
+      CursorPosition { index: 1126, line: 38, column: 46, virtual_column: 46 } },
+  start:
+   CursorPosition { index: 1089, line: 38, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1126, line: 38, column: 46, virtual_column: 46 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 1136, line: 39, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1140, line: 39, column: 13, virtual_column: 13 } }
+--------
+Token {
+  value: 'right',
+  start:
+   CursorPosition { index: 1142, line: 39, column: 15, virtual_column: 15 },
+  end:
+   CursorPosition { index: 1146, line: 39, column: 19, virtual_column: 19 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'get_right_value',
+  start:
+   CursorPosition { index: 1150, line: 39, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1164, line: 39, column: 37, virtual_column: 37 } }
+--------
+Token {
+  value: '(',
+  start:
+   CursorPosition { index: 1165, line: 39, column: 38, virtual_column: 38 },
+  end:
+   CursorPosition { index: 1165, line: 39, column: 38, virtual_column: 38 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'parser',
+  start:
+   CursorPosition { index: 1166, line: 39, column: 39, virtual_column: 39 },
+  end:
+   CursorPosition { index: 1171, line: 39, column: 44, virtual_column: 44 } }
+--------
+Token {
+  value: ',',
+  start:
+   CursorPosition { index: 1172, line: 39, column: 45, virtual_column: 45 },
+  end:
+   CursorPosition { index: 1172, line: 39, column: 45, virtual_column: 45 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Sequence expression',
+  type: 'Expression',
+  precedence: 1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'node',
+  start:
+   CursorPosition { index: 1174, line: 39, column: 47, virtual_column: 47 },
+  end:
+   CursorPosition { index: 1177, line: 39, column: 50, virtual_column: 50 } }
+--------
+Token {
+  value: '.',
+  start:
+   CursorPosition { index: 1178, line: 39, column: 51, virtual_column: 51 },
+  end:
+   CursorPosition { index: 1178, line: 39, column: 51, virtual_column: 51 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'node',
+     start:
+      CursorPosition { index: 1174, line: 39, column: 47, virtual_column: 47 },
+     end:
+      CursorPosition { index: 1177, line: 39, column: 50, virtual_column: 50 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1178, line: 39, column: 51, virtual_column: 51 },
+     end:
+      CursorPosition { index: 1178, line: 39, column: 51, virtual_column: 51 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'precedence',
+     start:
+      CursorPosition { index: 1179, line: 39, column: 52, virtual_column: 52 },
+     end:
+      CursorPosition { index: 1188, line: 39, column: 61, virtual_column: 61 } },
+  start:
+   CursorPosition { index: 1174, line: 39, column: 47, virtual_column: 47 },
+  end:
+   CursorPosition { index: 1188, line: 39, column: 61, virtual_column: 61 } }
+--------
+Token {
+  value: ')',
+  start:
+   CursorPosition { index: 1189, line: 39, column: 62, virtual_column: 62 },
+  end:
+   CursorPosition { index: 1189, line: 39, column: 62, virtual_column: 62 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Function call expression',
+  type: 'Expression',
+  precedence: 19,
+  callee:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'get_right_value',
+     start:
+      CursorPosition { index: 1150, line: 39, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 1164, line: 39, column: 37, virtual_column: 37 } },
+  arguments:
+   AST_Node {
+     id: 'Arguments',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node], [AST_Node] ],
+     delimiters: [ [AST_Node] ],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1165, line: 39, column: 38, virtual_column: 38 },
+     end:
+      CursorPosition { index: 1189, line: 39, column: 62, virtual_column: 62 } },
+  start:
+   CursorPosition { index: 1150, line: 39, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1189, line: 39, column: 62, virtual_column: 62 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1190, line: 39, column: 63, virtual_column: 63 },
+  end:
+   CursorPosition { index: 1190, line: 39, column: 63, virtual_column: 63 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 1136, line: 39, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1140, line: 39, column: 13, virtual_column: 13 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1190, line: 39, column: 63, virtual_column: 63 },
+     end:
+      CursorPosition { index: 1190, line: 39, column: 63, virtual_column: 63 } },
+  start:
+   CursorPosition { index: 1136, line: 39, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1190, line: 39, column: 63, virtual_column: 63 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'node',
+     start:
+      CursorPosition { index: 1201, line: 41, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1204, line: 41, column: 12, virtual_column: 12 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1205, line: 41, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 1205, line: 41, column: 13, virtual_column: 13 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'left',
+     start:
+      CursorPosition { index: 1206, line: 41, column: 14, virtual_column: 14 },
+     end:
+      CursorPosition { index: 1209, line: 41, column: 17, virtual_column: 17 } },
+  start:
+   CursorPosition { index: 1201, line: 41, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1209, line: 41, column: 17, virtual_column: 17 } }
+--------
+Token {
+  value: '=',
+  start:
+   CursorPosition { index: 1215, line: 41, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1215, line: 41, column: 23, virtual_column: 23 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'left',
+  start:
+   CursorPosition { index: 1217, line: 41, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1220, line: 41, column: 28, virtual_column: 28 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  left:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'left',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1201, line: 41, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1209, line: 41, column: 17, virtual_column: 17 } },
+  operator:
+   AST_Node {
+     id: 'Operator',
+     type: 'Operator',
+     precedence: -1,
+     pre_comment: null,
+     value: '=',
+     start:
+      CursorPosition { index: 1215, line: 41, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 1215, line: 41, column: 23, virtual_column: 23 } },
+  right:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'left',
+     start:
+      CursorPosition { index: 1217, line: 41, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1220, line: 41, column: 28, virtual_column: 28 } },
+  start:
+   CursorPosition { index: 1201, line: 41, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1220, line: 41, column: 28, virtual_column: 28 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'Assignment operator',
+     type: 'Binary operator',
+     precedence: 3,
+     left:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Operator',
+        type: 'Operator',
+        precedence: -1,
+        pre_comment: null,
+        value: '=',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     right:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'left',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1201, line: 41, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1220, line: 41, column: 28, virtual_column: 28 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 },
+     end:
+      CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 } },
+  start:
+   CursorPosition { index: 1201, line: 41, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1221, line: 41, column: 29, virtual_column: 29 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'node',
+     start:
+      CursorPosition { index: 1231, line: 42, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1234, line: 42, column: 12, virtual_column: 12 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1235, line: 42, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 1235, line: 42, column: 13, virtual_column: 13 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'operator',
+     start:
+      CursorPosition { index: 1236, line: 42, column: 14, virtual_column: 14 },
+     end:
+      CursorPosition { index: 1243, line: 42, column: 21, virtual_column: 21 } },
+  start:
+   CursorPosition { index: 1231, line: 42, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1243, line: 42, column: 21, virtual_column: 21 } }
+--------
+Token {
+  value: '=',
+  start:
+   CursorPosition { index: 1245, line: 42, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1245, line: 42, column: 23, virtual_column: 23 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'operator',
+  start:
+   CursorPosition { index: 1247, line: 42, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1254, line: 42, column: 32, virtual_column: 32 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 },
+  end:
+   CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  left:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'operator',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1231, line: 42, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1243, line: 42, column: 21, virtual_column: 21 } },
+  operator:
+   AST_Node {
+     id: 'Operator',
+     type: 'Operator',
+     precedence: -1,
+     pre_comment: null,
+     value: '=',
+     start:
+      CursorPosition { index: 1245, line: 42, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 1245, line: 42, column: 23, virtual_column: 23 } },
+  right:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'operator',
+     start:
+      CursorPosition { index: 1247, line: 42, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1254, line: 42, column: 32, virtual_column: 32 } },
+  start:
+   CursorPosition { index: 1231, line: 42, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1254, line: 42, column: 32, virtual_column: 32 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 },
+  end:
+   CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'Assignment operator',
+     type: 'Binary operator',
+     precedence: 3,
+     left:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Operator',
+        type: 'Operator',
+        precedence: -1,
+        pre_comment: null,
+        value: '=',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     right:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'operator',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1231, line: 42, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1254, line: 42, column: 32, virtual_column: 32 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 },
+     end:
+      CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 } },
+  start:
+   CursorPosition { index: 1231, line: 42, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1255, line: 42, column: 33, virtual_column: 33 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'node',
+     start:
+      CursorPosition { index: 1265, line: 43, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1268, line: 43, column: 12, virtual_column: 12 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1269, line: 43, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 1269, line: 43, column: 13, virtual_column: 13 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'right',
+     start:
+      CursorPosition { index: 1270, line: 43, column: 14, virtual_column: 14 },
+     end:
+      CursorPosition { index: 1274, line: 43, column: 18, virtual_column: 18 } },
+  start:
+   CursorPosition { index: 1265, line: 43, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1274, line: 43, column: 18, virtual_column: 18 } }
+--------
+Token {
+  value: '=',
+  start:
+   CursorPosition { index: 1279, line: 43, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1279, line: 43, column: 23, virtual_column: 23 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'right',
+  start:
+   CursorPosition { index: 1281, line: 43, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1285, line: 43, column: 29, virtual_column: 29 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 },
+  end:
+   CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  left:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'right',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1265, line: 43, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1274, line: 43, column: 18, virtual_column: 18 } },
+  operator:
+   AST_Node {
+     id: 'Operator',
+     type: 'Operator',
+     precedence: -1,
+     pre_comment: null,
+     value: '=',
+     start:
+      CursorPosition { index: 1279, line: 43, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 1279, line: 43, column: 23, virtual_column: 23 } },
+  right:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'right',
+     start:
+      CursorPosition { index: 1281, line: 43, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1285, line: 43, column: 29, virtual_column: 29 } },
+  start:
+   CursorPosition { index: 1265, line: 43, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1285, line: 43, column: 29, virtual_column: 29 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 },
+  end:
+   CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'Assignment operator',
+     type: 'Binary operator',
+     precedence: 3,
+     left:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Operator',
+        type: 'Operator',
+        precedence: -1,
+        pre_comment: null,
+        value: '=',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     right:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'right',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1265, line: 43, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1285, line: 43, column: 29, virtual_column: 29 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 },
+     end:
+      CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 } },
+  start:
+   CursorPosition { index: 1265, line: 43, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1286, line: 43, column: 30, virtual_column: 30 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'node',
+     start:
+      CursorPosition { index: 1296, line: 44, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1299, line: 44, column: 12, virtual_column: 12 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1300, line: 44, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 1300, line: 44, column: 13, virtual_column: 13 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'start',
+     start:
+      CursorPosition { index: 1301, line: 44, column: 14, virtual_column: 14 },
+     end:
+      CursorPosition { index: 1305, line: 44, column: 18, virtual_column: 18 } },
+  start:
+   CursorPosition { index: 1296, line: 44, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1305, line: 44, column: 18, virtual_column: 18 } }
+--------
+Token {
+  value: '=',
+  start:
+   CursorPosition { index: 1310, line: 44, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1310, line: 44, column: 23, virtual_column: 23 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'left',
+  start:
+   CursorPosition { index: 1312, line: 44, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1315, line: 44, column: 28, virtual_column: 28 } }
+--------
+Token {
+  value: '.',
+  start:
+   CursorPosition { index: 1316, line: 44, column: 29, virtual_column: 29 },
+  end:
+   CursorPosition { index: 1316, line: 44, column: 29, virtual_column: 29 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'left',
+     start:
+      CursorPosition { index: 1312, line: 44, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1315, line: 44, column: 28, virtual_column: 28 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1316, line: 44, column: 29, virtual_column: 29 },
+     end:
+      CursorPosition { index: 1316, line: 44, column: 29, virtual_column: 29 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'start',
+     start:
+      CursorPosition { index: 1317, line: 44, column: 30, virtual_column: 30 },
+     end:
+      CursorPosition { index: 1321, line: 44, column: 34, virtual_column: 34 } },
+  start:
+   CursorPosition { index: 1312, line: 44, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1321, line: 44, column: 34, virtual_column: 34 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 },
+  end:
+   CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  left:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'start',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1296, line: 44, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1305, line: 44, column: 18, virtual_column: 18 } },
+  operator:
+   AST_Node {
+     id: 'Operator',
+     type: 'Operator',
+     precedence: -1,
+     pre_comment: null,
+     value: '=',
+     start:
+      CursorPosition { index: 1310, line: 44, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 1310, line: 44, column: 23, virtual_column: 23 } },
+  right:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'left',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'start',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1312, line: 44, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1321, line: 44, column: 34, virtual_column: 34 } },
+  start:
+   CursorPosition { index: 1296, line: 44, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1321, line: 44, column: 34, virtual_column: 34 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 },
+  end:
+   CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'Assignment operator',
+     type: 'Binary operator',
+     precedence: 3,
+     left:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Operator',
+        type: 'Operator',
+        precedence: -1,
+        pre_comment: null,
+        value: '=',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     right:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1296, line: 44, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1321, line: 44, column: 34, virtual_column: 34 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 },
+     end:
+      CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 } },
+  start:
+   CursorPosition { index: 1296, line: 44, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1322, line: 44, column: 35, virtual_column: 35 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'node',
+     start:
+      CursorPosition { index: 1332, line: 45, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1335, line: 45, column: 12, virtual_column: 12 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1336, line: 45, column: 13, virtual_column: 13 },
+     end:
+      CursorPosition { index: 1336, line: 45, column: 13, virtual_column: 13 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'end',
+     start:
+      CursorPosition { index: 1337, line: 45, column: 14, virtual_column: 14 },
+     end:
+      CursorPosition { index: 1339, line: 45, column: 16, virtual_column: 16 } },
+  start:
+   CursorPosition { index: 1332, line: 45, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1339, line: 45, column: 16, virtual_column: 16 } }
+--------
+Token {
+  value: '=',
+  start:
+   CursorPosition { index: 1346, line: 45, column: 23, virtual_column: 23 },
+  end:
+   CursorPosition { index: 1346, line: 45, column: 23, virtual_column: 23 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  is: [Function],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Identifier',
+  type: 'Primitive',
+  precedence: 31,
+  pre_comment: null,
+  value: 'right',
+  start:
+   CursorPosition { index: 1348, line: 45, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1352, line: 45, column: 29, virtual_column: 29 } }
+--------
+Token {
+  value: '.',
+  start:
+   CursorPosition { index: 1353, line: 45, column: 30, virtual_column: 30 },
+  end:
+   CursorPosition { index: 1353, line: 45, column: 30, virtual_column: 30 },
+  id: 'Operator',
+  priority: 20 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Member expression',
+  type: 'Expression',
+  precedence: 19,
+  object:
+   AST_Node {
+     id: 'Identifier',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'right',
+     start:
+      CursorPosition { index: 1348, line: 45, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1352, line: 45, column: 29, virtual_column: 29 } },
+  operator:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '.',
+     start:
+      CursorPosition { index: 1353, line: 45, column: 30, virtual_column: 30 },
+     end:
+      CursorPosition { index: 1353, line: 45, column: 30, virtual_column: 30 } },
+  property:
+   AST_Node {
+     id: 'Identifier name',
+     type: 'Primitive',
+     precedence: 31,
+     pre_comment: null,
+     value: 'end',
+     start:
+      CursorPosition { index: 1354, line: 45, column: 31, virtual_column: 31 },
+     end:
+      CursorPosition { index: 1356, line: 45, column: 33, virtual_column: 33 } },
+  start:
+   CursorPosition { index: 1348, line: 45, column: 25, virtual_column: 25 },
+  end:
+   CursorPosition { index: 1356, line: 45, column: 33, virtual_column: 33 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 },
+  end:
+   CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Assignment operator',
+  type: 'Binary operator',
+  precedence: 3,
+  left:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'node',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'end',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1332, line: 45, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1339, line: 45, column: 16, virtual_column: 16 } },
+  operator:
+   AST_Node {
+     id: 'Operator',
+     type: 'Operator',
+     precedence: -1,
+     pre_comment: null,
+     value: '=',
+     start:
+      CursorPosition { index: 1346, line: 45, column: 23, virtual_column: 23 },
+     end:
+      CursorPosition { index: 1346, line: 45, column: 23, virtual_column: 23 } },
+  right:
+   AST_Node {
+     id: 'Member expression',
+     type: 'Expression',
+     precedence: 19,
+     object:
+      AST_Node {
+        id: 'Identifier',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'right',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '.',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     property:
+      AST_Node {
+        id: 'Identifier name',
+        type: 'Primitive',
+        precedence: 31,
+        pre_comment: null,
+        value: 'end',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1348, line: 45, column: 25, virtual_column: 25 },
+     end:
+      CursorPosition { index: 1356, line: 45, column: 33, virtual_column: 33 } },
+  start:
+   CursorPosition { index: 1332, line: 45, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1356, line: 45, column: 33, virtual_column: 33 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 },
+  end:
+   CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Expression statement',
+  type: 'Statement',
+  precedence: 40,
+  expression:
+   AST_Node {
+     id: 'Assignment operator',
+     type: 'Binary operator',
+     precedence: 3,
+     left:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     operator:
+      AST_Node {
+        id: 'Operator',
+        type: 'Operator',
+        precedence: -1,
+        pre_comment: null,
+        value: '=',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     right:
+      AST_Node {
+        id: 'Member expression',
+        type: 'Expression',
+        precedence: 19,
+        object: [AST_Node],
+        operator: [AST_Node],
+        property: [AST_Node],
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 1332, line: 45, column: 9, virtual_column: 9 },
+     end:
+      CursorPosition { index: 1356, line: 45, column: 33, virtual_column: 33 } },
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 },
+     end:
+      CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 } },
+  start:
+   CursorPosition { index: 1332, line: 45, column: 9, virtual_column: 9 },
+  end:
+   CursorPosition { index: 1357, line: 45, column: 34, virtual_column: 34 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Arrow function',
+  type: 'Expression',
+  precedence: 40,
+  parameters:
+   AST_Node {
+     id: 'Arrow parameters',
+     type: 'Expression',
+     precedence: -1,
+     open_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '(',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     list: [ [AST_Node], [AST_Node], [AST_Node] ],
+     delimiters: [ [AST_Node], [AST_Node] ],
+     close_parenthesis:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: ')',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 915, line: 34, column: 24, virtual_column: 24 },
+     end:
+      CursorPosition { index: 935, line: 34, column: 44, virtual_column: 44 } },
+  arrow_token:
+   AST_Node {
+     id: 'Terminal symbol',
+     type: 'Token',
+     precedence: -1,
+     pre_comment: null,
+     value: '=>',
+     start:
+      CursorPosition { index: 937, line: 34, column: 46, virtual_column: 46 },
+     end:
+      CursorPosition { index: 938, line: 34, column: 47, virtual_column: 47 } },
+  body:
+   AST_Node {
+     id: 'Function body',
+     type: 'Expression',
+     precedence: -1,
+     open_curly_bracket:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '{',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     statement_list:
+      [ [AST_Node],
+        [AST_Node],
+        [AST_Node],
+        [AST_Node],
+        [AST_Node],
+        [AST_Node],
+        [AST_Node],
+        [AST_Node],
+        [AST_Node] ],
+     close_curly_bracket:
+      AST_Node {
+        id: 'Terminal symbol',
+        type: 'Token',
+        precedence: -1,
+        pre_comment: null,
+        value: '}',
+        start: [CursorPosition],
+        end: [CursorPosition] },
+     start:
+      CursorPosition { index: 940, line: 34, column: 49, virtual_column: 49 },
+     end:
+      CursorPosition { index: 1363, line: 46, column: 5, virtual_column: 5 } },
+  start:
+   CursorPosition { index: 915, line: 34, column: 24, virtual_column: 24 },
+  end:
+   CursorPosition { index: 1363, line: 46, column: 5, virtual_column: 5 } }
+--------
+Token {
+  value: ';',
+  start:
+   CursorPosition { index: 1364, line: 46, column: 6, virtual_column: 6 },
+  end:
+   CursorPosition { index: 1364, line: 46, column: 6, virtual_column: 6 },
+  id: 'Delimiter',
+  priority: 10 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Delimiter',
+  type: 'Delimiter',
+  precedence: -1,
+  is: [Function: is],
+  initialize: [Function: initialize] }
+----------------------------
+AST_Node {
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  keyword:
+   AST_Node {
+     id: 'Let or const keyword',
+     type: 'Token',
+     precedence: 41,
+     pre_comment: null,
+     value: 'const',
+     start:
+      CursorPosition { index: 896, line: 34, column: 5, virtual_column: 5 },
+     end:
+      CursorPosition { index: 900, line: 34, column: 9, virtual_column: 9 } },
+  binding_list:
+   [ AST_Node {
+       id: 'Lexical binding',
+       type: 'Expression',
+       precedence: -1,
+       binding: [AST_Node],
+       initializer: [AST_Node],
+       start: [CursorPosition],
+       end: [CursorPosition] } ],
+  delimiters: [],
+  terminator:
+   AST_Node {
+     id: 'Delimiter',
+     type: 'Delimiter',
+     precedence: -1,
+     pre_comment: null,
+     value: ';',
+     start:
+      CursorPosition { index: 1364, line: 46, column: 6, virtual_column: 6 },
+     end:
+      CursorPosition { index: 1364, line: 46, column: 6, virtual_column: 6 } },
+  start:
+   CursorPosition { index: 896, line: 34, column: 5, virtual_column: 5 },
+  end:
+   CursorPosition { index: 1364, line: 46, column: 6, virtual_column: 6 } }
+--------
+null
+--------
+null
+----------------------------
+AST_Node {
+  id: 'Let or const keyword',
+  type: 'Token',
+  precedence: 41,
+  pre_comment: null,
+  value: 'const',
+  start:
+   CursorPosition { index: 1368, line: 48, column: 2, virtual_column: 5 },
+  end:
+   CursorPosition { index: 1372, line: 48, column: 6, virtual_column: 9 } }
+--------
+Token {
+  value: 'operator_definitions',
+  start:
+   CursorPosition { index: 1374, line: 48, column: 8, virtual_column: 11 },
+  end:
+   CursorPosition { index: 1393, line: 48, column: 27, virtual_column: 30 },
+  id: 'Identifier',
+  priority: 0 }
+--------
+AST_Node_Definition {
+  AST_Node: [Function: AST_Node],
+  id: 'Variable statement',
+  type: 'Statement',
+  precedence: 40,
+  is: [Function: is],
+  initialize: [Function: initialize] }

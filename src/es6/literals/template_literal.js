@@ -1,111 +1,124 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : template_literal.js
-* Created at  : 2017-08-19
-* Updated at  : 2017-08-20
+* Created at  : 2019-05-27
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+* Reference   : https://www.ecma-international.org/ecma-262/6.0/#sec-template-literal-lexical-components
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
+"use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-var generic_initializer = require("../../es5/generic_initializer");
+const { AST_Node_Definition }    = require("@jeefo/parser");
+const { is_close_curly }         = require("../../helpers");
+const { PRIMITIVE, TERMINATION } = require("../enums/precedence_enum");
+const {
+    is_expression,
+    prepare_next_expression,
+} = require("../../es5/helpers");
 
-var TemplateLiteralString = function (start, end, value) {
-	this.initialize();
-	this.value = value;
-	this.start = start;
-	this.end   = end;
-},
-TemplateLiteralExpression = function (start, expression) {
-	this.initialize();
-	this.expression = expression;
-	this.start      = start;
-};
+const template_string = new AST_Node_Definition({
+	id         : "Template literal string",
+    type       : "Primitive",
+	precedence : -1,
 
-TemplateLiteralString.prototype = {
-	type       : "TemplateLiteralString",
-	precedence : 31,
-	initialize : generic_initializer
-};
+    is         : () => {},
+    initialize : (node, current_token, parser) => {
+        const { streamer } = parser.tokenizer;
+        const start        = streamer.clone_cursor_position();
+        let length         = 0;
+		let next_character = streamer.get_current_character();
 
-TemplateLiteralExpression.prototype = {
-	type       : "TemplateLiteralExpression",
-	precedence : 31,
-	initialize : generic_initializer
-};
+        LOOP:
+        while (true) {
+            switch (next_character) {
+                case '\\':
+                    length += 1;
+                    break;
+                case '$':
+                    if (streamer.at(start.index + length + 1) === '{') {
+                        break LOOP;
+                    }
+                    break;
+                case '`' : break LOOP;
+                case null: parser.throw_unexpected_end_of_stream();
+            }
 
-var TemplateLiteral = function () {};
-TemplateLiteral.prototype = {
-	type       : "TemplateLiteral",
-	precedence : 21,
-	initialize : function (token, scope) {
-		var	streamer  = scope.tokenizer.streamer,
-			character = streamer.next(),
-			start     = token.end, i = 0, body = [];
+            length += 1;
+            next_character = streamer.at(start.index + length);
+        }
+        streamer.cursor.move(length - 1);
 
-		LOOP:
-		while (character) {
-			switch (character) {
-				case '\\':
-					streamer.move_right(1);
-					character = streamer.next();
-					break;
-				case '$' :
-					if (streamer.peek(streamer.cursor.index + 1) === '{') {
-						if (streamer.cursor.index > start.index) {
-							body[i++] = new TemplateLiteralString(
-								start,
-								streamer.get_cursor(),
-								streamer.seek(start.index)
-							);
-						}
+        node.value = streamer.substring_from_offset(start.index);
+        node.start = start;
+        node.end   = streamer.clone_cursor_position();
+    }
+});
 
-						start = streamer.get_cursor();
-						streamer.move_right(1);
-						scope.advance();
+const template_expression = new AST_Node_Definition({
+	id         : "Template literal expression",
+    type       : "Primitive",
+	precedence : -1,
 
-						body[i++] = new TemplateLiteralExpression(start, scope.expression(0));
+    is         : () => {},
+    initialize : (node, current_token, parser) => {
+        const { streamer } = parser.tokenizer;
+        const start        = streamer.clone_cursor_position();
 
-						if (scope.current_token.delimiter === '}') {
-							body[i - 1].end = scope.current_token.end;
+		streamer.cursor.move(1);
+        prepare_next_expression(parser, true);
 
-							character = streamer.next();
-							start     = streamer.get_cursor();
-						} else {
-							throw new Error("WTF");
-						}
-					} else {
-						character = streamer.next();
-					}
-					break;
-				case '`':
-					if (streamer.cursor.index > start.index) {
-						body[i++] = new TemplateLiteralString(
-							start,
-							streamer.get_cursor(),
-							streamer.seek(start.index)
-						);
-					}
-					break LOOP;
-				default:
-					character = streamer.next();
-			}
-		}
+        const expression = parser.parse_next_node(TERMINATION);
+        parser.expect('}', is_close_curly);
 
-		this.type  = this.type;
-		this.body  = body;
-		this.start = token.start;
-		this.end   = streamer.end_cursor();
-	},
-	statement_denotation : require("../../es5/denotations/expression_statement_denotation")
-};
+        node.expression = expression;
+        node.start      = start;
+        node.end        = streamer.clone_cursor_position();
+    }
+});
 
 module.exports = {
-	token_type  : "BackTick",
-	Constructor : TemplateLiteral
+    id         : "Template literal",
+    type       : "Primitive",
+    precedence : PRIMITIVE,
+
+    is : (token, parser) => {
+        return is_expression(parser) && token.id === "Backtick";
+    },
+    initialize : (node, current_token, parser) => {
+        const body              = [];
+        const { streamer }      = parser.tokenizer;
+        const start_positioin   = streamer.clone_cursor_position();
+        const { current_state } = parser;
+		let next_character = streamer.next();
+
+        LOOP:
+        while (true) {
+            switch (next_character) {
+                case '`' : break LOOP;
+                case null: parser.throw_unexpected_end_of_stream();
+            }
+
+            if (next_character === '$' && streamer.is_next_character('{')) {
+                body.push(template_expression.generate_new_node(parser));
+            } else {
+                body.push(template_string.generate_new_node(parser));
+            }
+            next_character = streamer.next();
+        }
+
+        node.body  = body;
+        node.start = start_positioin;
+        node.end   = streamer.clone_cursor_position();
+
+        parser.next_token    = node;
+        parser.ending_index  = node.end.index;
+        parser.current_state = current_state;
+    }
 };

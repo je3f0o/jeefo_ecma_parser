@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : is_expression.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-03-29
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,18 +10,12 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum = require("../enums/states_enum");
+const { expression, expression_no_in } = require("../enums/states_enum");
+const valid_states = [expression, expression_no_in];
 
-module.exports = function is_expression (parser) {
-    switch (parser.current_state) {
-        case states_enum.expression :
-        case states_enum.expression_no_in :
-            return true;
-    }
-    return false;
-};
+module.exports = parser => valid_states.includes(parser.current_state);

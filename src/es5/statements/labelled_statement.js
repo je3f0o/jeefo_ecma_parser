@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : labelled_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-30
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,31 +10,35 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum     = require("../enums/states_enum"),
-      precedence_enum = require("../enums/precedence_enum");
+const { labelled_statement }     = require("../enums/states_enum");
+const { terminal_definition }    = require("../../common");
+const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
 
 module.exports = {
     id         : "Labelled statement",
     type       : "Statement",
-    precedence : 31,
+	precedence : STATEMENT,
 
-    is         : (token, parser) => parser.current_state === states_enum.labelled_statement,
-    initialize : (symbol, current_token, parser) => {
-        const identifier = parser.current_symbol.identifier,
-              delimiter  = parser.current_symbol.delimiter;
+    is         : (token, parser) => parser.current_state === labelled_statement,
+    initialize : (node, token, parser) => {
+        parser.change_state("expression");
+        const identifier = parser.generate_next_node();
+
+        parser.prepare_next_state("delimiter", true);
+        const delimiter = terminal_definition.generate_new_node(parser);
 
         parser.prepare_next_state(null, true);
-        const statement = parser.get_next_symbol(precedence_enum.TERMINATION);
+        const statement = parser.parse_next_node(TERMINATION);
 
-        symbol.identifier = identifier;
-        symbol.delimiter  = delimiter;
-        symbol.statement  = statement;
-        symbol.start      = identifier.start;
-        symbol.end        = statement.end;
+        node.identifier = identifier;
+        node.delimiter  = delimiter;
+        node.statement  = statement;
+        node.start      = identifier.start;
+        node.end        = statement.end;
     }
 };

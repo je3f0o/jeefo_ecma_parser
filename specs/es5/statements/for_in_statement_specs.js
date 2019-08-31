@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_in_statement_specs.js
 * Created at  : 2019-03-18
-* Updated at  : 2019-03-31
+* Updated at  : 2019-08-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,331 +10,196 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
 const expect                   = require("expect.js"),
       UnexpectedTokenException = require("@jeefo/parser/src/unexpected_token_exception"),
-      parser                   = require("../../../src/es5/parser.js"),
+      parser                   = require("../parser.js"),
+      test_keyword             = require("../../helpers/test_keyword"),
+      test_delimiter           = require("../../helpers/test_delimiter"),
       test_substring           = require("../../helpers/test_substring"),
       precedence_enum          = require("../../../src/es5/enums/precedence_enum");
 
 describe("For in statement >", () => {
     describe("Valid cases >", () => {
-        // {{{1 test_identifier (symbol, str, streamer)
-        function test_identifier (symbol, str, streamer) {
-            expect(symbol).not.to.be(null);
-            expect(symbol.id).to.be("Identifier");
-            test_substring(str, streamer, symbol);
-        }
-
-        // {{{1 test_operator (symbol, expectation, streamer)
-        function test_operator (symbol, expectation, streamer) {
-            expect(symbol).not.to.be(null);
-            expect(symbol.id).to.be("Operator");
-            expect(symbol.type).to.be("Operator");
-
-            // pre_comment
-            expectation.comment(symbol.pre_comment, streamer);
-
-            // token
-            expect(symbol.token).not.to.be(null);
-            expect(symbol.token.value).to.be("in");
-
-            test_substring(expectation.str, streamer, symbol);
-        }
-
-        // {{{1 test_initializer (symbol, expectation, streamer)
-        function test_initializer (symbol, expectation, streamer) {
-            expect(symbol).not.to.be(null);
-            expect(symbol.id).to.be(expectation.id);
-
-            test_substring(expectation.str, streamer, symbol);
-        }
-
-        // {{{1 test_open_parenthesis (symbol, expectation, streamer)
-        function test_open_parenthesis (symbol, expectation, streamer) {
-            expect(symbol.id).to.be("Delimiter");
-            expect(symbol.type).to.be("Delimiter");
-            expectation.comment(symbol.pre_comment, streamer);
-            test_substring(expectation.str, streamer, symbol);
-        }
-
-        // {{{1 test_close_parenthesis (symbol, expectation, streamer)
-        function test_close_parenthesis (symbol, expectation, streamer) {
-            expect(symbol.id).to.be("Delimiter");
-            expect(symbol.type).to.be("Delimiter");
-            expectation.comment(symbol.pre_comment, streamer);
-            test_substring(expectation.str, streamer, symbol);
-        }
-
-        // {{{1 test_expression (symbol, expectation, streamer)
-        function test_expression (symbol, expectation, streamer) {
-            expect(symbol).not.to.be(null);
-            expect(symbol.id).to.be(expectation.id);
-            expect(symbol.type).to.be(expectation.type);
-
-            expectation.advanced(symbol, streamer);
-
-            test_substring(expectation.str, streamer, symbol);
-        }
-        // }}}1
-
         const valid_test_cases = [
-            // {{{1 for (a in b);
+            // for (a in b);
             {
                 code   : "for (a in b);",
                 source : "for (a in b);",
 
-                id : "a",
-                op : {
-                    str     : "in",
-                    comment : comment => expect(comment).to.be(null)
+                keyword : (node, streamer) => {
+                    test_keyword("for", null, node, streamer);
                 },
-                expr : {
-                    id   : "For in expression",
-                    str  : "(a in b)",
-                    type : "Expression",
-                    advanced : () => {}
+                open : (node, streamer) => {
+                    test_delimiter('(', null, node, streamer);
                 },
-                open : {
-                    str     : "(",
-                    comment : comment => expect(comment).to.be(null)
-                },
-                close : {
-                    str     : ")",
-                    comment : comment => expect(comment).to.be(null)
-                },
-                init : {
-                    id  : "Identifier",
-                    str : "b",
-                },
+                expression : (node, streamer) => {
+                    expect(node.id).to.be("For in expression");
+                    expect(node.type).to.be("Expression");
+                    expect(node.precedence).to.be(-1);
 
-                pre_comment : comment => expect(comment).to.be(null),
+                    test_substring("a", streamer, node.identifier);
+                    test_substring("in", streamer, node.in_operator);
+                    test_substring("b", streamer, node.initializer);
+
+                    test_substring("a in b", streamer, node);
+                },
+                close : (node, streamer) => {
+                    test_delimiter(')', null, node, streamer);
+                },
 
                 statement : statement => expect(statement.id).to.be("Empty statement")
             },
 
-            // {{{1 /*a*/for/*b*/(/*c*/a/*d*/in/*e*/1+2/*f*/)/*comment*/;;,
+            // /*a*/for/*b*/(/*c*/a/*d*/in/*e*/1+2/*f*/)/*comment*/;;,
             {
-                code   : "/*a*/for/*b*/(/*c*/a/*d*/in/*e*/1+2/*f*/)/*comment*/;",
+                code   : "for/*b*/(/*c*/a/*d*/in/*e*/1+2/*f*/)/*comment*/;",
                 source : "/*a*/for/*b*/(/*c*/a/*d*/in/*e*/1+2/*f*/)/*comment*/;;",
+                offset : "/*a*/".length,
 
-                id : "/*c*/a",
-
-                op : {
-                    str     : "/*d*/in",
-                    comment : (comment, streamer) => {
-                        expect(comment).not.to.be(null);
-                        test_substring("/*d*/", streamer, comment);
-                    }
+                keyword : (node, streamer) => {
+                    test_keyword("for", "/*a*/", node, streamer);
                 },
-
-                expr : {
-                    id   : "For in expression",
-                    str  : "/*b*/(/*c*/a/*d*/in/*e*/1+2/*f*/)",
-                    type : "Expression",
-                    advanced : () => {}
+                open : (node, streamer) => {
+                    test_delimiter('(', "/*b*/", node, streamer);
                 },
+                expression : (node, streamer) => {
+                    expect(node.id).to.be("For in expression");
+                    expect(node.type).to.be("Expression");
+                    expect(node.precedence).to.be(-1);
 
-                open : {
-                    str     : "/*b*/(",
-                    comment : (comment, streamer) => {
-                        expect(comment).not.to.be(null);
-                        test_substring("/*b*/", streamer, comment);
-                    }
+                    test_substring("a", streamer, node.identifier);
+                    test_substring("in", streamer, node.in_operator);
+                    test_substring("1+2", streamer, node.initializer);
+
+                    test_substring("a/*d*/in/*e*/1+2", streamer, node);
                 },
-
-                close : {
-                    str     : "/*f*/)",
-                    comment : (comment, streamer) => {
-                        expect(comment).not.to.be(null);
-                        test_substring("/*f*/", streamer, comment);
-                    }
-                },
-
-                init : {
-                    id  : "Arithmetic operator",
-                    str : "/*e*/1+2",
-                },
-
-                pre_comment : (comment, streamer) => {
-                    expect(comment).not.to.be(null);
-                    test_substring("/*a*/", streamer, comment);
+                close : (node, streamer) => {
+                    test_delimiter(')', "/*f*/", node, streamer);
                 },
 
                 statement : (statement, streamer) => {
-                    expect(statement.id).to.be("Empty statement");
-                    test_substring("/*comment*/", streamer, statement.pre_comment);
-                    test_substring("/*comment*/;", streamer, statement);
+                    test_substring(";", streamer, statement);
                 }
             },
 
-            // {{{1 for (var a in 1 + 2);
+            // for (var a in b in c);
             {
-                code   : "for (var a in 1 + 2);",
-                source : "for (var a in 1 + 2);",
+                code   : "for (var a in b in c);",
+                source : "for (var a in b in c);",
 
-                id : "a",
-
-                op : {
-                    str     : "in",
-                    comment : comment => expect(comment).to.be(null)
+                keyword : (node, streamer) => {
+                    test_keyword("for", null, node, streamer);
                 },
-
-                expr : {
-                    id   : "For in variable declaration",
-                    str  : "(var a in 1 + 2)",
-                    type : "Declaration",
-                    advanced : symbol => {
-                        expect(symbol.token).not.to.be(null);
-                        expect(symbol.token.value).to.be("var");
-
-                        expect(symbol.pre_comment_of_var).to.be(null);
-                    }
+                open : (node, streamer) => {
+                    test_delimiter('(', null, node, streamer);
                 },
+                expression : (node, streamer) => {
+                    expect(node.id).to.be("For in variable declaration");
+                    expect(node.type).to.be("Declaration");
+                    expect(node.precedence).to.be(-1);
 
-                open : {
-                    str     : "(",
-                    comment : comment => expect(comment).to.be(null)
+                    test_substring("var", streamer, node.keyword);
+                    test_substring("a", streamer, node.identifier);
+                    test_substring("in", streamer, node.in_operator);
+                    test_substring("b in c", streamer, node.initializer);
+
+                    test_substring("var a in b in c", streamer, node);
                 },
-
-                close : {
-                    str     : ")",
-                    comment : comment => expect(comment).to.be(null)
+                close : (node, streamer) => {
+                    test_delimiter(')', null, node, streamer);
                 },
-
-                init : {
-                    id  : "Arithmetic operator",
-                    str : "1 + 2",
-                },
-
-                pre_comment : comment => expect(comment).to.be(null),
 
                 statement : statement => expect(statement.id).to.be("Empty statement")
             },
 
-            // {{{1 /*a*/for/*b*/(/*c*/var/*d*/a/*e*/in/*f*/1+2/*k*/)/*comment*/;;,
+            // /*a*/for/*b*/(/*c*/var/*d*/a/*e*/in/*f*/1+2/*k*/)/*comment*/;;,
             {
-                code   : "/*a*/for/*b*/(/*c*/var/*d*/a/*e*/in/*f*/1+2/*k*/)/*comment*/;",
+                code   : "for/*b*/(/*c*/var/*d*/a/*e*/in/*f*/1+2/*k*/)/*comment*/;",
                 source : "/*a*/for/*b*/(/*c*/var/*d*/a/*e*/in/*f*/1+2/*k*/)/*comment*/;;",
+                offset : "/*a*/".length,
 
-                id : "/*d*/a",
-
-                op : {
-                    str     : "/*e*/in",
-                    comment : (comment, streamer) => {
-                        expect(comment).not.to.be(null);
-                        test_substring("/*e*/", streamer, comment);
-                    }
+                keyword : (node, streamer) => {
+                    test_keyword("for", "/*a*/", node, streamer);
                 },
-
-                expr : {
-                    id   : "For in variable declaration",
-                    str  : "/*b*/(/*c*/var/*d*/a/*e*/in/*f*/1+2/*k*/)",
-                    type : "Declaration",
-                    advanced : (symbol, streamer) => {
-                        expect(symbol.token).not.to.be(null);
-                        expect(symbol.token.value).to.be("var");
-
-                        expect(symbol.pre_comment_of_var).not.to.be(null);
-                        test_substring("/*c*/", streamer, symbol.pre_comment_of_var);
-                    }
+                open : (node, streamer) => {
+                    test_delimiter('(', "/*b*/", node, streamer);
                 },
+                expression : (node, streamer) => {
+                    expect(node.id).to.be("For in variable declaration");
+                    expect(node.type).to.be("Declaration");
+                    expect(node.precedence).to.be(-1);
 
-                open : {
-                    str     : "/*b*/(",
-                    comment : (comment, streamer) => {
-                        expect(comment).not.to.be(null);
-                        test_substring("/*b*/", streamer, comment);
-                    }
+                    test_substring("var", streamer, node.keyword);
+                    test_substring("a", streamer, node.identifier);
+                    test_substring("in", streamer, node.in_operator);
+                    test_substring("1+2", streamer, node.initializer);
+
+                    test_substring("var/*d*/a/*e*/in/*f*/1+2", streamer, node);
                 },
-
-                close : {
-                    str     : "/*k*/)",
-                    comment : (comment, streamer) => {
-                        expect(comment).not.to.be(null);
-                        test_substring("/*k*/", streamer, comment);
-                    }
-                },
-
-                init : {
-                    id  : "Arithmetic operator",
-                    str : "/*f*/1+2",
-                },
-
-                pre_comment : (comment, streamer) => {
-                    expect(comment).not.to.be(null);
-                    test_substring("/*a*/", streamer, comment);
+                close : (node, streamer) => {
+                    test_delimiter(')', "/*k*/", node, streamer);
                 },
 
                 statement : (statement, streamer) => {
-                    expect(statement.id).to.be("Empty statement");
-                    test_substring("/*comment*/", streamer, statement.pre_comment);
-                    test_substring("/*comment*/;", streamer, statement);
+                    test_substring(";", streamer, statement);
                 }
             },
-            // }}}1
         ];
 
         valid_test_cases.forEach(test_case => {
-            describe(`Test against source text '${ test_case.source.replace(/\n/g, "\\n") }'`, () => {
+            const text = test_case.source.replace(/\n/g, "\\n");
+            describe(`Test against source text '${ text }'`, () => {
                 parser.tokenizer.init(test_case.source);
                 parser.prepare_next_state();
 
-                let symbol;
                 const streamer = parser.tokenizer.streamer;
+                let node;
                 try {
-                    symbol = parser.get_next_symbol(precedence_enum.TERMINATION);
+                    node = parser.parse_next_node(precedence_enum.TERMINATION);
                 } catch (e) {}
 
                 it("should be For statement", () => {
-                    expect(symbol.id).to.be("For statement");
-                    expect(symbol.type).to.be("Statement");
-                    expect(symbol.precedence).to.be(31);
-                    expect(symbol.token.value).to.be("for");
+                    expect(node.id).to.be("For statement");
+                    expect(node.type).to.be("Statement");
+                    expect(node.precedence).to.be(precedence_enum.STATEMENT);
                 });
 
-                it("should be has correct pre_comment", () => {
-                    test_case.pre_comment(symbol.pre_comment, streamer);
+                it("should be has correct keyword", () => {
+                    test_case.keyword(node.keyword, streamer);
                 });
 
                 it("should be has correct open_parenthesis", () => {
-                    test_open_parenthesis(symbol.expression.open_parenthesis, test_case.open, streamer);
-                });
-
-                it("should be has correct close_parenthesis", () => {
-                    test_close_parenthesis(symbol.expression.close_parenthesis, test_case.close, streamer);
+                    test_case.open(node.open_parenthesis, streamer);
                 });
 
                 it("should be has correct expression", () => {
-                    test_expression(symbol.expression, test_case.expr, streamer);
+                    test_case.expression(node.expression, streamer);
                 });
 
-                it("should be has correct identifier", () => {
-                    test_identifier(symbol.expression.identifier, test_case.id, streamer);
-                });
-
-                it("should be has correct operator", () => {
-                    test_operator(symbol.expression.operator, test_case.op, streamer);
-                });
-
-                it("should be has correct initializer", () => {
-                    test_initializer(symbol.expression.initializer, test_case.init, streamer);
+                it("should be has correct close_parenthesis", () => {
+                    test_case.close(node.close_parenthesis, streamer);
                 });
 
                 it("should be has correct statement", () => {
-                    test_case.statement(symbol.statement, streamer);
+                    test_case.statement(node.statement, streamer);
                 });
 
                 it(`should be in correct range`, () => {
-                    const last_index = test_case.code.length - 1;
+                    let index = test_case.offset || 0;
+                    index += test_case.code.length - 1;
 
-                    expect(streamer.substring_from_token(symbol)).to.be(test_case.code);
-                    expect(streamer.get_current_character()).to.be(test_case.source.charAt(last_index));
-                    expect(streamer.cursor.index).to.be(last_index);
+                    expect(streamer.substring_from_token(node)).to.be(
+                        test_case.code
+                    );
+                    expect(streamer.get_current_character()).to.be(
+                        test_case.source.charAt(index)
+                    );
+                    expect(streamer.cursor.position.index).to.be(index);
                 });
             });
         });
@@ -342,12 +207,12 @@ describe("For in statement >", () => {
 
     describe("Invalid cases >", () => {
         const error_test_cases = [
-            // {{{1 for ('a' in Object
+            // for ('a' in Object
             {
                 source : "for ('a' in Object",
                 error : error => {
-                    it("should be throw: Expected identifier instead saw: 'a'", () => {
-                        expect(error.message).to.be("Expected identifier instead saw: 'a'");
+                    it("should be throw: Invalid left-hand side in for-loop", () => {
+                        expect(error.message).to.be("Invalid left-hand side in for-loop");
                     });
 
                     it("should be instanceof UnexpectedTokenException", () => {
@@ -355,7 +220,6 @@ describe("For in statement >", () => {
                     });
                 }
             },
-            // }}}1
         ];
 
         error_test_cases.forEach(test_case => {
@@ -364,7 +228,7 @@ describe("For in statement >", () => {
                 parser.prepare_next_state();
 
                 try {
-                    parser.get_next_symbol(precedence_enum.TERMINATION);
+                    parser.parse_next_node(precedence_enum.TERMINATION);
                     expect("throw").to.be("failed");
                 } catch (e) {
                     test_case.error(e);

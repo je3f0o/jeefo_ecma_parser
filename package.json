@@ -11,7 +11,8 @@
   "copyright": "2017",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha \"specs/**/*_specs.js\"",
+    "test_es5": "./node_modules/mocha/bin/mocha \"specs/es5/**/*_specs.js\"",
+    "test_es5_statements": "./node_modules/mocha/bin/mocha \"specs/es5/statements/*_specs.js\"",
     "build": "node build"
   },
   "repository": {
@@ -29,6 +30,7 @@
     "mocha": "^6.0.2"
   },
   "dependencies": {
-    "@jeefo/parser": "^0.0.1"
+    "@jeefo/parser": "^0.0.1",
+    "@jeefo/tokenizer": "^0.0.1"
   }
 }

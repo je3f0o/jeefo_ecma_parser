@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : comment.js
 * Created at  : 2019-03-05
-* Updated at  : 2019-03-07
+* Updated at  : 2019-08-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,8 +10,8 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
@@ -21,47 +21,40 @@ module.exports = {
 
     is : (current_character, streamer) => {
         if (current_character === '/') {
-            const next_character = streamer.at(streamer.cursor.index + 1);
-            return next_character === '*' || next_character === '/';
+            const next_char = streamer.get_next_character();
+            return next_char === '*' || next_char === '/';
         }
-        return false;
     },
 
     initialize : (token, current_character, streamer) => {
         let comment, is_inline;
-        const start = streamer.get_cursor();
+        const start = streamer.clone_cursor_position();
 
-        if (streamer.get_next_character() === '*') {
-            let next_character = streamer.get_next_character(true), end_index;
-            const start_index  = streamer.cursor.index;
+        if (streamer.next() === '*') {
+            let character = streamer.next(true), end_index;
+            const start_index  = streamer.cursor.position.index;
 
-            while (next_character) {
-                if (next_character === '*' && streamer.at(streamer.cursor.index + 1) === '/') {
-                    end_index = streamer.cursor.index;
-                    streamer.get_next_character();
+            while (character) {
+                if (character === '*' && streamer.is_next_character('/')) {
+                    end_index = streamer.cursor.position.index;
+                    streamer.cursor.move_next();
                     break;
                 }
-                next_character = streamer.get_next_character(true);
+                character = streamer.next(true);
             }
 
-            comment   = streamer.string.substring(start_index, end_index).trim();
+            comment   = streamer.string.substring(start_index, end_index);
             is_inline = false;
         } else {
-            let next_character = streamer.get_next_character();
-            const start_index  = streamer.cursor.index;
-
-            while (next_character && next_character !== '\n') {
-                next_character = streamer.get_next_character();
-            }
-
-            comment   = streamer.substring_from(start_index).trim();
+            streamer.cursor.move_next();
+            comment   = streamer.eat_until_eol();
             is_inline = true;
         }
 
         token.value     = '';
-        token.comment   = comment;
+        token.comment   = comment.trim();
         token.is_inline = is_inline;
         token.start     = start;
-        token.end       = streamer.get_cursor();
+        token.end       = streamer.clone_cursor_position();
     }
 };

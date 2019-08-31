@@ -1,35 +1,35 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : regular_expression_literal.js
 * Created at  : 2019-03-26
-* Updated at  : 2019-03-27
+* Updated at  : 2019-08-26
 * Author      : jeefo
 * Purpose     :
 * Description :
-* Reference   :
+* Reference   : https://www.ecma-international.org/ecma-262/5.1/#sec-7.8.5
 .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const delimiters      = require("../token_definitions/delimiters"),
-      is_expression   = require("../helpers/is_expression"),
-      precedence_enum = require("../enums/precedence_enum");
+const delimiters    = require("../token_definitions/delimiters");
+const is_expression = require("../helpers/is_expression");
+const { PRIMITIVE } = require("../enums/precedence_enum");
 
-// {{{1 parse_regular_expression_flags(parser)
 const REGEX_FLAGS = "gimuy";
 function parse_regular_expression_flags (parser) {
     let flags          = '',
         length         = 1,
         streamer       = parser.tokenizer.streamer,
-        start_index    = streamer.cursor.index,
+        start_index    = streamer.cursor.position.index,
         next_character = streamer.at(start_index + length);
 
     while (next_character > ' ') {
-        if (REGEX_FLAGS.includes(next_character) && ! flags.includes(next_character)) {
+        const is_valid_flag = REGEX_FLAGS.includes(next_character);
+        if (is_valid_flag && ! flags.includes(next_character)) {
             flags += next_character;
         } else if (delimiters.includes(next_character)) {
             break;
@@ -42,13 +42,12 @@ function parse_regular_expression_flags (parser) {
     }
 
     if (flags) {
-        streamer.move_cursor(length - 1);
+        streamer.cursor.move(length - 1);
     }
 
     return flags;
 }
 
-// {{{1 parse_regular_expression_class(parser, start_index)
 function parse_regular_expression_class (parser, start_index) {
     let length         = 1,
         streamer       = parser.tokenizer.streamer,
@@ -63,7 +62,9 @@ function parse_regular_expression_class (parser, start_index) {
                 length += 1;
                 break;
             case '\n' :
-                parser.throw_unexpected_token("Invalid regular expression: missing ]");
+                parser.throw_unexpected_token(
+                    "Invalid regular expression: missing ]"
+                );
                 break;
             case ']' :
                 return length;
@@ -75,7 +76,6 @@ function parse_regular_expression_class (parser, start_index) {
     return length;
 }
 
-// {{{1 parse_regular_expression(parser, start_index)
 function parse_regular_expression (parser, start_index) {
     let length         = 1,
         streamer       = parser.tokenizer.streamer,
@@ -90,10 +90,14 @@ function parse_regular_expression (parser, start_index) {
                 length += 1;
                 break;
             case '\n' :
-                parser.throw_unexpected_token("Invalid regular expression: missing /");
+                parser.throw_unexpected_token(
+                    "Invalid regular expression: missing /"
+                );
                 break;
             case '[' :
-                length += parse_regular_expression_class(parser, streamer.cursor.index + length);
+                length += parse_regular_expression_class(
+                    parser, streamer.cursor.position.index + length
+                );
                 break;
             case '/' :
                 break LOOP;
@@ -102,26 +106,27 @@ function parse_regular_expression (parser, start_index) {
         length += 1;
         next_character = streamer.at(start_index + length);
     }
-    streamer.move_cursor(length);
+    streamer.cursor.move(length);
 
-    return streamer.substring_from(start_index);
+    return streamer.substring_from_offset(start_index);
 }
-// }}}1
 
 module.exports = {
     id         : "Regular expression literal",
     type       : "Primitive",
-    precedence : precedence_enum.PRIMITIVE,
+    precedence : PRIMITIVE,
 
     is : (token, parser) => {
-        return token.value === '/'
-            && parser.current_symbol === null
-            && is_expression(parser);
+        if (is_expression(parser) && parser.prev_node === null) {
+            return token.id === "Slash";
+        }
     },
-    initialize : (symbol, current_token, parser) => {
-        symbol.pattern = parse_regular_expression(parser, current_token.start.index);
-        symbol.flags   = parse_regular_expression_flags(parser);
-        symbol.start   = current_token.start;
-        symbol.end     = parser.tokenizer.streamer.get_cursor();
+    initialize : (node, current_token, parser) => {
+        node.pattern = parse_regular_expression(
+            parser, current_token.start.index
+        );
+        node.flags = parse_regular_expression_flags(parser);
+        node.start = current_token.start;
+        node.end   = parser.tokenizer.streamer.clone_cursor_position();
     }
 };

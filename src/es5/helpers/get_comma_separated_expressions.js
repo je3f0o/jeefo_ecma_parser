@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : get_comma_separated_expressions.js
 * Created at  : 2019-03-22
-* Updated at  : 2019-03-28
+* Updated at  : 2019-08-27
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,41 +10,43 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const precedence_enum = require("../enums/precedence_enum"),
-      get_expression  = require("./get_expression");
+const { COMMA }              = require("../enums/precedence_enum");
+const { is_delimiter_token } = require("../../helpers");
+const {
+    terminal_definition : terminal
+} = require("../../common");
 
-module.exports = function get_comma_separated_expressions (parser, terminator) {
+function get_comma_separated_expressions (parser, terminator) {
+    const delimiters  = [];
     const expressions = [];
     parser.prepare_next_state("expression", true);
 
-    LOOP:
-    while (true) {
-        if (parser.next_token.value === terminator) { break; }
-
-        expressions.push(get_expression(parser, precedence_enum.COMMA));
+    LOOP :
+    while (! is_delimiter_token(parser.next_token, terminator)) {
+        expressions.push(parser.parse_next_node(COMMA));
 
         if (parser.next_token === null) {
             parser.throw_unexpected_end_of_stream();
+        } else if (parser.next_token.id !== "Delimiter") {
+            parser.throw_unexpected_token();
         }
 
         switch (parser.next_token.value) {
             case ',' :
-                parser.change_state("delimiter");
-                expressions.push(parser.next_symbol_definition.generate_new_symbol(parser));
-
+                delimiters.push(terminal.generate_new_node(parser));
                 parser.prepare_next_state("expression", true);
                 break;
-            case terminator :
-                break LOOP;
-            default:
-                parser.throw_unexpected_token();
+            case terminator : break LOOP;
+            default: parser.throw_unexpected_token();
         }
     }
 
-    return expressions;
-};
+    return { delimiters, expressions };
+}
+
+module.exports = get_comma_separated_expressions;

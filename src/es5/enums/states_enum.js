@@ -1,35 +1,55 @@
-/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
+/* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-03-30
+* Updated at  : 2019-08-30
 * Author      : jeefo
 * Purpose     :
 * Description :
-_._._._._._._._._._._._._._._._._._._._._.*/
+* Reference   :
+.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const keys = [
+module.exports = [
     "delimiter",
-    "statement",
+
     "expression",
-    "case_clause",
-    "if_statement",
-    "try_statement",
-    "default_clause",
-    "block_statement",
-    "catch_parameter",
     "expression_no_in",
+
+    "function_body",
+    "function_expression",
+    "formal_parameter_list",
+
+    "statement",
+    "if_statement",
+
+    "of_operator",
+    "variable_declaration_no_in",
+    "variable_declaration_list_no_in",
+
+    "for_iterator_condition",
+    "for_iterator_initializer",
+    "for_iterator_expression",
+
+    "assignable_left_expression",
+
+    "try_statement",
+    "case_clause",
+    "default_clause",
+
+    "property_list",
+    "property_name",
+    "property_assign",
+    "method_definition",
+
     "labelled_statement",
-];
-
-const states_enum = {};
-
-keys.forEach((key, index) => states_enum[key] = index);
-
-module.exports = states_enum;
+    "parenthesized_expression",
+].reduce((states, key, index) => {
+    states[key] = index;
+    return states;
+}, {});

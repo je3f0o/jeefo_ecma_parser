@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : sequence_expression.js
 * Created at  : 2019-03-28
-* Updated at  : 2019-03-30
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,50 +10,60 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const precedence_enum             = require("../enums/precedence_enum"),
-      is_expression               = require("../helpers/is_expression"),
-      get_expression              = require("../helpers/get_expression"),
-      get_current_state_name      = require("../helpers/get_current_state_name"),
-      get_last_non_comment_symbol = require("../helpers/get_last_non_comment_symbol");
+const { COMMA }               = require("../enums/precedence_enum");
+const { terminal_definition } = require("../../common");
+const {
+    is_expression,
+    get_expression,
+    get_current_state_name,
+} = require("../helpers");
+const {
+    is_comma,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 module.exports = {
 	id         : "Sequence expression",
     type       : "Expression",
-	precedence : precedence_enum.COMMA,
+	precedence : COMMA,
 
 	is : (token, parser) => {
-        return token.value === ','
-            && is_expression(parser)
-            && get_last_non_comment_symbol(parser) !== null;
+        if (is_expression(parser) && is_comma(parser.next_token)) {
+            return get_last_non_comment_node(parser) !== null;
+        }
     },
-    initialize : (symbol, current_token, parser) => {
-        const expressions     = [get_last_non_comment_symbol(parser, true)];
+    initialize : (node, token, parser) => {
+        const delimiters      = [];
+        const expressions     = [get_last_non_comment_node(parser, true)];
         const expression_name = get_current_state_name(parser);
 
-        parser.change_state("delimiter");
-        expressions.push(parser.next_symbol_definition.generate_new_symbol(parser));
+        delimiters.push(terminal_definition.generate_new_node(parser));
         parser.prepare_next_state(expression_name, true);
 
         LOOP:
         while (true) {
-            if (parser.next_token.value === ';') { break; }
-
-            expressions.push(get_expression(parser, precedence_enum.COMMA));
+            const expression = get_expression(parser, COMMA);
+            if (! expression) {
+                parser.throw_unexpected_token();
+            }
+            expressions.push(expression);
 
             if (parser.next_token === null) {
                 break;
+            } else if (parser.next_token.id !== "Delimiter") {
+                parser.throw_unexpected_token();
             }
 
             switch (parser.next_token.value) {
                 case ',' :
-                    parser.change_state("delimiter");
-                    expressions.push(parser.next_symbol_definition.generate_new_symbol(parser));
-
+                    delimiters.push(
+                        terminal_definition.generate_new_node(parser)
+                    );
                     parser.prepare_next_state(expression_name, true);
                     break;
                 case ';' :
@@ -63,10 +73,8 @@ module.exports = {
             }
         }
 
-        symbol.expressions = expressions;
-        symbol.start       = expressions[0].start;
-        symbol.end         = expressions[expressions.length - 1].end;
-        console.log(symbol);
-        process.exit();
+        node.expressions = expressions;
+        node.start       = expressions[0].start;
+        node.end         = expressions[expressions.length - 1].end;
     }
 };

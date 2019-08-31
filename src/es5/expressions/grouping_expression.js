@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : grouping_expression.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-22
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,37 +9,49 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const precedence_enum                 = require("../enums/precedence_enum"),
-      is_expression                   = require("../helpers/is_expression"),
-      get_current_state_name          = require("../helpers/get_current_state_name"),
-      get_last_non_comment_symbol     = require("../helpers/get_last_non_comment_symbol"),
-      get_comma_separated_expressions = require("../helpers/get_comma_separated_expressions");
+const { GROUPING_EXPRESSION } = require("../enums/precedence_enum");
+const { terminal_definition } = require("../../common");
+const {
+    is_expression,
+    get_comma_separated_expressions,
+} = require("../helpers");
+const {
+    is_open_parenthesis,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 module.exports = {
 	id         : "Grouping expression",
     type       : "Expression",
-	precedence : precedence_enum.GROUPING_EXPRESSION,
+	precedence : GROUPING_EXPRESSION,
 
 	is : (token, parser) => {
-        return token.value === '('
-            && is_expression(parser)
-            && get_last_non_comment_symbol(parser) === null;
+        if (is_expression(parser) && is_open_parenthesis(parser)) {
+            return get_last_non_comment_node(parser) === null;
+        }
     },
-    initialize : (symbol, current_token, parser) => {
-        const expression_name = get_current_state_name(parser);
-        parser.change_state("delimiter");
+    initialize : (node, current_token, parser) => {
+        const { current_state } = parser;
 
-        symbol.open_parenthesis  = parser.next_symbol_definition.generate_new_symbol(parser);
-        symbol.expression        = get_comma_separated_expressions(parser, ')');
-        symbol.close_parenthesis = parser.next_symbol_definition.generate_new_symbol(parser);
-        symbol.start             = symbol.open_parenthesis.start;
-        symbol.end               = symbol.close_parenthesis.end;
+        const open = terminal_definition.generate_new_node(parser);
+        const {
+            delimiters, expressions
+        } = get_comma_separated_expressions(parser, ')');
+        const close = terminal_definition.generate_new_node(parser);
 
-        parser.prepare_next_state(expression_name, true);
+        node.open_parenthesis  = open;
+        node.expressions_list  = expressions;
+        node.delimiters        = delimiters;
+        node.close_parenthesis = close;
+        node.start             = open.start;
+        node.end               = close.end;
+
+        parser.ending_index  = node.end.index;
+        parser.current_state = current_state;
     }
 };

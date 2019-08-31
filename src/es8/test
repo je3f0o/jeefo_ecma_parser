@@ -1,0 +1,79 @@
+
+async function async_fn () {
+    await async_fn();
+}
+
+fn = () => {}
+
+fn = async function          () {}
+fn = async function async_fn () {}
+fn = async () => {}
+fn = async param => {}
+
+o = {
+    static,
+
+    3.14   : value,
+    "str"  : value,
+    await  : value,
+    [true] : value,
+
+    3.14   () {},
+    "str"  () {},
+    async  () {},
+    [true] () {},
+
+    get 3.14  () {},
+    get "str" () {},
+    get async () {},
+    get [str] () {},
+
+    set 3.14  (v) {},
+    set "str" (v) {},
+    set await (v) {},
+    set [str] (v) {},
+
+    async 3.14       () {},
+    async "str"      () {},
+    async await      () {},
+    async [computed] () {},
+}
+
+class A extends B {
+    ;
+
+    3.14       () {}
+    "str"      () {}
+    static     () {}
+    [computed] () {}
+
+    // Getters
+    get 3.14       () {}
+    get "str"      () {}
+    get static     () {}
+    get [computed] () {}
+
+    // Setter
+    set 3.14       (v) {}
+    set "str"      (v) {}
+    set static     (v) {}
+    set [computed] (v) {}
+
+    // Statics
+    static 3.14       () {}
+    static "str"      () {}
+    static static     () {}
+    static [computed] () {}
+
+    // Static getters
+    static get 3.14       () {}
+    static get "str"      () {}
+    static get static     () {}
+    static get [computed] () {}
+
+    // Static setters
+    static set 3.14       (v) {}
+    static set "str"      (v) {}
+    static set static     (v) {}
+    static set [computed] (v) {}
+}

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : block_statement.js
 * Created at  : 2017-08-18
-* Updated at  : 2019-03-30
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -9,63 +9,46 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum     = require("../enums/states_enum"),
-      precedence_enum = require("../enums/precedence_enum");
+const { statement }              = require("../enums/states_enum");
+const { terminal_definition }    = require("../../common");
+const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
+const {
+    is_close_curly,
+    is_delimiter_token,
+} = require("../../helpers");
 
 module.exports = {
 	id         : "Block statement",
 	type       : "Statement",
-	precedence : 31,
+	precedence : STATEMENT,
 
     is : (token, parser) => {
-        if (token.value === '{') {
-            switch (parser.current_state) {
-                case states_enum.statement       :
-                case states_enum.block_statement :
-                    return true;
-            }
+        if (parser.current_state === statement) {
+            return is_delimiter_token(token, '{');
         }
-
-        return false;
     },
+	initialize : (node, current_token, parser) => {
+        const statements = [];
 
-	initialize : (symbol, current_token, parser) => {
-        const statements   = [],
-              is_statement = parser.current_state === states_enum.statement;
-
-        parser.change_state("delimiter");
-        const open_curly_bracket = parser.next_symbol_definition.generate_new_symbol(parser);
-
+        const open = terminal_definition.generate_new_node(parser);
         parser.prepare_next_state(null, true);
-		while (parser.next_token.value !== '}') {
-            const statement = parser.get_next_symbol(precedence_enum.TERMINATION);
-            if (! parser.is_terminated) {
-                if (statement.id === "Comment") {
-                    parser.terminate(statement);
-                } else {
-                    parser.throw_unexpected_token();
-                }
-            }
-
-            statements.push(statement);
+		while (! is_close_curly(parser)) {
+            statements.push(parser.parse_next_node(TERMINATION));
             parser.prepare_next_state(null, true);
 		}
+        const close = terminal_definition.generate_new_node(parser);
 
-        const close_curly_bracket = parser.next_symbol_definition.generate_new_symbol(parser);
+        node.open_curly_bracket  = open;
+        node.statements          = statements;
+        node.close_curly_bracket = close;
+        node.start               = open.start;
+        node.end                 = close.end;
 
-        symbol.open_curly_bracket  = open_curly_bracket;
-        symbol.statements          = statements;
-        symbol.close_curly_bracket = close_curly_bracket;
-        symbol.start               = symbol.open_curly_bracket.start;
-        symbol.end                 = symbol.close_curly_bracket.end;
-
-        if (is_statement) {
-            parser.terminate(symbol);
-        }
+        parser.terminate(node);
     }
 };

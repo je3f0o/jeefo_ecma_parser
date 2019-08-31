@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : delimiters.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-29
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,42 +10,29 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum        = require("./enums/states_enum"),
-      get_start_position = require("./helpers/get_start_position");
+const delimiters = [
+    '(', ')',
+    '[', ']',
+    '{', '}',
+    ',', ':', ';',
+];
 
-module.exports = function register_delimiter_symbol_definitions (symbol_table) {
-    symbol_table.register_symbol_definition({
-        id         : "Delimiter",
-        type       : "Delimiter",
-        precedence : -1,
+module.exports = {
+    id         : "Delimiter",
+    type       : "Delimiter",
+    precedence : -1,
 
-        is : (token, parser) => {
-            switch (token.value) {
-                case '(' : case ')' :
-                case '[' : case ']' :
-                case '{' : case '}' :
-                case ':' : case ';' :
-                    return true;
-                case ',' :
-                    return parser.current_state === states_enum.delimiter;
-            }
-            return false;
-        },
-        initialize : (symbol, current_token, parser) => {
-            let pre_comment = null;
-            if (parser.current_symbol !== null && parser.current_symbol.id === "Comment") {
-                pre_comment = parser.current_symbol;
-            }
-
-            symbol.pre_comment = pre_comment;
-            symbol.token       = current_token;
-            symbol.start       = get_start_position(pre_comment, current_token);
-            symbol.end         = current_token.end;
-        }
-    });
+    is : token => {
+        return token.id === "Delimiter" && delimiters.includes(token.value);
+    },
+    initialize : (_, __, parser) => {
+        parser.throw_unexpected_token(
+            "Delimiter tokens cannot be initialized"
+        );
+    }
 };

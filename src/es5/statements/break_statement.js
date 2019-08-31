@@ -1,65 +1,65 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : break_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-03-31
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
+* Reference   : https://www.ecma-international.org/ecma-262/5.1/#sec-12.8
 .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum        = require("../enums/states_enum"),
-      get_pre_comment    = require("../helpers/get_pre_comment"),
-      get_start_position = require("../helpers/get_start_position");
+const { statement }           = require("../enums/states_enum");
+const { STATEMENT }           = require("../enums/precedence_enum");
+const { terminal_definition } = require("../../common");
+const {
+    is_terminator,
+    has_no_line_terminator
+} = require("../../helpers");
 
 module.exports = {
 	id         : "Break statement",
 	type       : "Statement",
-	precedence : 31,
+	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === states_enum.statement,
-    initialize : (symbol, current_token, parser) => {
-        let asi          = true,
-            end          = current_token.end,
-            identifier   = null,
-            post_comment = null;
-        const pre_comment = get_pre_comment(parser);
+	is         : (token, parser) => parser.current_state === statement,
+    initialize : (node, current_token, parser) => {
+        const keyword  = terminal_definition.generate_new_node(parser);
+        let identifier = null, terminator = null;
 
-        parser.prepare_next_state("expression", true);
-        if (parser.next_token.start.line === current_token.start.line) {
-            if (parser.next_symbol_definition !== null && parser.next_symbol_definition.type !== "Delimiter") {
-                if (parser.next_symbol_definition.id === "Identifier") {
-                    identifier = parser.next_symbol_definition.generate_new_symbol(parser);
-                    parser.prepare_next_state("expression");
-                } else {
-                    parser.throw_unexpected_token();
-                }
-            }
+        parser.prepare_next_state("expression");
+        if (parser.next_token            !== null &&
+            parser.next_token.value      !== ';'  &&
+            parser.next_token.start.line === keyword.end.line) {
+            parser.expect("an identifier", parser => {
+                return parser.next_node_definition    !== null &&
+                       parser.next_node_definition.id === "Identifier";
+            });
+            identifier = parser.generate_next_node(parser);
 
-            if (parser.next_token            !== null &&
-                parser.next_token.value      === ';'  &&
-                parser.next_token.start.line === current_token.start.line) {
-                asi          = false;
-                end          = parser.next_token.end;
-                post_comment = parser.current_symbol;
-            } else if (identifier) {
-                end = identifier.end;
-            }
+            parser.prepare_next_state("delimiter");
         }
 
-        symbol.identifier   = identifier;
-        symbol.ASI          = asi;
-        symbol.pre_comment  = pre_comment;
-        symbol.post_comment = post_comment;
-        symbol.start        = get_start_position(pre_comment, current_token);
-        symbol.end          = end;
+        const has_terminator = (
+            is_terminator(parser) &&
+            has_no_line_terminator(keyword, parser.next_token)
+        );
+        if (has_terminator) {
+            terminator = terminal_definition.generate_new_node(parser);
+        }
 
-        parser.terminate(symbol);
+        node.keyword    = keyword;
+        node.identifier = identifier;
+        node.terminator = terminator;
+        node.start      = keyword.start;
+        node.end        = (terminator || identifier || keyword).end;
+
+        parser.terminate(node);
     }
 };

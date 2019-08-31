@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : get_variable_declaration_list.js
 * Created at  : 2019-03-14
-* Updated at  : 2019-03-29
+* Updated at  : 2019-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,15 +10,17 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
+const { terminal_definition } = require("../../common");
 const get_variable_declarator = require("./get_variable_declarator");
 
-module.exports = function get_variable_declaration_list (parser, is_nullable) {
-    const list = [];
+module.exports = (parser, is_nullable) => {
+    const list       = [];
+    const delimiters = [];
 
     LOOP:
     while (true) {
@@ -32,15 +34,24 @@ module.exports = function get_variable_declaration_list (parser, is_nullable) {
 
         switch (parser.next_token.value) {
             case ',' :
-                const state_name = is_nullable ? "expression" : "expression_no_in";
+                delimiters.push(
+                    terminal_definition.generate_new_node(parser)
+                );
+
+                let state_name;
+                if (is_nullable) {
+                    state_name = "expression";
+                } else {
+                    state_name = "expression_no_in";
+                }
                 parser.prepare_next_state(state_name, true);
                 break;
             case ';' :
                 break LOOP;
             default:
-                parser.throw_unexpected_token(`Expected delimiter instead saw: ${ parser.next_token.value }`);
+                parser.throw_unexpected_token();
         }
     }
 
-    return list;
+    return { list, delimiters };
 };
