@@ -36,5 +36,17 @@ module.exports = {
         } else {
             parser.throw_unexpected_token();
         }
+    },
+
+    missing_initializer_in_destructuring (parser) {
+        parser.throw_unexpected_token(
+            "Missing initializer in destructuring declaration"
+        );
+    },
+
+    missing_initializer_in_const (parser, node) {
+        parser.throw_unexpected_token(
+            "Missing initializer in const declaration", node
+        );
     }
 };

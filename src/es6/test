@@ -127,19 +127,7 @@ class A extends B {
     static set static     (v) {}
     static set [computed] (v) {}
 }
-
-for (let init, z = f in {};cond;update) {}
-// For iterator statement
-// --------------------------
-for (;;) {}
-for (init = value, a;cond;update) {}
-for (var i;;) {}
-for (var i = 1, j; i < arguments.length; ++i) {}
-for (var {} = {}; i < arguments.length; ++i) {}
-
-// Error cases
-//for (var {}; i < arguments.length; ++i) {}
-//for (var $var, z = z in expr) {}
+for (const id;
 
 /*
 let id

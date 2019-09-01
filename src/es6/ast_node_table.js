@@ -75,7 +75,7 @@ module.exports = ast_node_table => {
 
         "./expressions/assignable_left_hand_side_expression",
 
-        "./controllers/for_expression_controller",
+        "./controllers/for_header_controller",
 
         "./declarations/for_binding",
         "./declarations/for_declaration",

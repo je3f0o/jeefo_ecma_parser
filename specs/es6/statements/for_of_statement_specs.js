@@ -130,28 +130,9 @@ describe("For of statement >", () => {
                 }
             },
 
-            // for (var $var = z of
+            // for (i = z of expr
             {
-                source  : "for (var $var = z of",
-                message : "for-of loop variable declaration may not have an initializer.",
-                error (error) {
-                    it(`should be throw: '${ this.message }'`, () => {
-                        expect(error.message).to.be(this.message);
-                    });
-
-                    it("should be instanceof UnexpectedTokenException", ()=>{
-                        expect(error).to.be.a(UnexpectedTokenException);
-                    });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error).to.be.a(SyntaxError);
-                    });
-                }
-            },
-
-            // for (i = 1 of expr
-            {
-                source  : "for (i = 1 of expr",
+                source  : "for (i = z of expr",
                 message : "Invalid left-hand side in for-of loop",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
@@ -168,9 +149,47 @@ describe("For of statement >", () => {
                 }
             },
 
-            // for (let i = 1 of expr
+            // for (var i = z of expr
             {
-                source  : "for (let i = 1 of expr",
+                source  : "for (var i = z of expr",
+                message : "for-of loop variable declaration may not have an initializer.",
+                error (error) {
+                    it(`should be throw: '${ this.message }'`, () => {
+                        expect(error.message).to.be(this.message);
+                    });
+
+                    it("should be instanceof UnexpectedTokenException", ()=>{
+                        expect(error).to.be.a(UnexpectedTokenException);
+                    });
+
+                    it("should be instanceof SyntaxError", () => {
+                        expect(error).to.be.a(SyntaxError);
+                    });
+                }
+            },
+
+            // for (let i = z of expr
+            {
+                source  : "for (let i = z of expr",
+                message : "for-of loop variable declaration may not have an initializer.",
+                error (error) {
+                    it(`should be throw: '${ this.message }'`, () => {
+                        expect(error.message).to.be(this.message);
+                    });
+
+                    it("should be instanceof UnexpectedTokenException", ()=>{
+                        expect(error).to.be.a(UnexpectedTokenException);
+                    });
+
+                    it("should be instanceof SyntaxError", () => {
+                        expect(error).to.be.a(SyntaxError);
+                    });
+                }
+            },
+
+            // for (const i = z of expr
+            {
+                source  : "for (const i = z of expr",
                 message : "for-of loop variable declaration may not have an initializer.",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {

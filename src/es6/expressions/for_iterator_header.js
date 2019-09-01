@@ -25,9 +25,8 @@ module.exports = {
 
     is         : (_, parser) => parser.current_state === for_iterator_header,
     initialize : (node, token, parser) => {
-        const { prev_node, initializer } = parser.prev_node;
+        const { initializer } = parser.prev_node;
 
-        parser.prev_node = prev_node;
         parser.prepare_next_state("for_iterator_condition", true);
         const condition = parser.generate_next_node();
 

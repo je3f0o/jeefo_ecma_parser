@@ -39,6 +39,9 @@ module.exports = {
         parser.prepare_next_state("for_header_controller", true);
         const expression = parser.parse_next_node(TERMINATION);
 
+        if (! parser.next_token) {
+            parser.throw_unexpected_end_of_stream();
+        }
         parser.expect(')', is_close_parenthesis);
         const close = parser.generate_next_node();
 

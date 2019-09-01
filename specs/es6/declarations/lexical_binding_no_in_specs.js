@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : variable_declaration_no_in_specs.js
-* Created at  : 2019-08-30
+* File Name   : lexical_binding_no_in.js
+* Created at  : 2019-09-01
 * Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
@@ -25,7 +25,7 @@ const {
     test_declaration,
 } = require("../../helpers");
 
-describe("Variable declaration no in >", () => {
+describe("Lexical binding no in >", () => {
     const valid_test_cases = [
         // id,
         {
@@ -122,11 +122,11 @@ describe("Variable declaration no in >", () => {
         const streamer = parser.tokenizer.streamer;
         let node;
         try {
-            parser.change_state("variable_declaration_no_in");
+            parser.change_state("lexical_binding_no_in");
             node = parser.generate_next_node();
         } catch (e) {}
 
-        test_declaration("Variable declaration no in", node);
+        test_declaration("Lexical binding no in", node);
 
         it("should be has correct binding", () => {
             test_case.binding(node.binding);
@@ -238,7 +238,7 @@ describe("Variable declaration no in >", () => {
             parser.prepare_next_state();
 
             try {
-                parser.change_state("variable_declaration_no_in");
+                parser.change_state("lexical_binding_no_in");
                 parser.generate_next_node();
                 expect("throw").to.be("failed");
             } catch (e) {

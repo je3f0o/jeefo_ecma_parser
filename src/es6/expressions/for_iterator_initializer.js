@@ -49,7 +49,5 @@ module.exports = {
         node.terminator = terminator;
         node.start      = (expression || terminator).start;
         node.end        = terminator.end;
-
-        parser.ending_index = node.end.index;
     }
 };

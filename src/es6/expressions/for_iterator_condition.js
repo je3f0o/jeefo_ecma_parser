@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_iterator_condition.js
 * Created at  : 2019-08-30
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :

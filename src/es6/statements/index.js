@@ -39,12 +39,7 @@ const var_keyword = {
 };
 
 module.exports = ast_node_table => {
-    ast_node_table.remove_node_defs([
-    ]);
-
     [
-        "for_in",
-        "for_of",
         "variable",
         "expression",
     ].forEach(path => {

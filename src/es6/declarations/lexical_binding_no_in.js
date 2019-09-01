@@ -16,6 +16,7 @@
 // ignore:end
 
 const { DECLARATION }           = require("../enums/precedence_enum");
+const { error_reporter }        = require("../helpers");
 const { lexical_binding_no_in } = require("../enums/states_enum");
 const {
     is_assign,
@@ -33,20 +34,19 @@ module.exports = {
 
         if (parser.prev_node) {
             ({ binding, initializer } = parser.prev_node);
+            if (! initializer && is_destructuring_binding_pattern(binding)) {
+                error_reporter.missing_initializer_in_destructuring(parser);
+            }
         } else {
             parser.change_state("assignable_declaration", false);
             binding = parser.generate_next_node().declaration;
             parser.prepare_next_state("expression_no_in", true);
 
             if (is_assign(parser)) {
-                parser.change_states("initializer", "expression_no_in");
+                parser.change_state("initializer");
                 initializer = parser.generate_next_node();
             } else if (is_destructuring_binding_pattern(binding)) {
-                parser.throw_unexpected_token(
-                    "Missing initializer in destructuring declaration"
-                );
-            } else {
-                parser.prepare_next_node_definition(true);
+                error_reporter.missing_initializer_in_destructuring(parser);
             }
         }
 

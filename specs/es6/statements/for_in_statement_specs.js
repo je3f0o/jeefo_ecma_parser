@@ -160,9 +160,24 @@ describe("For in statement >", () => {
                 }
             },
 
-            // for (i = 1 in expr
+            // for (var i = z in expr
             {
-                source  : "for (i = 1 in expr",
+                source  : "for (var i = z in expr",
+                message : "Unexpected end of stream",
+                error (error) {
+                    it(`should be throw: '${ this.message }'`, () => {
+                        expect(error.message).to.be(this.message);
+                    });
+
+                    it("should be instanceof SyntaxError", () => {
+                        expect(error).to.be.a(SyntaxError);
+                    });
+                }
+            },
+
+            // for (i = z in expr
+            {
+                source  : "for (i = z in expr",
                 message : "Invalid left-hand side in for-in loop",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
@@ -179,9 +194,28 @@ describe("For in statement >", () => {
                 }
             },
 
-            // for (let i = 1 in expr
+            // for (let i = z in expr
             {
-                source  : "for (let i = 1 in expr",
+                source  : "for (let i = z in expr",
+                message : "for-in loop variable declaration may not have an initializer.",
+                error (error) {
+                    it(`should be throw: '${ this.message }'`, () => {
+                        expect(error.message).to.be(this.message);
+                    });
+
+                    it("should be instanceof UnexpectedTokenException", ()=>{
+                        expect(error).to.be.a(UnexpectedTokenException);
+                    });
+
+                    it("should be instanceof SyntaxError", () => {
+                        expect(error).to.be.a(SyntaxError);
+                    });
+                }
+            },
+
+            // for (const i = z in expr
+            {
+                source  : "for (const i = z in expr",
                 message : "for-in loop variable declaration may not have an initializer.",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
