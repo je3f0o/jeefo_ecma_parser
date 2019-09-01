@@ -31,6 +31,12 @@ const is_property_name = (() => {
     };
 })();
 
+// Destructuring binding patterns
+const destructuring_binding_patterns = [
+    "Array binding pattern",
+    "Object binding pattern",
+];
+
 module.exports = {
     is_delimiter,
     is_property_name,
@@ -45,9 +51,6 @@ module.exports = {
     is_close_square_bracket : is_delimiter(']'),
 
     is_assign (parser) {
-        if (! parser.parse) {
-            throw new Error("Got it")
-        }
         const { next_token:token } = parser;
         return token.id === "Operator" && token.value === '=';
     },
@@ -83,6 +86,10 @@ module.exports = {
 
     is_identifier_value (token, value) {
         return token.id === "Identifier" && token.value === value;
+    },
+
+    is_destructuring_binding_pattern (node) {
+        return destructuring_binding_patterns.includes(node.id);
     },
 
     has_no_line_terminator (last_token, next_token) {

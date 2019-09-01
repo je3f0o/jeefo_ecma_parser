@@ -66,6 +66,7 @@ module.exports = ast_node_table => {
 
         "./expressions/initializer",
 
+        // For statement
         "./expressions/for_in_header",
         "./expressions/for_of_header",
         "./expressions/for_iterator_header",
@@ -82,6 +83,11 @@ module.exports = ast_node_table => {
         "./declarations/variable_declaration_no_in",
         "./declarations/variable_declaration_list_no_in",
         "./declarations/es5_legacy_variable_declaration_no_in",
+
+        // For statement's lexical declaration
+        "./declarations/binding_list_no_in",
+        "./declarations/lexical_binding_no_in",
+        "./declarations/lexical_declaration_no_in",
     ].forEach(path => {
         ast_node_table.register_node_definition(require(path));
     });

@@ -130,9 +130,9 @@ describe("For in statement >", () => {
 
     describe("Error cases >", () => {
         const error_test_cases = [
-            // for (var $var2 in
+            // for (var $var in
             {
-                source  : "for (var $var2 in",
+                source  : "for (var $var in",
                 message : "Unexpected end of stream",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
@@ -145,9 +145,9 @@ describe("For in statement >", () => {
                 }
             },
 
-            // for (var $var2 = z in
+            // for (var $var = z in
             {
-                source  : "for (var $var2 = z in",
+                source  : "for (var $var = z in",
                 message : "Unexpected end of stream",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {

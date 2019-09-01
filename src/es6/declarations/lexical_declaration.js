@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : lexical_declaration.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :

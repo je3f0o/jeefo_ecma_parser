@@ -41,6 +41,14 @@ module.exports = [
     "var_statement",
     "lexical_declaration",
 
+    // For statement's lexical declaration
+    "binding_list_no_in",
+    "lexical_binding_no_in",
+    "lexical_declaration_no_in",
+
+    // Hoistable declarations
+    "lexical_declaration",
+
     // For loop
     "for_binding",
     "for_of_header",

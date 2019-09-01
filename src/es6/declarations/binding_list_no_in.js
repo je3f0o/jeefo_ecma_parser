@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : variable_declaration_list_no_in.js
-* Created at  : 2019-08-30
+* File Name   : binding_list_no_in.js
+* Created at  : 2019-09-01
 * Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
@@ -15,25 +15,23 @@
 
 // ignore:end
 
-const { DECLARATION }                   = require("../enums/precedence_enum");
-const { is_comma, is_terminator }       = require("../../helpers");
-const {variable_declaration_list_no_in} = require("../enums/states_enum");
+const { DECLARATION }             = require("../enums/precedence_enum");
+const { binding_list_no_in }      = require("../enums/states_enum");
+const { is_comma, is_terminator } = require("../../helpers");
 const {
     error_reporter : { invalid_left_hand_ForIn_or_ForOf }
 } = require("../helpers");
 
 module.exports = {
-    id         : "Variable declaration list no in",
-    type       : "Declaration",
+    id         : "Binding list no in",
+    type       : "DECLARATION",
     precedence : DECLARATION,
 
-    is : (token, parser) => {
-        return parser.current_state === variable_declaration_list_no_in;
-    },
+    is         : (_, parser) => parser.current_state === binding_list_no_in,
     initialize : (node, token, parser) => {
-        const { keyword, prev_node } = parser.prev_node;
+        const { prev_node } = parser.prev_node;
 
-        parser.change_state("variable_declaration_no_in");
+        parser.change_state("lexical_binding_no_in");
         const list       = [parser.generate_next_node()];
         const delimiters = [];
 
@@ -43,7 +41,7 @@ module.exports = {
         } else if (is_comma(parser)) {
             parser.change_state("delimiter");
             delimiters.push(parser.generate_next_node());
-            parser.prepare_next_state("variable_declaration_no_in", true);
+            parser.prepare_next_state("lexical_binding_no_in", true);
 
             while (! is_terminator(parser)) {
                 list.push(parser.generate_next_node());
@@ -55,7 +53,7 @@ module.exports = {
                         parser.change_state("delimiter");
                         delimiters.push(parser.generate_next_node());
                         parser.prepare_next_state(
-                            "variable_declaration_no_in", true
+                            "lexical_binding_no_in", true
                         );
                     }
                 } else {
@@ -66,14 +64,9 @@ module.exports = {
             parser.change_state("delimiter");
         }
 
-        parser.expect(';', is_terminator);
-        const terminator = parser.generate_next_node();
-
-        node.keyword    = keyword;
         node.list       = list;
         node.delimiters = delimiters;
-        node.terminator = terminator;
-        node.start      = keyword.start;
-        node.end        = terminator.end;
+        node.start      = list[0].start;
+        node.end        = list[list.length - 1].end;
     }
 };

@@ -128,23 +128,11 @@ class A extends B {
     static set [computed] (v) {}
 }
 
-for ($var in expr) {}
-// For-of statement
-// --------------------------
-for ($var of expr) {}
-for (object.member of expr) {}
-for (object[computed_mement] of expr) {}
-for ({} of expr) {}
-for ([] of expr) {}
-
-for (var $var of expr) {}
-for (var {} of expr) {}
-for (var [] of expr) {}
-
+for (let init, z = f in {};cond;update) {}
 // For iterator statement
 // --------------------------
-//for (;;) {}
-for (init;cond;update) {}
+for (;;) {}
+for (init = value, a;cond;update) {}
 for (var i;;) {}
 for (var i = 1, j; i < arguments.length; ++i) {}
 for (var {} = {}; i < arguments.length; ++i) {}

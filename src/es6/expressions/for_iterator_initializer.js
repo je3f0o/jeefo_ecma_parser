@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_iterator_initializer.js
 * Created at  : 2019-08-30
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,7 +16,6 @@
 // ignore:end
 
 const { is_terminator }            = require("../../helpers");
-const { terminal_definition }      = require("../../common");
 const { EXPRESSION, TERMINATION }  = require("../enums/precedence_enum");
 const { for_iterator_initializer } = require("../enums/states_enum");
 
@@ -31,7 +30,7 @@ module.exports = {
     initialize : (node, token, parser) => {
         let { prev_node, expression } = parser.prev_node;
 
-        parser.set_prev_node(expression);
+        if (expression) { parser.set_prev_node(expression); }
         parser.prev_node = prev_node;
 
         parser.change_state("expression_no_in");
@@ -39,7 +38,7 @@ module.exports = {
 
         let terminator;
         if (is_terminator(parser)) {
-            terminator = terminal_definition.generate_new_node(parser);
+            terminator = parser.generate_next_node();
         } else if (! parser.next_token) {
             parser.throw_unexpected_end_of_stream();
         } else {
@@ -50,5 +49,7 @@ module.exports = {
         node.terminator = terminator;
         node.start      = (expression || terminator).start;
         node.end        = terminator.end;
+
+        parser.ending_index = node.end.index;
     }
 };

@@ -115,9 +115,9 @@ describe("For of statement >", () => {
 
     describe("Error cases >", () => {
         const error_test_cases = [
-            // for (var $var2 of
+            // for (var $var of
             {
-                source  : "for (var $var2 of",
+                source  : "for (var $var of",
                 message : "Unexpected end of stream",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {
@@ -130,9 +130,9 @@ describe("For of statement >", () => {
                 }
             },
 
-            // for (var $var2 = z of
+            // for (var $var = z of
             {
-                source  : "for (var $var2 = z of",
+                source  : "for (var $var = z of",
                 message : "for-of loop variable declaration may not have an initializer.",
                 error (error) {
                     it(`should be throw: '${ this.message }'`, () => {

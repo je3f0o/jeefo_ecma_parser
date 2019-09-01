@@ -1,5 +1,5 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : assignable_left_declaration.js
+* File Name   : assignable_declaration.js
 * Created at  : 2019-09-01
 * Updated at  : 2019-09-01
 * Author      : jeefo
@@ -32,7 +32,7 @@ module.exports = {
             parser.throw_unexpected_token();
         }
         switch (parser.next_node_definition.id) {
-            case "Identifier" : break;
+            case "Identifier"     : break;
             case "Array literal"  :
             case "Object literal" :
                 parser.set_prev_node(parser.generate_next_node());
