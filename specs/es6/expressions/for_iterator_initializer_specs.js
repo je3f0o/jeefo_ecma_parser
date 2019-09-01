@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_iterator_initializer_specs.js
 * Created at  : 2019-08-30
-* Updated at  : 2019-08-30
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -170,13 +170,7 @@ describe("For iterator initializer >", () => {
                     });
 
                     it("should be instanceof UnexpectedTokenException", () => {
-                        expect(
-                            error instanceof UnexpectedTokenException
-                        ).to.be(true);
-                    });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error instanceof SyntaxError).to.be(true);
+                        expect(error).to.be.an(UnexpectedTokenException);
                     });
                 }
             },
@@ -191,13 +185,7 @@ describe("For iterator initializer >", () => {
                     });
 
                     it("should be instanceof UnexpectedTokenException", () => {
-                        expect(
-                            error instanceof UnexpectedTokenException
-                        ).to.be(true);
-                    });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error instanceof SyntaxError).to.be(true);
+                        expect(error).to.be.an(UnexpectedTokenException);
                     });
                 }
             },

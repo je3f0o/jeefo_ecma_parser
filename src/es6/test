@@ -1,5 +1,9 @@
 `\${${ expr }} head ${ expr } ${ expr2 } tail`
 
+var $var
+var {} = {}
+var [] = []
+
 function fn ({binding}, [a], ...rest) {}
 
 const fn = function    () {};
@@ -38,8 +42,6 @@ const id_generator = (function* () {
 ({prop:{}, prop:{} = {}, prop:{} = {} = {}} = {});
 ({prop:[], prop:[] = [], prop:[] = [] = []} = {});
 
-var $var
-var $var;
 let $var
 let $var;
 
@@ -127,7 +129,6 @@ class A extends B {
     static set static     (v) {}
     static set [computed] (v) {}
 }
-for (const id;
 
 /*
 let id

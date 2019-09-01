@@ -15,8 +15,9 @@
 
 // ignore:end
 
-const { DECLARATION }           = require("../enums/precedence_enum");
-const { lexical_binding_no_in } = require("../enums/states_enum");
+const { DECLARATION }     = require("../enums/precedence_enum");
+const { error_reporter }  = require("../helpers");
+const { lexical_binding } = require("../enums/states_enum");
 const {
     is_assign,
     is_destructuring_binding_pattern
@@ -27,23 +28,21 @@ module.exports = {
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is         : (_, parser) => parser.current_state === lexical_binding_no_in,
+    is         : (_, parser) => parser.current_state === lexical_binding,
     initialize : (node, token, parser) => {
-        let initializer = null, binding;
+        let initializer = null;
 
-        if (parser.prev_node) {
-            ({ binding, initializer } = parser.prev_node);
-        } else {
-            parser.change_state("assignable_declaration", false);
-            binding = parser.generate_next_node().declaration;
+        parser.change_state("assignable_declaration", false);
+        const binding = parser.generate_next_node().declaration;
+        parser.set_prev_node(binding);
+        parser.prepare_next_node_definition();
 
+        if (parser.next_token) {
             if (is_assign(parser)) {
                 parser.change_states("initializer", "expression");
                 initializer = parser.generate_next_node();
             } else if (is_destructuring_binding_pattern(binding)) {
-                parser.throw_unexpected_token(
-                    "Missing initializer in destructuring declaration"
-                );
+                error_reporter.missing_initializer_in_destructuring(parser);
             }
         }
 

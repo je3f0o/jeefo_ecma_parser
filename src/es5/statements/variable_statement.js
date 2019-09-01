@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_statement.js
 * Created at  : 2019-03-18
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,42 +15,33 @@
 
 // ignore:end
 
-const { statement }           = require("../enums/states_enum");
-const { STATEMENT }           = require("../enums/precedence_enum");
-const { is_terminator }       = require("../../helpers");
-const { terminal_definition } = require("../../common");
-const get_variable_declaration_list = require(
-    "../helpers/get_variable_declaration_list"
-);
+const { statement }     = require("../enums/states_enum");
+const { STATEMENT }     = require("../enums/precedence_enum");
+const { is_terminator } = require("../../helpers");
 
 module.exports = {
     id         : "Variable statement",
     type       : "Statement",
     precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === statement,
-    initialize : (node, current_token, parser) => {
-        const keyword  = terminal_definition.generate_new_node(parser);
+    is         : (_, parser) => parser.current_state === statement,
+    initialize : (node, token, parser) => {
+        parser.change_state("delimiter");
+        const keyword  = parser.generate_next_node();
         let terminator = null;
 
-        parser.prepare_next_state("expression", true);
+        parser.prepare_next_state("variable_declaration_list", true);
+        const declaration_list = parser.generate_next_node();
 
-        const {
-            list,
-            delimiters
-        } = get_variable_declaration_list(parser, true);
-
-        if (is_terminator(parser)) {
-            terminator = terminal_definition.generate_new_node(parser);
+        if (parser.next_token) {
+            parser.expect(';', is_terminator);
+            terminator = parser.generate_next_node();
         }
 
-        node.keyword    = keyword;
-        node.list       = list;
-        node.delimiters = delimiters;
-        node.terminator = terminator;
-        node.start      = keyword.start;
-        node.end        = (terminator || list[list.length - 1]).end;
-
-        parser.terminate(node);
+        node.keyword          = keyword;
+        node.declaration_list = declaration_list;
+        node.terminator       = terminator;
+        node.start            = keyword.start;
+        node.end              = (terminator || declaration_list).end;
     }
 };

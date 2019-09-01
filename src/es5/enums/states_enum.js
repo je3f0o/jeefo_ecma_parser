@@ -32,6 +32,10 @@ module.exports = [
     "variable_declaration_no_in",
     "variable_declaration_list_no_in",
 
+    // Variable statements
+    "variable_declaration",
+    "variable_declaration_list",
+
     "initializer",
 
     "for_in_header",

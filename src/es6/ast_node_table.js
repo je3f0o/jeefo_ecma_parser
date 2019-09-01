@@ -23,9 +23,7 @@ module.exports = ast_node_table => {
         { expression    : "Expression statement"      } ,
         { expression    : "Formal parameter list",    } ,
         { expression    : "Function call expression", } ,
-        { reserved_word : "var"                       } ,
         { reserved_word : "let"                       } ,
-        { reserved_word : "for"                       } ,
         { reserved_word : "new",                      } ,
         { reserved_word : "yield",                    } ,
         { reserved_word : "const"                     } ,
@@ -41,9 +39,6 @@ module.exports = ast_node_table => {
 
     // Register declarations
     require("./declarations")(ast_node_table);
-
-    // Register statements
-    require("./statements")(ast_node_table);
 
     // Register expressions
     require("./expressions")(ast_node_table);
@@ -66,28 +61,35 @@ module.exports = ast_node_table => {
 
         "./expressions/initializer",
 
-        // For statement
+        "./expressions/assignable_left_hand_side_expression",
+
+        "./controllers/for_header_controller",
+
+        // Statements
+        "./statements/expression_statement",
+
+        // Variable declarations
+        "./declarations/variable_declaration",
+
+        // Generic helper node
+        "./declarations/assignable_declaration",
+
+        // For statement expressions
         "./expressions/for_in_header",
         "./expressions/for_of_header",
         "./expressions/for_iterator_header",
         "./expressions/for_iterator_condition",
         "./expressions/for_iterator_initializer",
 
-        "./expressions/assignable_left_hand_side_expression",
-
-        "./controllers/for_header_controller",
-
+        // For statements declarations
         "./declarations/for_binding",
         "./declarations/for_declaration",
-        "./declarations/assignable_declaration",
-        "./declarations/variable_declaration_no_in",
-        "./declarations/variable_declaration_list_no_in",
-        "./declarations/es5_legacy_variable_declaration_no_in",
-
-        // For statement's lexical declaration
         "./declarations/binding_list_no_in",
         "./declarations/lexical_binding_no_in",
         "./declarations/lexical_declaration_no_in",
+        "./declarations/variable_declaration_no_in",
+        "./declarations/variable_declaration_list_no_in",
+        "./declarations/es5_legacy_variable_declaration_no_in",
     ].forEach(path => {
         ast_node_table.register_node_definition(require(path));
     });

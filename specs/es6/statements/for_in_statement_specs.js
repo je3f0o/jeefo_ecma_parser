@@ -187,10 +187,6 @@ describe("For in statement >", () => {
                     it("should be instanceof UnexpectedTokenException", ()=>{
                         expect(error).to.be.a(UnexpectedTokenException);
                     });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error).to.be.a(SyntaxError);
-                    });
                 }
             },
 
@@ -206,10 +202,6 @@ describe("For in statement >", () => {
                     it("should be instanceof UnexpectedTokenException", ()=>{
                         expect(error).to.be.a(UnexpectedTokenException);
                     });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error).to.be.a(SyntaxError);
-                    });
                 }
             },
 
@@ -224,10 +216,6 @@ describe("For in statement >", () => {
 
                     it("should be instanceof UnexpectedTokenException", ()=>{
                         expect(error).to.be.a(UnexpectedTokenException);
-                    });
-
-                    it("should be instanceof SyntaxError", () => {
-                        expect(error).to.be.a(SyntaxError);
                     });
                 }
             },
