@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_list_no_in.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -20,16 +20,10 @@ const { binding_list_no_in }      = require("../enums/states_enum");
 const { is_comma, is_terminator } = require("../../helpers");
 const {
     error_reporter : {
-        missing_initializer_in_const,
         invalid_left_hand_ForIn_or_ForOf
     },
+    validate_const_binding,
 } = require("../helpers");
-
-const validate_const_binding = (node, parser) => {
-    if (! node.initializer) {
-        missing_initializer_in_const(parser, node.binding);
-    }
-};
 
 module.exports = {
     id         : "Binding list no in",
@@ -39,12 +33,11 @@ module.exports = {
     is         : (_, parser) => parser.current_state === binding_list_no_in,
     initialize : (node, token, parser) => {
         const { keyword, prev_node } = parser.prev_node;
+        const is_const = keyword.value === "const";
 
         parser.change_state("lexical_binding_no_in");
         const binding = parser.generate_next_node();
-        if (keyword.value === "const") {
-            validate_const_binding(binding, parser);
-        }
+        if (is_const) { validate_const_binding(binding, parser); }
 
         const list       = [binding];
         const delimiters = [];
@@ -59,9 +52,7 @@ module.exports = {
 
             while (! is_terminator(parser)) {
                 const binding = parser.generate_next_node();
-                if (keyword.value === "const") {
-                    validate_const_binding(binding, parser);
-                }
+                if (is_const) { validate_const_binding(binding, parser); }
                 list.push(binding);
 
                 if (parser.next_token === null) {
@@ -74,6 +65,7 @@ module.exports = {
                             "lexical_binding_no_in", true
                         );
                     }
+                    // Else do nothing. it has to be terminator.
                 } else {
                     invalid_left_hand_ForIn_or_ForOf(parser, list);
                 }

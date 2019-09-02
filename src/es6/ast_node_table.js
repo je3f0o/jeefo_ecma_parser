@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -51,6 +51,7 @@ module.exports = ast_node_table => {
         "./part/property_control_es6",
         "./covers/binding_pattern",
         "./covers/cover_object_error",
+
         "./expressions/binding_element",
         "./expressions/binding_identifier",
         "./expressions/formal_parameter_list",
@@ -63,13 +64,15 @@ module.exports = ast_node_table => {
 
         "./expressions/assignable_left_hand_side_expression",
 
-        "./controllers/for_header_controller",
-
         // Statements
         "./statements/expression_statement",
 
         // Variable declarations
         "./declarations/variable_declaration",
+
+        // Lexical declarations
+        "./declarations/binding_list",
+        "./declarations/lexical_binding",
 
         // Generic helper node
         "./declarations/assignable_declaration",
@@ -80,6 +83,7 @@ module.exports = ast_node_table => {
         "./expressions/for_iterator_header",
         "./expressions/for_iterator_condition",
         "./expressions/for_iterator_initializer",
+        "./controllers/for_header_controller",
 
         // For statements declarations
         "./declarations/for_binding",
@@ -94,6 +98,9 @@ module.exports = ast_node_table => {
         ast_node_table.register_node_definition(require(path));
     });
 
+    ast_node_table.register_reserved_words(
+        ["let", "const"], require("./declarations/lexical_declaration")
+    );
     ast_node_table.register_reserved_word(
         "extends", require("./common/class_heritage")
     );

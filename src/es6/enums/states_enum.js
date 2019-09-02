@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -41,18 +41,18 @@ module.exports = [
     "var_statement",
     "lexical_declaration",
 
-    // For statement's lexical declaration
-    "binding_list_no_in",
-    "lexical_binding_no_in",
-    "lexical_declaration_no_in",
-
-    // Hoistable declarations
+    // Lexical declaration
+    "binding_list",
+    "lexical_binding",
     "lexical_declaration",
 
-    // For loop
+    // For statement's lexical declarations
     "for_binding",
     "for_of_header",
     "for_declaration",
+    "binding_list_no_in",
+    "lexical_binding_no_in",
+    "lexical_declaration_no_in",
     "es5_legacy_variable_declaration_no_in",
 
     "class_tail",
