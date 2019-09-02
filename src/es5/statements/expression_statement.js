@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -76,6 +76,9 @@ module.exports = {
 
         parser.change_state("expression");
         const expression = parser.parse_next_node(TERMINATION);
+        if (! expression) {
+            parser.throw_unexpected_token();
+        }
 
         if (parser.next_token && parser.next_token.value === ';') {
             if (parser.post_comment !== null) {

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_function_body.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,14 +15,17 @@
 
 // ignore:end
 
-const { AST_Node_Definition } = require("@jeefo/parser");
-const { function_body }       = require("../../es6/common");
+const { EXPRESSION }          = require("../enums/precedence_enum");
+const { async_function_body } = require("../enums/states_enum");
 
-module.exports = new AST_Node_Definition({
+module.exports = {
     id         : "Async function body",
     type       : "Expression",
-    precedence : -1,
+    precedence : EXPRESSION,
 
-    is         : () => {},
-    initialize : function_body.initialize,
-});
+    is         : (_, parser) => parser.current_state === async_function_body,
+    initialize : (node, token, parser) => {
+        parser.change_state("function_body");
+        parser.next_node_definition.initialize(node, token, parser);
+    }
+};

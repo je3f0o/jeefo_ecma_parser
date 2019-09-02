@@ -41,6 +41,10 @@ module.exports = [
     "var_statement",
     "lexical_declaration",
 
+    // TODO: Temporary state
+    "async_state",
+    "function_state",
+
     // Lexical declaration
     "binding_list",
     "lexical_binding",

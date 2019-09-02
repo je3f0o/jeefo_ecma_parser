@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_function_expression.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,7 +16,7 @@
 // ignore:end
 
 const { EXPRESSION }                = require("../enums/precedence_enum");
-const { terminal_definition }       = require("../../common");
+const { is_open_parenthesis }       = require("../../helpers");
 const { async_function_expression } = require("../enums/states_enum");
 
 module.exports = {
@@ -24,25 +24,44 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is : (token, parser) => {
+    is (token, parser) {
         return parser.current_state === async_function_expression;
     },
-    initialize : (node, token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+    initialize (node, token, parser) {
+        let name = null;
+        parser.change_state("async_state");
+        const async_keyword     = parser.generate_next_node();
+        const { current_state } = parser;
 
-        let fn;
-        parser.prepare_next_state("expression", true);
-        if (parser.is_next_node("Function expression")) {
-            fn = parser.generate_next_node();
+        // Function keyword
+        parser.prepare_next_state("delimiter");
+        const function_keyword = parser.generate_next_node();
+
+        // Name
+        parser.prepare_next_state("binding_identifier", true);
+        if (! is_open_parenthesis(parser)) {
+            name = parser.generate_next_node();
+            parser.prepare_next_state("formal_parameter_list", true);
         } else {
-            parser.throw_unexpected_token();
+            parser.change_state("formal_parameter_list");
         }
 
-        node.keyword  = keyword;
-        node.function = fn;
-        node.start    = keyword.start;
-        node.end      = fn.end;
+        // Parameters
+        const parameters = parser.generate_next_node();
 
-        parser.next_token = token;
+        // Body
+        parser.prepare_next_state("async_function_body", true);
+        const body = parser.generate_next_node();
+
+        node.async_keyword    = async_keyword;
+        node.function_keyword = function_keyword;
+        node.name             = name;
+        node.parameters       = parameters;
+        node.body             = body;
+        node.start            = async_keyword.start;
+        node.end              = body.end;
+
+        parser.ending_index  = node.end.index;
+        parser.current_state = current_state;
     }
 };

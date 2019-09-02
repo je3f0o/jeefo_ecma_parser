@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,6 +23,8 @@ const register_node_definitions = require("./ast_node_table");
 
 const parser = es6_parser.clone("ECMA Script 8");
 register_node_definitions(parser.ast_node_table);
+
+parser.debug = true;
 
 for_each(my_states, (key, value) => {
     if (! es6_states_enum.hasOwnProperty(key)) {

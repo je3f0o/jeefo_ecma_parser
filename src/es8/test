@@ -1,14 +1,17 @@
+(async (p1, {}, []) => {})
+//fn = async (p1, {}, [], p2 = 1, {} = {}, [] = []) => {}
 
+/*
 async function async_fn () {
     await async_fn();
+    return 1;
 }
-
-fn = () => {}
 
 fn = async function          () {}
 fn = async function async_fn () {}
-fn = async () => {}
 fn = async param => {}
+
+fn = () => {}
 
 o = {
     static,
@@ -77,3 +80,4 @@ class A extends B {
     static set static     (v) {}
     static set [computed] (v) {}
 }
+*/

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_binding_pattern.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,7 +17,7 @@
 
 const { AST_Node_Definition }       = require("@jeefo/parser");
 const { EXPRESSION }                = require("../enums/precedence_enum");
-const { binding_pattern }           = require("../enums/states_enum");
+const { object_binding_pattern }    = require("../enums/states_enum");
 const { single_name_binding }       = require("../nodes");
 const { get_last_non_comment_node } = require("../../helpers");
 
@@ -70,13 +70,10 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is : (token, parser) => {
-        if (parser.current_state === binding_pattern) {
-            const last_node = get_last_non_comment_node(parser);
-            return last_node && last_node.id === "Object literal";
-        }
+    is (token, parser) {
+        return parser.current_state === object_binding_pattern;
     },
-    initialize : (node, token, parser) => {
+    initialize (node, token, parser) {
         const { prev_state } = parser;
         const {
             open_curly_bracket,

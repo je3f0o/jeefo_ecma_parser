@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_body.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,10 +15,10 @@
 
 // ignore:end
 
-const { function_body }           = require("../enums/states_enum");
-const { is_close_curly }          = require("../../helpers");
-const { terminal_definition }     = require("../../common");
-const { EXPRESSION, TERMINATION } = require("../enums/precedence_enum");
+const { function_body }                 = require("../enums/states_enum");
+const { terminal_definition }           = require("../../common");
+const { EXPRESSION, TERMINATION }       = require("../enums/precedence_enum");
+const { is_open_curly, is_close_curly } = require("../../helpers");
 
 module.exports = {
     id         : "Function body",
@@ -26,8 +26,13 @@ module.exports = {
     precedence : EXPRESSION,
 
     is         : (token, parser) => parser.current_state === function_body,
-    initialize : (node, current_token, parser) => {
-        const open           = terminal_definition.generate_new_node(parser);
+    initialize : (node, token, parser) => {
+        parser.context_stack.push(node);
+
+        parser.expect('{', is_open_curly);
+        parser.change_state("delimiter");
+
+        const open           = parser.generate_next_node();
         const statement_list = [];
 
         parser.prepare_next_state(null, true);
@@ -44,5 +49,6 @@ module.exports = {
         node.end                 = close.end;
 
         parser.ending_index = node.end.index;
+        parser.context_stack.pop();
     }
 };

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -93,9 +93,7 @@ module.exports = {
     },
 
     has_no_line_terminator (last_token, next_token) {
-        if (next_token) {
-            return next_token.start.line === last_token.end.line;
-        }
+        return next_token.start.line === last_token.end.line;
     },
 
     parse_asignment_expression (parser) {
