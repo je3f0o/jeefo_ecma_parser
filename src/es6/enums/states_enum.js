@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,6 +29,12 @@ const next_state_value = (() => {
 })();
 
 module.exports = [
+    // Generators
+    "generator_body",
+
+    // 12.2 - Primary expressions
+    "primary_expression",
+
     "reference_id",
     "binding_element",
     "binding_pattern",

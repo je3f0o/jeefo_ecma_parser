@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,6 +17,7 @@
 
 module.exports = [
     "delimiter",
+    "identifier_name",
 
     "expression",
     "expression_no_in",

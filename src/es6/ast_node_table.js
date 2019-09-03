@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,6 +23,7 @@ module.exports = ast_node_table => {
         { expression    : "Expression statement"      } ,
         { expression    : "Formal parameter list",    } ,
         { expression    : "Function call expression", } ,
+        { expression    : "Function expression", } ,
         { reserved_word : "let"                       } ,
         { reserved_word : "new",                      } ,
         { reserved_word : "yield",                    } ,
@@ -51,6 +52,9 @@ module.exports = ast_node_table => {
         "./part/property_control_es6",
         "./covers/binding_pattern",
         "./covers/cover_object_error",
+
+        "./expressions/generator_body",
+        "./expressions/function_expression",
 
         "./expressions/binding_element",
         "./expressions/binding_identifier",

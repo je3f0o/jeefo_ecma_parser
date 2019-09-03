@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-08-25
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -28,6 +28,7 @@ const expression_keywords = [
     "void",
     "yield",
     "await",
+    "super",
     "delete",
     "typeof",
 

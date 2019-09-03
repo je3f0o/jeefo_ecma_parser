@@ -79,8 +79,7 @@ module.exports = {
         return parser.is_next_node("Identifier");
     },
 
-    is_identifier_name (parser) {
-        const { next_token:token } = parser;
+    is_identifier_name ({ next_token : token }) {
         return token && token.id === "Identifier";
     },
 

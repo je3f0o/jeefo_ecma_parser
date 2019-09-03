@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : terminal_symbol.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,11 +15,10 @@
 
 // ignore:end
 
-const { TERMINAL_TOKEN }  = require("../enums/precedence_enum");
+const { TERMINAL_SYMBOL } = require("../enums/precedence_enum");
 const { get_pre_comment } = require("../../helpers");
 const {
     async_state,
-    function_state,
     expression_no_in,
 } = require("../enums/states_enum");
 
@@ -34,15 +33,14 @@ const delimiters = [
 module.exports = {
     id         : "Terminal symbol",
     type       : "Terminal symbol token",
-    precedence : TERMINAL_TOKEN,
+    precedence : TERMINAL_SYMBOL - 1,
 
     is : (token, parser) => {
         switch (token.id) {
             case "Rest":
             case "Arrow":
-                return true;
             case "Operator":
-                return token.value === '=';
+                return true;
             case "Delimiter":
                 return delimiters.includes(token.value);
             case "Identifier":

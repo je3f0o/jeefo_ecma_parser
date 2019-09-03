@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_expression.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,11 +23,9 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === assignment_expression,
+    is         : (_, { current_state : s }) => s === assignment_expression,
 	initialize : (node, token, parser) => {
-        // TODO: this shit is only temporary. get rid off it.
-        const expression_name = parser.get_state_name(parser.prev_state);
-        parser.change_state(expression_name, false);
+        parser.change_state("expression");
         const expression = parser.parse_next_node(COMMA);
         if (! expression) {
             parser.throw_unexpected_token();

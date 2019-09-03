@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,6 +29,27 @@ const next_state_value = (() => {
 })();
 
 module.exports = [
+    // 11.6.2.1 - Keywords
+    "keyword",
+
+    // 11.7 - Punctuators
+    "punctuator",
+
+    // 12 - Expressions
+    // 12.1 - Identifiers
+    "label_identifier",
+    "identifier_reference",
+
+    // 12.3 - Left hand side expressions
+    "new_expression",
+    "member_operator",
+    "member_expression",
+    "left_hand_side_expression",
+
+    // 14.4 - Function definitions
+    "formal_parameters",
+
+    // ...
     "arguments_state",
     "formal_parameter",
     "cover_parenthesized_expression",
@@ -40,7 +61,6 @@ module.exports = [
 
     // Primitives
     "spread_element",
-    "identifier_reference",
 
     // Bindings
     "assignment_pattern",
@@ -60,7 +80,11 @@ module.exports = [
     "async_arrow_function",
     "async_function_body",
     "async_function_expression",
-].reduce((states, value, index) => {
-    states[value] = next_state_value + index;
+].reduce((states, key, index) => {
+    if (states[key]) {
+        console.log("Duplicated state:", key);
+        process.exit();
+    }
+    states[key] = next_state_value + index;
     return states;
 }, Object.assign({}, states_enum));

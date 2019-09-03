@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : generator_expression.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,39 +15,44 @@
 
 // ignore:end
 
-const { terminal_definition }          = require("../../common");
-const { generator_expression }         = require("../enums/states_enum");
-const { GENERATOR_EXPRESSION }         = require("../enums/precedence_enum");
-const { is_open_curly, is_identifier } = require("../../helpers");
+const { EXPRESSION }          = require("../enums/precedence_enum");
+const { is_open_parenthesis } = require("../../helpers");
+const {
+    primary_expression,
+    generator_expression,
+} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Generator expression",
     type       : "Expression",
-    precedence : GENERATOR_EXPRESSION,
+    precedence : EXPRESSION,
 
-    is : (token, parser) => {
-        return parser.current_state === generator_expression;
-    },
+    is         : (_, parser) => parser.current_state === generator_expression,
     initialize : (node, token, parser) => {
-        let name             = null;
-        const keyword        = terminal_definition.generate_new_node(parser);
-        const { prev_state } = parser;
+        let name = null;
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
 
-        parser.prepare_next_node_definition();
-        const asterisk = terminal_definition.generate_new_node(parser);
+        parser.prepare_next_state("delimiter");
+        const asterisk = parser.generate_next_node();
 
-        parser.prepare_next_state("expression", true);
-        if (is_identifier(parser)) {
+        const prev_suffix = parser.suffixes;
+        parser.suffixes = ["yield"];
+
+        // Name
+        parser.prepare_next_state("binding_identifier", true);
+        if (! is_open_parenthesis(parser)) {
             name = parser.generate_next_node();
-            parser.prepare_next_state("formal_parameter_list", true);
+            parser.prepare_next_state("formal_parameters", true);
         } else {
-            parser.change_state("formal_parameter_list");
+            parser.change_state("formal_parameters");
         }
 
+        // Parameters
         const parameters = parser.generate_next_node();
 
-        parser.prepare_next_state("function_body", true);
-        parser.expect('{', is_open_curly);
+        // Body
+        parser.prepare_next_state("generator_body", true);
         const body = parser.generate_next_node();
 
         node.keyword     = keyword;
@@ -58,7 +63,7 @@ module.exports = {
         node.start       = keyword.start;
         node.end         = body.end;
 
-        parser.ending_index  = node.end.index;
-        parser.current_state = prev_state;
+        parser.suffixes      = prev_suffix;
+        parser.current_state = primary_expression;
     }
 };

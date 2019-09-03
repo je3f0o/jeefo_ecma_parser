@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : precedence_enum.js
 * Created at  : 2019-02-13
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,6 +18,7 @@
 module.exports = {
     TERMINATION         : 0,
     COMMA               : 1,
+    ASSIGNMENT_OPERATOR : 3,
     TERNARY             : 4,
     UNARY_PREFIX        : 16,
     UNARY_POSTFIX       : 17,

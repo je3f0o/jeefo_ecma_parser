@@ -1,14 +1,23 @@
+id_ref = assignment_expression;
+super.property = assignment_expression;
+object.property = assignment_expression;
+fn = function       () {};
+fn = function await () {};
+fn = function yield () {};
+async_fn = async function () {};
+async_fn = async function yield () {};
+gen = function * () {};
+gen = function * await () {};
+/*
 (async (p1, {}, []) => {})
 //fn = async (p1, {}, [], p2 = 1, {} = {}, [] = []) => {}
 
-/*
 async function async_fn () {
     await async_fn();
     return 1;
 }
 
 fn = async function          () {}
-fn = async function async_fn () {}
 fn = async param => {}
 
 fn = () => {}

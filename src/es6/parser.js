@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,8 +23,19 @@ const register_tokes            = require("./tokenizer");
 const register_node_definitions = require("./ast_node_table");
 
 const parser = es5_parser.clone("ECMA Script 6");
+
+const last_value = (() => {
+    let last = 0;
+    for_each(es5_states, (key, value) => {
+        if (value > last) {
+            last = value;
+        }
+    });
+    return last;
+})();
+
 for_each(my_states, (key, value) => {
-    if (! es5_states.hasOwnProperty(key)) {
+    if (value > last_value) {
         parser.state.add(key, value);
     }
 });

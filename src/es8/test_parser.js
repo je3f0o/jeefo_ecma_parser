@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test_parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,67 +22,12 @@ const print_node = (node, is_expression) => {
         console.log(node);
         throw new Error(1);
     }
-    console.log(`code: \`${ parser.tokenizer.streamer.substring_from_token(node) }\``);
-    node.print();
-
-    switch (node.type) {
-        case "Declarator" :
-            print_node(node.identifier, true);
-            if (node.init) {
-                print_node(node.init, true);
-            }
-            if (node.left_comment) {
-                print_node(node.left_comment, true);
-            }
-            if (node.right_comment) {
-                print_node(node.right_comment, true);
-            }
-            console.log(" NEXT ----------------------------------------");
-            break;
-        case "Declaration" :
-            switch (node.id) {
-                case "Varaible delcaration" :
-                    node.declarations.forEach(declarator => {
-                        print_node(declarator, true);
-                    });
-                    break;
-            }
-            break;
-        case "Statement" :
-            switch (node.id) {
-                case "Expression statement" :
-                    print_node(node.expression, true);
-                    if (node.pre_comment) {
-                        print_node(node.pre_comment, true);
-                    }
-                    if (node.post_comment) {
-                        print_node(node.post_comment, true);
-                    }
-                    break;
-                case "Return statement" :
-                    if (node.argument) {
-                        print_node(node.argument, true);
-                    }
-                    if (node.pre_comment) {
-                        print_node(node.pre_comment, true);
-                    }
-                    break;
-            }
-            break;
-        case "Binary operator" :
-            print_node(node.left, true);
-            print_node(node.right, true);
-            if (node.comment) {
-                print_node(node.comment, true);
-            }
-            break;
-        case "Primitive" :
-            break;
-        default:
-            console.log(222, node.type);
+    if (node.id !== "Comment") {
+        console.log(`code: \`${ parser.tokenizer.streamer.substring_from_token(node) }\``);
+        node.print();
     }
 
-    if (! is_expression) {
+    if (! is_expression && node.id !== "Comment") {
         console.log("\n[END] -------------------------------------------------------\n");
     }
 };
@@ -99,6 +44,11 @@ if (process.argv.length > 2) {
 }
 
 const nodes = parser.parse(source);
+//parser.tokenizer.init("async function async (z = 2) {}");
+//parser.tokenizer.init("a = 2");
+//parser.prepare_next_state("expression", true);
+//const nodes = parser.parse("a=2");
+
 console.log("===========================");
 nodes.forEach(node => print_node(node));
 //console.log(parser.node_table.get_reserved_words());

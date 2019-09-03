@@ -20,11 +20,12 @@ const { binding_element } = require("../enums/states_enum");
 
 function refine_binding_element (parser) {
     let initializer = null, element;
+            console.log(parser.prev_node);
+            process.exit();
 
     switch (parser.prev_node.id) {
         case "Identifier":
-            parser.change_state("binding_identifier");
-            element = parser.generate_next_node();
+            element = parser.refine("binding_identifier", parser.prev_node);
             break;
         case "Array literal"  :
         case "Object literal" :
@@ -32,8 +33,9 @@ function refine_binding_element (parser) {
             element = parser.generate_next_node();
             break;
         case "Assignment expression" :
-        console.log(parser);
-        process.exit();
+            parser.prev_node = parser.prev_node.expression;
+            return refine_binding_element(parser);
+        case "Assignment operator" :
             const assign_expr = parser.prev_node;
             if (assign_expr.operator.value !== '=') {
                 parser.throw_unexpected_token(null, assign_expr.operator);
@@ -41,7 +43,7 @@ function refine_binding_element (parser) {
 
             // Binding
             parser.prev_node = assign_expr.left;
-            element = refine_binding_element(parser);
+            ({ element } = refine_binding_element(parser));
 
             // Initializer
             parser.prev_node = {
@@ -65,7 +67,6 @@ module.exports = {
 
     is         : (_, parser) => parser.current_state === binding_element,
 	initialize : (node, token, parser) => {
-        console.log(node.id);
         const { element, initializer } = refine_binding_element(parser);
 
         node.element     = element;

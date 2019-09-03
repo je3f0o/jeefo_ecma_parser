@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_function_expression.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,12 @@
 
 // ignore:end
 
-const { EXPRESSION }                = require("../enums/precedence_enum");
-const { is_open_parenthesis }       = require("../../helpers");
-const { async_function_expression } = require("../enums/states_enum");
+const { EXPRESSION }          = require("../enums/precedence_enum");
+const { is_open_parenthesis } = require("../../helpers");
+const {
+    primary_expression,
+    async_function_expression,
+} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Async function expression",
@@ -30,20 +33,22 @@ module.exports = {
     initialize (node, token, parser) {
         let name = null;
         parser.change_state("async_state");
-        const async_keyword     = parser.generate_next_node();
-        const { current_state } = parser;
+        const async_keyword = parser.generate_next_node();
 
         // Function keyword
-        parser.prepare_next_state("delimiter");
+        parser.prepare_next_state("keyword");
         const function_keyword = parser.generate_next_node();
+
+        const prev_suffix = parser.suffixes;
+        parser.suffixes = ["await"];
 
         // Name
         parser.prepare_next_state("binding_identifier", true);
         if (! is_open_parenthesis(parser)) {
             name = parser.generate_next_node();
-            parser.prepare_next_state("formal_parameter_list", true);
+            parser.prepare_next_state("formal_parameters", true);
         } else {
-            parser.change_state("formal_parameter_list");
+            parser.change_state("formal_parameters");
         }
 
         // Parameters
@@ -61,7 +66,7 @@ module.exports = {
         node.start            = async_keyword.start;
         node.end              = body.end;
 
-        parser.ending_index  = node.end.index;
-        parser.current_state = current_state;
+        parser.suffixes      = prev_suffix;
+        parser.current_state = primary_expression;
     }
 };

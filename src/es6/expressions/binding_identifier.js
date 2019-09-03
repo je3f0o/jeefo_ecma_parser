@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_identifier.js
 * Created at  : 2019-08-28
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :

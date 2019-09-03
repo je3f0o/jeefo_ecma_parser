@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_expression.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,57 +16,37 @@
 // ignore:end
 
 const { EXPRESSION }          = require("../enums/precedence_enum");
-const { terminal_definition } = require("../../common");
+const { is_open_parenthesis } = require("../../helpers");
 const {
-    is_identifier,
-    is_open_curly,
-} = require("../../helpers");
-const {
-    expression,
-    generator_expression,
+    primary_expression,
+    function_expression,
 } = require("../enums/states_enum");
-const {
-    function_body,
-    parameters_definition,
-} = require("../common");
-
-const is_function = (token, parser) => {
-    if (parser.current_state === expression) {
-        return token.id === "Identifier" && token.value === "function";
-    }
-};
 
 module.exports = {
     id         : "Function expression",
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is : (token, parser) => {
-        if (is_function(token, parser)) {
-            const next_token = parser.look_ahead(true);
-            if (next_token.id === "Operator" && next_token.value === '*') {
-                parser.prev_state    = parser.current_state;
-                parser.current_state = generator_expression;
-                return false;
-            }
-            return true;
-        }
-    },
+    is         : (_, parser) => parser.current_state === function_expression,
     initialize : (node, token, parser) => {
-        let name      = null;
-        const keyword = terminal_definition.generate_new_node(parser);
+        let name = null;
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
 
-        const { current_state } = parser;
-        parser.prepare_next_state("expression", true);
-        if (is_identifier(parser)) {
+        const prev_suffix = parser.suffixes;
+        parser.suffixes = [];
+
+        parser.prepare_next_state("binding_identifier", true);
+        if (! is_open_parenthesis(parser)) {
             name = parser.generate_next_node();
-            parser.prepare_next_state("delimiter", true);
+            parser.prepare_next_state("formal_parameters", true);
+        } else {
+            parser.change_state("formal_parameters");
         }
-        const parameters = parameters_definition.generate_new_node(parser);
+        const parameters = parser.generate_next_node();
 
-        parser.prepare_next_state("delimiter", true);
-        parser.expect('{', is_open_curly);
-        const body = function_body.generate_new_node(parser);
+        parser.prepare_next_state("function_body", true);
+        const body = parser.generate_next_node();
 
         node.keyword     = keyword;
         node.name        = name;
@@ -75,7 +55,7 @@ module.exports = {
         node.start       = keyword.start;
         node.end         = body.end;
 
-        parser.next_token    = token;
-        parser.current_state = current_state;
+        parser.suffixes      = prev_suffix;
+        parser.current_state = primary_expression;
     }
 };

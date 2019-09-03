@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preparation_handler.js
 * Created at  : 2019-06-28
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,7 +17,6 @@
 
 const ignore_comments = require("./helpers/ignore_comments");
 const {
-    of_operator,
     expression_no_in,
 } = require("./enums/states_enum");
 
@@ -70,10 +69,9 @@ const is_of_operator = parser => {
 };
 
 module.exports = parser => {
-    let prev_node = null;
-    if (parser.prev_node && parser.prev_node.id !== "Comment") {
-        ({ prev_node } = parser);
-    }
+    if (! parser.prev_node) { return; }
+    const { prev_node } = parser;
+
     ignore_comments(parser);
 
     const is_cancelable = (

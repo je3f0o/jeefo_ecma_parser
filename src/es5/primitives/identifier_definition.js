@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : identifier_definition.js
 * Created at  : 2019-08-05
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-03
 * Author      : jeefo
 * Purpose     :
 * Description :
