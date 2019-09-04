@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,8 +16,7 @@
 // ignore:end
 
 const is_delimiter = value => {
-    return parser => {
-        const { next_token:token } = parser;
+    return ({ next_token : token }) => {
         return token && token.id === "Delimiter" && token.value === value;
     };
 };
@@ -50,9 +49,8 @@ module.exports = {
     is_open_square_bracket  : is_delimiter('['),
     is_close_square_bracket : is_delimiter(']'),
 
-    is_assign (parser) {
-        const { next_token:token } = parser;
-        return token.id === "Operator" && token.value === '=';
+    is_arrow ({ next_token : token }) {
+        return token.id === "Arrow";
     },
 
     is_assign_token (token) {
@@ -73,10 +71,6 @@ module.exports = {
 
     is_delimiter_token (token, value) {
         return token.id === "Delimiter" && token.value === value;
-    },
-
-    is_identifier (parser) {
-        return parser.is_next_node("Identifier");
     },
 
     is_identifier_name ({ next_token : token }) {

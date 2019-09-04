@@ -27,13 +27,13 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === generator_expression,
+    is         : (_, { current_state : s }) => s === generator_expression,
     initialize : (node, token, parser) => {
         let name = null;
         parser.change_state("keyword");
         const keyword = parser.generate_next_node();
 
-        parser.prepare_next_state("delimiter");
+        parser.prepare_next_state("punctuator");
         const asterisk = parser.generate_next_node();
 
         const prev_suffix = parser.suffixes;

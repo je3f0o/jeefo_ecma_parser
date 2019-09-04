@@ -41,27 +41,21 @@ module.exports = {
         parser.current_state = expression;
     },
 
-    refine (node, parser) {
-        switch (node.id) {
+    refine (node, expression, parser) {
+        switch (expression.id) {
             case "Meta property"      :
             case "Super property"     :
             case "Primary expression" :
-                parser.change_state("member_expression", false);
-                node = parser.next_node_definition.refine(
-                    node, parser
-                );
+                expression = parser.refine("member_expression", expression);
                 break;
             case "Member expression" : break;
             default:
-                parser.throw_unexpected_token(
-                    `Unexpected NewExpression refine: ${ node.id }`, node
-                );
+                parser.throw_unexpected_refine(node, expression);
         }
-        const new_member = new this.AST_Node();
-        new_member.expression = node;
-        new_member.start      = node.start;
-        new_member.end        = node.end;
-        return new_member;
+
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
     },
 
     protos : {

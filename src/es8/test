@@ -1,3 +1,12 @@
+(id = value) => {};
+this;
+null;
+true;
+false;
+3.14;
+"double quote string";
+'single quote string';
+3..property;
 id_ref = assignment_expression;
 super.property = assignment_expression;
 object.property = assignment_expression;
@@ -8,6 +17,7 @@ async_fn = async function () {};
 async_fn = async function yield () {};
 gen = function * () {};
 gen = function * await () {};
+
 /*
 (async (p1, {}, []) => {})
 //fn = async (p1, {}, [], p2 = 1, {} = {}, [] = []) => {}

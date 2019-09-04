@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -46,6 +46,8 @@ module.exports = ast_node_table => {
 
     // TODO: refactor later
     [
+        "./expressions/contextual_keyword",
+
         "./part/property_name",
         "./part/identifier_reference",
         "./part/cover_initialized_name",
@@ -98,6 +100,13 @@ module.exports = ast_node_table => {
         "./declarations/variable_declaration_no_in",
         "./declarations/variable_declaration_list_no_in",
         "./declarations/es5_legacy_variable_declaration_no_in",
+
+        // 14 - Functions
+        "./expressions/concise_body",
+        "./expressions/arrow_parameters",
+        "./expressions/formal_parameters",
+        "./expressions/arrow_function_body",
+        "./expressions/arrow_formal_parameters",
     ].forEach(path => {
         ast_node_table.register_node_definition(require(path));
     });

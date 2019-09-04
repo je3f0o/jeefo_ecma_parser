@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -46,14 +46,13 @@ module.exports = {
     },
     initialize (node, token, parser) {
         let last_node = get_last_non_comment_node(parser);
-        parser.change_state("left_hand_side_expression", false);
-        const assignemnt = parser.next_node_definition.refine(
-            last_node, parser
+        const assignment = parser.refine(
+            "left_hand_side_expression", last_node
         );
-        if (! assignemnt.is_valid_simple_assignment_target(parser)) {
+        if (! assignment.is_valid_simple_assignment_target(parser)) {
             parser.throw_unexpected_token(
                 "Invalid left-hand side in assignment",
-                assignemnt.expression
+                assignment.expression
             );
         }
 
@@ -64,10 +63,10 @@ module.exports = {
         parser.prepare_next_state("assignment_expression", true);
         const expression = parser.generate_next_node();
 
-        node.assignemnt = assignemnt;
+        node.assignment = assignment;
         node.operator   = operator;
         node.expression = expression;
-        node.start      = assignemnt.start;
+        node.start      = assignment.start;
         node.end        = expression.end;
 
         parser.end(node);

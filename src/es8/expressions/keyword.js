@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : keywords.js
+* File Name   : keyword.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -50,8 +50,8 @@ module.exports = {
     type       : "Terminal symbol token",
     precedence : TERMINAL_SYMBOL,
 
-    is (token, parser) {
-        if (parser.current_state === keyword && token.id === "Identifier") {
+    is (token, { current_state }) {
+        if (current_state === keyword && token.id === "Identifier") {
             return keywords.includes(token.value);
         }
     },
@@ -60,5 +60,5 @@ module.exports = {
         node.value       = token.value;
         node.start       = token.start;
         node.end         = token.end;
-    }
+    },
 };

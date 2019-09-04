@@ -31,6 +31,7 @@ const next_state_value = (() => {
 module.exports = [
     // 11.6.2.1 - Keywords
     "keyword",
+    "context_keyword",
 
     // 11.7 - Punctuators
     "punctuator",
@@ -40,6 +41,9 @@ module.exports = [
     "label_identifier",
     "identifier_reference",
 
+    // 12.2.4 - Literals
+    "literal",
+
     // 12.3 - Left hand side expressions
     "new_expression",
     "member_operator",
@@ -47,7 +51,8 @@ module.exports = [
     "left_hand_side_expression",
 
     // 14.4 - Function definitions
-    "formal_parameters",
+    "binding_rest_element",
+    "function_rest_parameter",
 
     // ...
     "arguments_state",
@@ -55,9 +60,6 @@ module.exports = [
     "cover_parenthesized_expression",
 
     "assignment_expression",
-
-    // Arrow functions
-    "arrow_formal_parameters",
 
     // Primitives
     "spread_element",

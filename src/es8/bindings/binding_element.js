@@ -1,10 +1,10 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_element.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
-* Description :
+* Description : I discarded SingleNameBinding. Maybe i will add later or not...
 * Reference   :
 .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.*/
 // ignore:start
@@ -18,43 +18,44 @@
 const { EXPRESSION }      = require("../enums/precedence_enum");
 const { binding_element } = require("../enums/states_enum");
 
-function refine_binding_element (parser) {
+function refine_binding_element (node, expression, parser) {
     let initializer = null, element;
-            console.log(parser.prev_node);
-            process.exit();
 
-    switch (parser.prev_node.id) {
-        case "Identifier":
-            element = parser.refine("binding_identifier", parser.prev_node);
+    switch (expression.id) {
+        case "Identifier reference":
+            element = parser.refine("binding_identifier", expression);
             break;
         case "Array literal"  :
         case "Object literal" :
             parser.change_state("assignment_pattern");
             element = parser.generate_next_node();
             break;
+        case "Primary expression"    :
         case "Assignment expression" :
-            parser.prev_node = parser.prev_node.expression;
-            return refine_binding_element(parser);
+            return refine_binding_element(node, expression.expression, parser);
         case "Assignment operator" :
-            const assign_expr = parser.prev_node;
-            if (assign_expr.operator.value !== '=') {
-                parser.throw_unexpected_token(null, assign_expr.operator);
-            }
-
             // Binding
-            parser.prev_node = assign_expr.left;
-            ({ element } = refine_binding_element(parser));
+            let left = expression.assignment.expression;
+            [
+                "New expression",
+                "Member expression",
+            ].forEach(id => {
+                if (left.id === id) {
+                    left = left.expression;
+                } else {
+                    parser.throw_unexpected_refine(node, left);
+                }
+            });
+            ({ element } = refine_binding_element(node, left, parser));
 
             // Initializer
-            parser.prev_node = {
-                assign_operator : assign_expr.operator,
-                expression      : assign_expr.right
-            };
-            parser.change_state("initializer");
-            initializer = parser.generate_next_node();
+            initializer = parser.refine("initializer", {
+                operator   : expression.operator,
+                expression : expression.expression
+            });
             break;
         default:
-            parser.throw_unexpected_token(null, parser.prev_node);
+            parser.throw_unexpected_refine(node, expression);
     }
 
     return { element, initializer };
@@ -65,13 +66,20 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === binding_element,
+    is         : (_, { current_state : s }) => s === binding_element,
 	initialize : (node, token, parser) => {
-        const { element, initializer } = refine_binding_element(parser);
+        parser.change_state("assignment_expression");
+        this.refine(node, parser.generate_next_node(), parser);
+    },
+
+    refine (node, expression, parser) {
+        const { element, initializer } = refine_binding_element(
+            node, expression, parser
+        );
 
         node.element     = element;
         node.initializer = initializer;
         node.start       = element.start;
         node.end         = (initializer || element).end;
-    },
+    }
 };

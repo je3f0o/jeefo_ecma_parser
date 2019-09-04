@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : member_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -37,8 +37,7 @@ module.exports = {
         // Object
         let object = get_last_non_comment_node(parser);
         if (object.id !== "Member expression") {
-            parser.change_state("member_expression", false);
-            object = parser.next_node_definition.refine(object, parser);
+            object = parser.refine("member_expression", object);
         }
 
         // Operator

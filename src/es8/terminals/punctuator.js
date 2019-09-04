@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : punctuator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -19,6 +19,8 @@ const { punctuator }      = require("../enums/states_enum");
 const { TERMINAL_SYMBOL } = require("../enums/precedence_enum");
 
 const valid_tokens = [
+    "Rest",
+    "Arrow",
     "Operator",
     "Delimiter",
 ];

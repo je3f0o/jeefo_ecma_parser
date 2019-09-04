@@ -32,6 +32,8 @@ module.exports = [
     // Generators
     "generator_body",
 
+    "contextual_keyword",
+
     // 12.2 - Primary expressions
     "primary_expression",
 
@@ -43,6 +45,12 @@ module.exports = [
     "meta_property",
     "arrow_parameters",
     "cover_initialized_name",
+
+    // 14.2 - Arrow function
+    "concise_body",
+    "formal_parameters",
+    "arrow_function_body",
+    "arrow_formal_parameters",
 
     "var_statement",
     "lexical_declaration",

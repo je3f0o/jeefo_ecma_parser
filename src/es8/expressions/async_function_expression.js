@@ -32,7 +32,7 @@ module.exports = {
     },
     initialize (node, token, parser) {
         let name = null;
-        parser.change_state("async_state");
+        parser.change_state("contextual_keyword");
         const async_keyword = parser.generate_next_node();
 
         // Function keyword

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-04
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,6 +26,7 @@ const expression_delimiters = ['[', '('];
 const expression_keywords = [
     "new",
     "void",
+    "this",
     "yield",
     "await",
     "super",

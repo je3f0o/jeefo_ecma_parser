@@ -37,7 +37,7 @@ module.exports = {
     initialize (node, token, parser) {
         const prev_state = parser.current_state;
 
-        parser.change_state("binding_identifier", false);
+        parser.change_state("binding_identifier");
         parser.next_node_definition.initialize(node, token, parser);
 
         if (prev_state === expression) {
