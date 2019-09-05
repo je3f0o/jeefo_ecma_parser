@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : generator_expression.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -49,6 +49,7 @@ module.exports = {
         }
 
         // Parameters
+        parser.suffixes = ["await"];
         const parameters = parser.generate_next_node();
 
         // Body

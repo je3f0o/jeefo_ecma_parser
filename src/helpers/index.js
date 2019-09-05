@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -57,7 +57,7 @@ module.exports = {
         return token.id === "Operator" && token.value === '=';
     },
 
-    is_asterisk (token) {
+    is_asterisk_token (token) {
         return token.id === "Operator" && token.value === '*';
     },
 
@@ -86,7 +86,7 @@ module.exports = {
     },
 
     has_no_line_terminator (last_token, next_token) {
-        return next_token.start.line === last_token.end.line;
+        return last_token.end.line === next_token.start.line;
     },
 
     parse_asignment_expression (parser) {

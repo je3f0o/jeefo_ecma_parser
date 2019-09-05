@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators.js
 * Created at  : 2019-01-24
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -57,7 +57,7 @@ module.exports = function register_binary_operators (ast_node_table) {
 
 		// Arithmetic operator (14)
 		{
-            id         : "Arithmetic operator",
+            id         : "Multiplicative operator",
 			precedence : 14,
 			is         : token => {
 				switch (token.value) {

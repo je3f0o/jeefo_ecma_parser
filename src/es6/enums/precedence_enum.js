@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : precedence_enum.js
 * Created at  : 2019-08-12
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,6 +26,5 @@ module.exports = Object.assign({
     COVER_INITIALIZED_NAME : 36,
     PROPERTY_CONTROL_ES6   : 37,
 
-    TERMINAL_SYMBOL        : -1,
     BINDING_PATTERN        : 41,
 }, precedence_enum);

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -30,12 +30,16 @@ const next_state_value = (() => {
 
 module.exports = [
     // Generators
+    "method_body",
+    "spread_element",
     "generator_body",
+    "property_definition",
+    "grouping_expression",
+    "property_assignment",
+    "empty_parameter_list",
+    "computed_property_name",
 
     "contextual_keyword",
-
-    // 12.2 - Primary expressions
-    "primary_expression",
 
     "reference_id",
     "binding_element",

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : setter_method.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,16 +15,9 @@
 
 // ignore:end
 
-const { SETTER_METHOD }       = require("../enums/precedence_enum");
-const { is_specific_method }  = require("../helpers");
-const { terminal_definition } = require("../../common");
-const {
-    property_set_parameter_list : property_set_parameter
-} = require("../common");
-const {
-    is_open_curly,
-    get_last_non_comment_node,
-} = require("../../helpers");
+const { SETTER_METHOD }             = require("../enums/precedence_enum");
+const { is_specific_method }        = require("../helpers");
+const { get_last_non_comment_node } = require("../../helpers");
 
 module.exports = {
     id         : "Setter method",
@@ -33,25 +26,24 @@ module.exports = {
 
     is         : is_specific_method("set"),
     initialize : (node, token, parser) => {
-        parser.prev_node = get_last_non_comment_node(parser);
-        const keyword = terminal_definition.generate_new_node(parser);
+        const get_node = get_last_non_comment_node(parser);
+        const keyword  = parser.refine("contextual_keyword", get_node);
 
         // Property
-        parser.change_state("property_name", true);
+        parser.change_state("property_name");
         const property_name = parser.generate_next_node();
 
         // Parameter
-        parser.prepare_next_state("delimiter", true);
-        const parameters = property_set_parameter.generate_new_node(parser);
+        parser.prepare_next_state("property_set_parameter", true);
+        const parameter = parser.generate_next_node();
 
         // Body
-        parser.prepare_next_state("function_body", true);
-        parser.expect('{', is_open_curly);
+        parser.prepare_next_state("method_body", true);
         const body = parser.generate_next_node();
 
         node.keyword       = keyword;
         node.property_name = property_name;
-        node.parameters    = parameters;
+        node.parameter     = parameter;
         node.body          = body;
         node.start         = keyword.start;
         node.end           = body.end;

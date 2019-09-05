@@ -1,39 +1,28 @@
-(id = value) => {};
+// 12.2 - Primary expressions
+// --------------------------
+
+// 12.2.2 - This keyword
 this;
+
+// 12.2.3 - Literals
 null;
 true;
 false;
 3.14;
-"double quote string";
 'single quote string';
-3..property;
-id_ref = assignment_expression;
-super.property = assignment_expression;
-object.property = assignment_expression;
-fn = function       () {};
-fn = function await () {};
-fn = function yield () {};
-async_fn = async function () {};
-async_fn = async function yield () {};
-gen = function * () {};
-gen = function * await () {};
+"double quote string";
 
-/*
-(async (p1, {}, []) => {})
-//fn = async (p1, {}, [], p2 = 1, {} = {}, [] = []) => {}
+// 12.2.5 - Array initializer
+[];
+[,,,];
+[assignment_expression]; // optional ,
+[...spread_element]; // optional ,
+[, expr, ...spread_element]; // recursion
 
-async function async_fn () {
-    await async_fn();
-    return 1;
-}
-
-fn = async function          () {}
-fn = async param => {}
-
-fn = () => {}
-
+// 12.2.6 - Object initializer
 o = {
     static,
+    * gen () {},
 
     3.14   : value,
     "str"  : value,
@@ -55,11 +44,52 @@ o = {
     set await (v) {},
     set [str] (v) {},
 
+    /*
     async 3.14       () {},
     async "str"      () {},
     async await      () {},
     async [computed] () {},
+    */
+};
+
+// 12.15.5 - Destructuring assignment
+[, id, [], o.p, ...rest] = [];
+/*
+({
+    id
+} = {});
+*/
+
+
+3..property;
+super.property = assignment_expression;
+object.property = assignment_expression;
+
+id_ref = assignment_expression;
+fn = function       () {};
+fn = function await () {};
+fn = function yield () {};
+async_fn = async function () {};
+async_fn = async function yield () {};
+gen = function * () {};
+gen = function * await () {};
+
+() => {};
+(p1, {}, []) => {};
+
+/*
+//fn = async (p1, {}, [], p2 = 1, {} = {}, [] = []) => {}
+
+async function async_fn () {
+    await async_fn();
+    return 1;
 }
+
+fn = async function          () {}
+fn = async param => {}
+
+fn = () => {}
+
 
 class A extends B {
     ;

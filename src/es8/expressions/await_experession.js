@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : await_experession.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,7 +15,7 @@
 
 // ignore:end
 
-const { is_expression }    = require("../../es5/helpers");
+const { expression }       = require("../enums/states_enum");
 const { AWAIT_EXPRESSION } = require("../enums/precedence_enum");
 
 module.exports = {
@@ -24,13 +24,11 @@ module.exports = {
     precedence : AWAIT_EXPRESSION,
 
     is (token, parser) {
-        if (is_expression(parser)) {
+        if (parser.current_state === expression) {
             const { context_stack } = parser;
-            let i = context_stack.length;
-            while (i--) {
-                if (context_stack[i].id === "Async function body") {
-                    return true;
-                }
+            const context = context_stack[context_stack.length - 1];
+            if (context && context.id === "Async function body") {
+                return true;
             }
             parser.throw_unexpected_token(
                 "await is only valid in async function"
@@ -38,12 +36,10 @@ module.exports = {
         }
     },
     initialize (node, token, parser) {
-        const expression_name = parser.get_current_state_name();
-
-        parser.change_state("delimiter");
+        parser.change_state("keyword");
         const keyword = parser.generate_next_node();
 
-        parser.prepare_next_state(expression_name, true);
+        parser.prepare_next_state("expression", true);
         const expression = parser.parse_next_node(AWAIT_EXPRESSION);
         if (! expression) {
             parser.throw_unexpected_token();

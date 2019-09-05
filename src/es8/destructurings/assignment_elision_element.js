@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_elision_element.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -19,7 +19,7 @@ const { EXPRESSION }                 = require("../enums/precedence_enum");
 const { assignment_elision_element } = require("../enums/states_enum");
 
 module.exports = {
-    id         : "Assignment property",
+    id         : "Assignment elision element",
 	type       : "Expression",
 	precedence : EXPRESSION,
 

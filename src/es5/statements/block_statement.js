@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : block_statement.js
 * Created at  : 2017-08-18
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,6 +29,7 @@ module.exports = {
         }
     },
 	initialize (node, token, parser) {
+        console.log(parser);
         parser.change_state("function_body", false);
         parser.next_node_definition.initialize(node, token, parser);
 

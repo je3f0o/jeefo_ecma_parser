@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -50,6 +50,21 @@ module.exports = [
     "member_expression",
     "left_hand_side_expression",
 
+    // 12.15 - Assigment expression
+    // ----------------------------
+    // Array assignment
+    "assignment_element",
+    "assignment_rest_element",
+    "destructuring_assignment_target",
+    "array_assignment_pattern",
+    // Object assignment
+    "assignment_property",
+    "object_assignment_pattern",
+
+    // 13.3.3 - Destructuring binding patterns
+    "array_binding_pattern",
+    "object_binding_pattern",
+
     // 14.4 - Function definitions
     "binding_rest_element",
     "function_rest_parameter",
@@ -61,22 +76,8 @@ module.exports = [
 
     "assignment_expression",
 
-    // Primitives
-    "spread_element",
-
     // Bindings
     "assignment_pattern",
-
-    // Object binding
-    "assignment_property",
-    "object_assignment_pattern",
-
-    // Array binding
-    "assignment_element",
-    "assignment_rest_element",
-    "assignment_elision_element",
-    "array_assignment_pattern",
-    "destructuring_assignment_target",
 
     // Async functions
     "async_arrow_function",

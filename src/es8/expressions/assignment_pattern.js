@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : binding_pattern.js
-* Created at  : 2019-09-02
+* File Name   : assignment_pattern.js
+* Created at  : 2019-09-05
 * Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
@@ -23,24 +23,23 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === assignment_pattern,
-	initialize : (node, token, parser) => {
-        console.log(node.id);
-        process.exit();
-        switch (parser.prev_node.id) {
+    is     : (_, { current_state : s }) => s === assignment_pattern,
+    refine : (node, expression, parser) => {
+        let pattern_name;
+        switch (expression.id) {
             case "Array literal"  :
-                parser.change_state("array_assignment_pattern");
+                pattern_name = "array_assignment_pattern";
                 break;
             case "Object literal" :
-                parser.change_state("object_assignment_pattern");
+                pattern_name = "object_assignment_pattern";
                 break;
             default:
-                parser.throw_unexpected_token(null, parser.prev_node);
+                parser.throw_unexpected_refine(node, expression);
         }
-        const pattern = parser.generate_next_node();
+        const pattern = parser.refine(pattern_name, expression);
 
         node.pattern = pattern;
         node.start   = pattern.start;
         node.end     = pattern.end;
-    },
+    }
 };

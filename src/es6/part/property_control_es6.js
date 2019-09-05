@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : property_control_es6.js
 * Created at  : 2019-08-28
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -43,7 +43,6 @@ module.exports = {
     is : (token, parser) => {
         if (parser.current_state !== property_list) { return; }
 
-        parser.current_state = null;
         const next_token = parser.look_ahead(true);
 
         if (is_asterisk(token)) {

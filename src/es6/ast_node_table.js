@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,6 +18,7 @@
 module.exports = ast_node_table => {
     ast_node_table.remove_node_defs([
         { expression    : "Property name",            } ,
+        { expression    : "Object literal",           } ,
         { expression    : "Property control",         } ,
         { expression    : "Grouping expression",      } ,
         { expression    : "Expression statement"      } ,
@@ -47,13 +48,18 @@ module.exports = ast_node_table => {
     // TODO: refactor later
     [
         "./expressions/contextual_keyword",
+        "./literals/object_literal",
+        "./expressions/method_body",
+        "./expressions/property_definition",
+        "./expressions/property_assignment",
+        "./expressions/empty_parameter_list",
+        "./expressions/computed_property_name",
 
         "./part/property_name",
         "./part/identifier_reference",
         "./part/cover_initialized_name",
         "./part/property_control_es6",
         "./covers/binding_pattern",
-        "./covers/cover_object_error",
 
         "./expressions/generator_body",
         "./expressions/function_expression",
@@ -103,6 +109,7 @@ module.exports = ast_node_table => {
 
         // 14 - Functions
         "./expressions/concise_body",
+        "./expressions/spread_element",
         "./expressions/arrow_parameters",
         "./expressions/formal_parameters",
         "./expressions/arrow_function_body",

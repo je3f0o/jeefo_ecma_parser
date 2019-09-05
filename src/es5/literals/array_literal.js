@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_literal.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : cover_parenthesized_expression_and_arrow_parameters.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -73,6 +73,7 @@ module.exports = {
             if (list.length === 0) {
                 parser.prepare_next_node_definition(true);
                 parser.expect("=>", is_arrow);
+                is_function_parameters = true;
             } else {
                 parser.prepare_next_node_definition();
                 if (parser.next_token && is_arrow(parser)) {

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : precedence_enum.js
 * Created at  : 2019-02-13
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,6 +16,7 @@
 // ignore:end
 
 module.exports = {
+    TERMINAL_SYMBOL     : -1,
     TERMINATION         : 0,
     COMMA               : 1,
     ASSIGNMENT_OPERATOR : 3,
@@ -28,7 +29,6 @@ module.exports = {
     FUNCTION_CALL       : 19,
     GROUPING_EXPRESSION : 20,
     PRIMITIVE           : 31,
-    COMMENT             : 32,
     PROPERTY_ASSIGN     : 32,
     METHOD_DEFINITION   : 33,
     GETTER_METHOD       : 34,
@@ -39,4 +39,6 @@ module.exports = {
     STATEMENT           : 40,
     EXPRESSION          : 40,
     DECLARATION         : 40,
+
+    COMMENT             : 99,
 };

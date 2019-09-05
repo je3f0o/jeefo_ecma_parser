@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,11 +16,17 @@
 // ignore:end
 
 module.exports = ast_node_table => {
+	const initialize = (node, token, parser) => {
+        parser.throw_unexpected_token(
+            `${ node.constructor.name } cannot be initialized.`
+        );
+    };
+
     // Remove old existed expressions
     ast_node_table.remove_node_defs([
         { expression : "Identifier"        } ,
         { expression : "Delimiter"        } ,
-        { expression : "Function call"        } ,
+        { expression : "Binding pattern"      } ,
         { expression : "Binding element"      } ,
         { expression : "Binding identifier"   } ,
         { expression : "Array binding pattern"   } ,
@@ -45,8 +51,6 @@ module.exports = ast_node_table => {
 
     // TODO: refactor later
     [
-        "./common/spread_element",
-
         "./expressions/call_expression",
 
         // 11.6.2.1 - Keywords
@@ -80,29 +84,29 @@ module.exports = ast_node_table => {
         //.....
         "./expressions/binding_rest_element",
 
-        // Assigment expression
+        // 12.15 - Assigment expression
         "./expressions/assignment_expression",
         "./binary_operators/assignment_operator",
         "./expressions/left_hand_side_expression",
+
+        // 12.15.5 - Destructuring assignment
+        "./expressions/assignment_element",
+        "./expressions/assignment_pattern",
+        "./expressions/assignment_rest_element",
+        "./expressions/array_assignment_pattern",
+        "./expressions/destructuring_assignment_target",
+
+        // 13.3.3 - Destructuring binding patterns
+        "./expressions/binding_pattern",
+        "./expressions/binding_element",
+        "./expressions/array_binding_pattern",
+        "./expressions/object_binding_pattern",
 
         // 13.4 - Function definitions
         "./expressions/formal_parameter",
         //"./expressions/formal_parameters",
 
         "./expressions/function_rest_parameter",
-
-        // Array bindings
-        "./destructurings/assignment_element",
-        "./destructurings/assignment_elision_element",
-        "./destructurings/array_assignment_pattern",
-
-        // Object bindings
-        "./destructurings/assignment_property",
-        "./destructurings/object_assignment_pattern",
-
-        // Depricated
-        "./bindings/binding_pattern",
-        "./bindings/binding_element",
 
         "./expressions/arguments",
         "./statements/expression_statement",
@@ -114,7 +118,11 @@ module.exports = ast_node_table => {
 
         "./covers/cover_call_expression_and_async_arrow_head",
     ].forEach(path => {
-        ast_node_table.register_node_definition(require(path));
+        const def = require(path);
+        if (! def.initialize) {
+            def.initialize = initialize;
+        }
+        ast_node_table.register_node_definition(def);
     });
 
     [

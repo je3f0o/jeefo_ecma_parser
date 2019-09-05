@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_identifier.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,12 +18,6 @@
 const { EXPRESSION }         = require("../enums/precedence_enum");
 const { binding_identifier } = require("../enums/states_enum");
 const { is_identifier_name } = require("../../helpers");
-
-const is_keyword = node_definition => {
-    if (node_definition) {
-        return node_definition.id === "Keyword";
-    }
-};
 
 const valid_terminal_values = ["yield", "await"];
 
@@ -43,7 +37,7 @@ module.exports = {
             parser.throw_unexpected_token("Unexpected keyword");
         } else if (! valid_terminal_values.includes(token.value)) {
             parser.change_state("keyword");
-            if (is_keyword(parser.next_node_definition)) {
+            if (parser.next_node_definition) {
                 parser.throw_unexpected_token("Unexpected identifier");
             }
         }

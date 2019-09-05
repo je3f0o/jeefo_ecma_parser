@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_body.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -19,8 +19,8 @@ const { function_body }           = require("../enums/states_enum");
 const { terminal_definition }     = require("../../common");
 const { EXPRESSION, TERMINATION } = require("../enums/precedence_enum");
 const {
+    is_open_curly,
     is_close_curly,
-    is_delimiter_token,
 } = require("../../helpers");
 
 module.exports = {
@@ -28,12 +28,9 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is (token, parser) {
-        if (parser.current_state === function_body) {
-            return is_delimiter_token(token, '{');
-        }
-    },
+    is         : (token, { current_state : s }) => s === function_body,
     initialize : (node, token, parser) => {
+        parser.expect('{', is_open_curly);
         parser.context_stack.push(node);
         const list = [];
 

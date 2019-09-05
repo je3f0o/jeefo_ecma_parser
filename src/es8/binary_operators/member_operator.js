@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : member_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -56,4 +56,8 @@ module.exports = {
 
         parser.current_state = member_expression;
     },
+
+    protos : {
+        is_valid_simple_assignment_target () { return true; }
+    }
 };

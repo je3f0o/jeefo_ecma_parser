@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -45,15 +45,21 @@ module.exports = {
         }
     },
     initialize (node, token, parser) {
-        let last_node = get_last_non_comment_node(parser);
-        const assignment = parser.refine(
-            "left_hand_side_expression", last_node
-        );
-        if (! assignment.is_valid_simple_assignment_target(parser)) {
+        let last_node = get_last_non_comment_node(parser), assignment;
+        parser.change_state("left_hand_side_expression");
+        const def = parser.next_node_definition;
+
+        if (token.value === '=' && def.is_destructuring(last_node)) {
+            assignment = parser.refine(
+                "assignment_pattern", last_node.expression
+            );
+        } else if (! last_node.is_valid_simple_assignment_target(parser)) {
             parser.throw_unexpected_token(
                 "Invalid left-hand side in assignment",
                 assignment.expression
             );
+        } else {
+            assignment = def._refine(last_node, parser);
         }
 
         parser.change_state("punctuator");

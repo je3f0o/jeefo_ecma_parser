@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,8 +16,11 @@
 // ignore:end
 
 module.exports = [
+    "elision",
     "delimiter",
     "identifier_name",
+    "primary_expression",
+    "property_set_parameter",
 
     "expression",
     "expression_no_in",

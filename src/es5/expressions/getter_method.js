@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : getter_method.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,14 +15,9 @@
 
 // ignore:end
 
-const { GETTER_METHOD }        = require("../enums/precedence_enum");
-const { is_specific_method }   = require("../helpers");
-const { terminal_definition }  = require("../../common");
-const { empty_parameter_list } = require("../common");
-const {
-    is_open_curly,
-    get_last_non_comment_node,
-} = require("../../helpers");
+const { GETTER_METHOD }             = require("../enums/precedence_enum");
+const { is_specific_method }        = require("../helpers");
+const { get_last_non_comment_node } = require("../../helpers");
 
 module.exports = {
     id         : "Getter method",
@@ -31,20 +26,19 @@ module.exports = {
 
     is         : is_specific_method("get"),
     initialize : (node, token, parser) => {
-        parser.prev_node = get_last_non_comment_node(parser);
-        const keyword = terminal_definition.generate_new_node(parser);
+        const get_node = get_last_non_comment_node(parser);
+        const keyword  = parser.refine("contextual_keyword", get_node);
 
         // Property
-        parser.change_state("property_name", true);
+        parser.change_state("property_name");
         const property_name = parser.generate_next_node();
 
         // Parameter
-        parser.prepare_next_state("delimiter", true);
-        const parameters = empty_parameter_list.generate_new_node(parser);
+        parser.prepare_next_state("empty_parameter_list");
+        const parameters = parser.generate_next_node();
 
         // Body
-        parser.prepare_next_state("function_body", true);
-        parser.expect('{', is_open_curly);
+        parser.prepare_next_state("method_body");
         const body = parser.generate_next_node();
 
         node.keyword       = keyword;

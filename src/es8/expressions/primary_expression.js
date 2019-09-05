@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : primary_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,13 +23,15 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === primary_expression,
+    is         : (_, { current_state : s }) => s === primary_expression,
     initialize : (node, token, parser) => {
-        const prev_node = parser.prev_node;
+        const { prev_node } = parser;
         switch (prev_node.id) {
             // Primitives
             case "Literal"                   :
             case "This keyword"              :
+            case "Array literal"             :
+            case "Object literal"            :
             case "Identifier reference"      :
             // Functions
             case "Function expression"       :
@@ -54,8 +56,17 @@ module.exports = {
 
     protos : {
         is_valid_simple_assignment_target (parser) {
+            if (! this.expression.is_valid_simple_assignment_target) {
+                parser.throw_unexpected_token(
+                    `${
+                        this.expression.constructor.name
+                    }.IsValidSimpleAssignmentTarget() is not implemented in: ${
+                        this.constructor.name
+                    }.IsValidSimpleAssignmentTarget()`
+                );
+            }
             // 12.2.1.5 - Static Semantics: IsValidSimpleAssignmentTarget
-            /* Speed is not constant
+            /* Speed is not constant this way
              *
             switch (this.expression.id) {
                 case "Literal"                    :

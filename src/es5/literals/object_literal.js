@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_literal.js
 * Created at  : 2019-03-23
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,60 +15,47 @@
 
 // ignore:end
 
-const { PRIMITIVE }           = require("../enums/precedence_enum");
-const { is_expression }       = require("../helpers");
-const { terminal_definition } = require("../../common");
+const { EXPRESSION }                     = require("../enums/precedence_enum");
+const { expression, primary_expression } = require("../enums/states_enum");
 const {
     is_close_curly,
     is_delimiter_token,
     get_last_non_comment_node,
-    parse_asignment_expression,
 } = require("../../helpers");
-
-function parse_properties (parser, properties, delimiters) {
-    while (! is_close_curly(parser)) {
-        const property = parse_asignment_expression(parser);
-        if (! property) {
-            parser.throw_unexpected_token();
-        }
-        properties.push(property);
-
-        if (parser.next_token === null) {
-            parser.throw_unexpected_end_of_stream();
-        }
-
-        if (is_delimiter_token(parser.next_token, ',')) {
-            delimiters.push(
-                terminal_definition.generate_new_node(parser)
-            );
-
-            parser.prepare_next_state("property_list", true);
-        }
-    }
-}
 
 module.exports = {
     id         : "Object literal",
-    type       : "Primitive",
-    precedence : PRIMITIVE,
+    type       : "Expression",
+    precedence : EXPRESSION,
 
-    is : (token, parser) => {
-        if (is_expression(parser) && is_delimiter_token(token, '{')) {
+    is (token, parser) {
+        if (parser.current_state !== expression) { return; }
+        if (is_delimiter_token(token, '{')) {
             return get_last_non_comment_node(parser) === null;
         }
     },
-    initialize : (node, token, parser) => {
-        const delimiters        = [];
-        const properties        = [];
-        const { current_state } = parser;
+    initialize (node, token, parser) {
+        const delimiters = [];
+        const properties = [];
 
-        const open = terminal_definition.generate_new_node(parser);
-        parser.prepare_next_state("delimiter", true);
-        if (! is_close_curly(parser)) {
-            parser.change_state("property_list");
-            parse_properties(parser, properties, delimiters);
+        parser.change_state("punctuator");
+        const open = parser.generate_next_node();
+        parser.prepare_next_state("property_list", true);
+        while (! is_close_curly(parser)) {
+            properties.push(parser.generate_next_node());
+
+            if (parser.next_token === null) {
+                parser.throw_unexpected_end_of_stream();
+            }
+
+            if (is_delimiter_token(parser.next_token, ',')) {
+                delimiters.push(parser.generate_next_node());
+
+                parser.prepare_next_state("property_list", true);
+            }
         }
-        const close = terminal_definition.generate_new_node(parser);
+        parser.change_state("punctuator");
+        const close = parser.generate_next_node();
 
         node.open_curly_bracket  = open;
         node.properties          = properties;
@@ -77,7 +64,6 @@ module.exports = {
         node.start               = open.start;
         node.end                 = close.end;
 
-        parser.ending_index  = node.end.index;
-        parser.current_state = current_state;
+        parser.current_state = primary_expression;
     }
 };

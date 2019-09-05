@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2017-08-16
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -57,10 +57,11 @@ require("./statements")(ast_node_table);
 
 [
     "./common/method_definition",
-    "./common/property_assignment",
     "./literals/array_literal",
     "./literals/object_literal",
+    "./expressions/elision",
     "./expressions/identifier_name",
+    "./expressions/property_set_parameter",
 ].forEach(path => {
     ast_node_table.register_node_definition(require(path));
 });

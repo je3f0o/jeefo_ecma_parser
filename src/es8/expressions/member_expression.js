@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : member_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -55,6 +55,17 @@ module.exports = {
     },
 
     protos : {
-        is_valid_simple_assignment_target () { return true; }
+        is_valid_simple_assignment_target (parser) {
+            if (! this.expression.is_valid_simple_assignment_target) {
+                parser.throw_unexpected_token(
+                    `${
+                        this.expression.constructor.name
+                    }.IsValidSimpleAssignmentTarget() is not implemented in: ${
+                        this.constructor.name
+                    }.IsValidSimpleAssignmentTarget()`
+                );
+            }
+            return this.expression.is_valid_simple_assignment_target(parser);
+        }
     }
 };

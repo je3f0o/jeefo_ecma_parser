@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preparation_handler.js
 * Created at  : 2019-06-28
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -69,9 +69,10 @@ const is_of_operator = parser => {
 };
 
 module.exports = parser => {
-    if (! parser.prev_node) { return; }
-    const { prev_node } = parser;
-
+    let prev_node = null;
+    if (parser.prev_node && parser.prev_node.id !== "Comment") {
+        ({ prev_node } = parser);
+    }
     ignore_comments(parser);
 
     const is_cancelable = (

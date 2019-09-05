@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_function.js
 * Created at  : 2019-08-12
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,10 +23,8 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is (token, parser) {
-        if (parser.current_state === expression) {
-            return token.id === "Arrow";
-        }
+    is (token, { current_state }) {
+        return current_state === expression && token.id === "Arrow";
     },
     initialize (node, token, parser) {
         parser.change_state("arrow_parameters");

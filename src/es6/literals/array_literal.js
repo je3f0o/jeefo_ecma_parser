@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_literal.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,54 +15,58 @@
 
 // ignore:end
 
-const { PRIMITIVE }           = require("../enums/precedence_enum");
-const { is_expression }       = require("../../es5/helpers");
-const { spread_element }      = require("../nodes");
-const { terminal_definition } = require("../../common");
+const {EXPRESSION}                     = require("../enums/precedence_enum");
+const {expression, primary_expression} = require("../enums/states_enum");
 const {
     is_comma,
     is_delimiter_token,
     is_close_square_bracket,
     get_last_non_comment_node,
-    parse_asignment_expression,
 } = require("../../helpers");
 
 module.exports = {
     id         : "Array literal",
-    type       : "Primitive",
-    precedence : PRIMITIVE,
+    type       : "Expression",
+    precedence : EXPRESSION,
 
-    is : (token, parser) => {
-        if (is_expression(parser) && is_delimiter_token(token, '[')) {
+    is (token, parser) {
+        if (parser.current_state !== expression) { return; }
+        if (is_delimiter_token(token, '[')) {
             return get_last_non_comment_node(parser) === null;
         }
     },
-    initialize : (node, token, parser) => {
-        const open         = terminal_definition.generate_new_node(parser);
+
+    initialize (node, token, parser) {
         const delimiters   = [];
-        const prev_state   = parser.current_state;
         const element_list = [];
 
-        parser.prepare_next_state("expression", true);
+        parser.change_state("punctuator");
+        const open = parser.generate_next_node();
+        parser.prepare_next_state("assignment_expression", true);
         while (! is_close_square_bracket(parser)) {
             if (parser.next_token.id === "Rest") {
-                element_list.push(spread_element.generate_new_node(parser));
-                if (! is_close_square_bracket(parser)) {
+                parser.change_state("spread_element");
+                element_list.push(parser.generate_next_node());
+
+                if (is_comma(parser)) {
                     parser.throw_unexpected_token(
                         "Rest element must be last element"
                     );
+                } else if (is_close_square_bracket(parser)) {
+                    break;
                 }
-                break;
+
+                parser.throw_unexpected_token();
             } else if (is_comma(parser)) {
-                delimiters.push(
-                    terminal_definition.generate_new_node(parser)
-                );
-                parser.prepare_next_state("expression", true);
+                parser.change_state("elision");
+                delimiters.push(parser.generate_next_node());
+                parser.prepare_next_state("assignment_expression", true);
             } else {
-                element_list.push(parse_asignment_expression(parser));
+                element_list.push(parser.generate_next_node());
             }
         }
-        const close = terminal_definition.generate_new_node(parser);
+        parser.change_state("punctuator");
+        const close = parser.generate_next_node();
 
         node.open_square_bracket  = open;
         node.element_list         = element_list;
@@ -71,20 +75,10 @@ module.exports = {
         node.start                = open.start;
         node.end                  = close.end;
 
-        const next_token = parser.look_ahead();
-        const has_cover = (
-            next_token &&
-            next_token.id    === "Operator" &&
-            next_token.value === '='
-        );
+        parser.current_state = primary_expression;
+    },
 
-        if (has_cover) {
-            parser.prev_node  = node;
-            parser.prev_state = prev_state;
-            parser.change_state("binding_pattern");
-        } else {
-            parser.ending_index  = node.end.index;
-            parser.current_state = prev_state;
-        }
+    protos : {
+        is_valid_simple_assignment_target () { return false; }
     }
 };

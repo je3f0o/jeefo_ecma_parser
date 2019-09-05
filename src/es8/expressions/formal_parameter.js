@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : formal_parameter.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-05
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,8 +23,8 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, parser) => parser. current_state === formal_parameter,
-	initialize : (node, token, parser) => {
+    is         (_, { current_state : s }) { return s === formal_parameter; },
+	initialize (node, token, parser) {
         parser.change_state("binding_element");
         this.init(node, parser.generate_next_node());
     },
