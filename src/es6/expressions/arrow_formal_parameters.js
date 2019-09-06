@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_formal_parameters.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,31 +15,37 @@
 
 // ignore:end
 
-const { EXPRESSION }                = require("../enums/precedence_enum");
-const { get_last_non_comment_node } = require("../../helpers");
-const {
-    expression,
-    arrow_formal_parameters,
-} = require("../enums/states_enum");
+const { EXPRESSION }              = require("../enums/precedence_enum");
+const { arrow_formal_parameters } = require("../enums/states_enum");
 
 module.exports = {
     id         : "Arrow formal parameters",
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is (token, parser) {
-        return parser.current_state === arrow_formal_parameters;
+    is     : (_, { current_state : s }) => s === arrow_formal_parameters,
+    initialize : (node) => {
+        console.log(node.id);
+        process.exit();
     },
-	initialize (node, token, parser) {
-        const {
-            open,
-            expression_list,
-            delimiters,
-            close,
-        } = get_last_non_comment_node(parser);
+	refine : (node, expression, parser) => {
+        let open, list, delimiters, close;
+        switch (expression.id) {
+            case "Arguments" :
+                list = expression.list;
+                break;
+            default:
+                parser.throw_unexpected_refine(node, expression);
+        }
 
-        const list = expression_list.map(expr => {
-            return parser.refine("formal_parameter", expr);
+        ({
+            delimiters,
+            open_parenthesis  : open,
+            close_parenthesis : close,
+        } = expression);
+
+        list = list.map(item => {
+            return parser.refine("formal_parameter", item);
         });
 
         node.open_parenthesis  = open;
@@ -48,8 +54,5 @@ module.exports = {
         node.close_parenthesis = close;
         node.start             = open.start;
         node.end               = close.end;
-
-        parser.ending_index -= 1;
-        parser.current_state = expression;
     },
 };

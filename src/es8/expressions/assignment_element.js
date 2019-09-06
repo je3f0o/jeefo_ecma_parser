@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_element.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,19 +24,34 @@ module.exports = {
 	precedence : EXPRESSION,
 
     is     : (_, { current_state : s }) => s === assignment_element,
-	refine : (node, expression, parser) => {
+	refine : (node, element, parser) => {
         let initializer = null, target;
 
-        if (expression.id !== "Assignment expression") {
-            parser.throw_unexpected_refine(node, expression);
+        if (element.id !== "Assignment expression") {
+            parser.throw_unexpected_refine(node, element);
         }
 
-        if (expression.expression.id === "Assignment operator") {
-            console.log("TODO:", node.id);
+        if (element.expression.id === "Assignment operator") {
+            if (element.expression.operator.value !== '=') {
+                parser.throw_unexpected_token(
+                    "Invalid destructuring assignment target",
+                    element.expression
+                );
+            }
+
+            parser.change_state("destructuring_assignment_target");
+            target = parser.next_node_definition._refine(
+                element.expression.left, parser
+            );
+
+            initializer = parser.refine("initializer", {
+                operator   : element.expression.operator,
+                expression : element.expression.right,
+            });
         } else {
             target = parser.refine(
                 "destructuring_assignment_target",
-                expression.expression
+                element.expression
             );
         }
 

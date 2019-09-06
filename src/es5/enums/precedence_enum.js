@@ -26,7 +26,7 @@ module.exports = {
     NEW_WITHOUT_ARGS    : 18,
     MEMBER_EXPRESSION   : 19,
     NEW_WITH_ARGS       : 19,
-    FUNCTION_CALL       : 19,
+    CALL_EXPRESSION     : 19,
     GROUPING_EXPRESSION : 20,
     PRIMITIVE           : 31,
     PROPERTY_ASSIGN     : 32,

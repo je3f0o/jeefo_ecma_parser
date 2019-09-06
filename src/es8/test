@@ -1,3 +1,4 @@
+//"use strict";
 // 12.2 - Primary expressions
 // --------------------------
 
@@ -11,6 +12,9 @@ false;
 3.14;
 'single quote string';
 "double quote string";
+assignment_expression = computed = static = value = expr = str = 2;
+object = o = {};
+spread_element = id = [];
 
 // 12.2.5 - Array initializer
 [];
@@ -44,52 +48,54 @@ o = {
     set await (v) {},
     set [str] (v) {},
 
-    /*
     async 3.14       () {},
     async "str"      () {},
     async await      () {},
     async [computed] () {},
-    */
 };
 
 // 12.15.5 - Destructuring assignment
-[, id, [], o.p, ...rest] = [];
-/*
-({
-    id
-} = {});
-*/
+[, id, id = value, {} = {}, [] = [], [], o.p, ...rest] = [,,[]];
+o = {
+    id,
+    id : id,
+    id : { z = 2 },
+    id : [, id, id = value, {} = {}, [] = [], [], o.p, ...rest],
+    id = 123
+} = {};
+
+o = { z : {}, i : [2 > {}] };
 
 
 3..property;
-super.property = assignment_expression;
+//super.property = assignment_expression;
 object.property = assignment_expression;
 
 id_ref = assignment_expression;
 fn = function       () {};
 fn = function await () {};
 fn = function yield () {};
-async_fn = async function () {};
-async_fn = async function yield () {};
-gen = function * () {};
-gen = function * await () {};
 
-() => {};
-(p1, {}, []) => {};
-
+async (
+    p1, {}, [],
+    p2 = 1,
+    {} = {},
+    [, id, id = value, {} = {}, [] = [], [], ...rest] = [],
+    [...[]] = [],
+    [...{}] = []
+) => {};
 /*
-//fn = async (p1, {}, [], p2 = 1, {} = {}, [] = []) => {}
+() => {};
+(p1, {}, [], p2 = 1, {} = {}, [] = []) => {};
 
-async function async_fn () {
-    await async_fn();
-    return 1;
-}
+fn();
 
-fn = async function          () {}
-fn = async param => {}
+async function async_fn () { }
+async_fn = async function () { await fn(); };
+async_fn = async function yield () { await fn(); };
 
-fn = () => {}
-
+gen = function * () { yield 1; };
+gen = function * await () { yield 2; };
 
 class A extends B {
     ;

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : cover_parenthesized_expression_and_arrow_parameters.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,7 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION } = require("../enums/precedence_enum");
+const { EXPRESSION }                = require("../enums/precedence_enum");
+const { get_last_non_comment_node } = require("../../helpers");
 const {
     expression,
     grouping_expression,
@@ -34,8 +35,10 @@ module.exports = {
 	precedence : EXPRESSION,
 
     is (token, parser) {
-        if (parser.current_state === expression) {
-            return is_delimiter_token(token, '(');
+        if (parser.current_state !== expression) { return; }
+
+        if (is_delimiter_token(token, '(')) {
+            return get_last_non_comment_node(parser) === null;
         }
     },
 	initialize (node, token, parser) {

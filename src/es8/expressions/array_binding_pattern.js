@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_binding_pattern.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,30 +24,31 @@ module.exports = {
 	precedence : EXPRESSION,
 
     is     : (_, { current_state : s }) => s === array_binding_pattern,
-	refine : (node, array_literal, parser) => {
+	refine : (node, expression, parser) => {
+        let list;
+        switch (expression.id) {
+            case "Array literal" :
+            case "Array assignment pattern" :
+                list = expression.element_list;
+                break;
+            default :
+                parser.throw_unexpected_refine(node, expression);
+        }
         const {
             delimiters,
-            element_list,
-            open_square_bracket,
-            close_square_bracket,
-        } = array_literal;
+            open_square_bracket  : open,
+            close_square_bracket : close,
+        } = expression;
 
-        let elision              = null;
-        let binding_rest_element = null;
-
-        const binding_element_list = element_list.map(element => {
-            const elision = null;
-            parser.prev_node = { elision, element };
-            parser.change_state("assignment_elision_element");
-            return parser.generate_next_node();
+        const element_list = list.map(element => {
+            return parser.refine("binding_element", element);
         });
 
-        node.open_square_bracket  = open_square_bracket;
-        node.elision              = elision;
-        node.binding_element_list = binding_element_list;
-        node.binding_rest_element = binding_rest_element;
-        node.close_square_bracket = close_square_bracket;
-        node.start                = open_square_bracket.start;
-        node.end                  = close_square_bracket.end;
+        node.open_square_bracket  = open;
+        node.element_list         = element_list;
+        node.delimiters           = delimiters;
+        node.close_square_bracket = close;
+        node.start                = open.start;
+        node.end                  = close.end;
     },
 };

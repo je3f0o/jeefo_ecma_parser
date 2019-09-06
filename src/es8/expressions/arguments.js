@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arguments.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -27,16 +27,15 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === arguments_state,
+    is         : (_, { current_state : s }) => s === arguments_state,
 	initialize : (node, token, parser) => {
         const list       = [];
         const delimiters = [];
 
-        parser.change_state("delimiter");
+        parser.change_state("punctuator");
         const open = parser.generate_next_node();
 
-        parser.change_state("expression", false);
-        parser.prev_state = parser.current_state;
+        parser.change_state("expression");
         parser.prepare_next_state("assignment_expression", true);
         while (! is_close_parenthesis(parser)) {
             if (parser.next_token.id === "Rest") {
@@ -49,11 +48,12 @@ module.exports = {
             }
 
             if (is_comma(parser)) {
-                parser.change_state("delimiter", false);
+                parser.change_state("punctuator");
                 delimiters.push(parser.generate_next_node());
                 parser.prepare_next_state("assignment_expression", true);
             }
         }
+        parser.change_state("punctuator");
         const close = parser.generate_next_node();
 
         node.open_parenthesis  = open;

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_binding_pattern.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,23 +24,33 @@ module.exports = {
 	precedence : EXPRESSION,
 
     is     : (_, { current_state : s }) => s === object_binding_pattern,
-    refine : (node, object_literal, parser) => {
+    refine : (node, expression, parser) => {
+        let list;
+        switch (expression.id) {
+            case "Object literal" :
+                list = expression.property_definition_list;
+                break;
+            case "Object assignment pattern" :
+                list = expression.property_list;
+                break;
+            default :
+                parser.throw_unexpected_refine(node, expression);
+        }
         const {
             delimiters,
-            property_definition_list,
-            open_curly_bracket,
-            close_curly_bracket,
-        } = object_literal;
+            open_curly_bracket  : open,
+            close_curly_bracket : close,
+        } = expression;
 
-        const property_list = property_definition_list.map(property => {
+        const property_list = list.map(property => {
             return parser.refine("binding_property", property);
         });
 
-        node.open_curly_bracket  = open_curly_bracket;
+        node.open_curly_bracket  = open;
         node.property_list       = property_list;
         node.delimiters          = delimiters;
-        node.close_curly_bracket = close_curly_bracket;
-        node.start               = open_curly_bracket.start;
-        node.end                 = close_curly_bracket.end;
+        node.close_curly_bracket = close;
+        node.start               = open.start;
+        node.end                 = close.end;
     }
 };

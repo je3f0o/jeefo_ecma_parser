@@ -30,6 +30,13 @@ const is_possible_reference_id = (() => {
     };
 })();
 
+const get_method = parser => {
+    parser.change_state("method_definition");
+    const definition = parser.generate_next_node();
+    parser.prepare_next_node_definition(true);
+    return definition;
+};
+
 module.exports = {
     id         : "Property definition",
     type       : "Expression",
@@ -37,15 +44,19 @@ module.exports = {
 
     is         : (token, { current_state : s }) => s === property_definition,
     initialize : (node, token, parser) => {
+        let definition;
         if (is_asterisk_token(token)) {
-            parser.change_state("method_definition");
+            definition = get_method(parser);
         } else {
             const next_token = parser.look_ahead(true);
 
             if (is_assign_token(next_token)) {
                 parser.change_state("cover_initialized_name");
+                definition = parser.generate_next_node();
             } else if (is_possible_reference_id(next_token)) {
                 parser.change_state("identifier_reference");
+                definition = parser.generate_next_node();
+                parser.prepare_next_node_definition(true);
             } else {
                 parser.change_state("property_name");
                 parser.set_prev_node(parser.generate_next_node());
@@ -53,15 +64,11 @@ module.exports = {
 
                 if (is_delimiter_token(parser.next_token, ':')) {
                     parser.change_state("property_assignment");
+                    definition = parser.generate_next_node();
                 } else {
-                    parser.change_state("method_definition");
+                    definition = get_method(parser);
                 }
             }
-        }
-
-        const definition = parser.generate_next_node();
-        if (definition.id !== "Property assignment") {
-            parser.prepare_next_node_definition(true);
         }
 
         node.definition = definition;

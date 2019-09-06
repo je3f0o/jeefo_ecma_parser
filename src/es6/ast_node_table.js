@@ -53,12 +53,11 @@ module.exports = ast_node_table => {
         "./expressions/property_definition",
         "./expressions/property_assignment",
         "./expressions/empty_parameter_list",
+        "./expressions/cover_initialized_name",
         "./expressions/computed_property_name",
 
         "./part/property_name",
         "./part/identifier_reference",
-        "./part/cover_initialized_name",
-        "./part/property_control_es6",
         "./covers/binding_pattern",
 
         "./expressions/generator_body",

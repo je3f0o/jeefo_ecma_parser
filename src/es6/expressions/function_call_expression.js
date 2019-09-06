@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_call_expression.js
 * Created at  : 2019-08-26
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { FUNCTION_CALL }        = require("../enums/precedence_enum");
 const { is_expression }        = require("../../es5/helpers");
+const { CALL_EXPRESSION }      = require("../enums/precedence_enum");
 const { arguments_definition } = require("../nodes");
 const {
     is_delimiter_token,
@@ -26,7 +26,7 @@ const {
 module.exports = {
     id         : "Function call expression",
 	type       : "Expression",
-	precedence : FUNCTION_CALL,
+	precedence : CALL_EXPRESSION,
 
     is : (token, parser) => {
         if (is_expression(parser) && is_delimiter_token(token, '(')) {

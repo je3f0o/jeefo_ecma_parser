@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -69,11 +69,11 @@ module.exports = {
         parser.prepare_next_state("assignment_expression", true);
         const expression = parser.generate_next_node();
 
-        node.assignment = assignment;
-        node.operator   = operator;
-        node.expression = expression;
-        node.start      = assignment.start;
-        node.end        = expression.end;
+        node.left     = assignment;
+        node.operator = operator;
+        node.right    = expression;
+        node.start    = assignment.start;
+        node.end      = expression.end;
 
         parser.end(node);
     }

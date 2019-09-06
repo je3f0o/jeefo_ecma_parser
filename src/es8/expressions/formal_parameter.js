@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : formal_parameter.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,24 +18,24 @@
 const { EXPRESSION }       = require("../enums/precedence_enum");
 const { formal_parameter } = require("../enums/states_enum");
 
+const init = (node, element) => {
+    node.binding_element = element;
+    node.start           = element.start;
+    node.end             = element.end;
+};
+
 module.exports = {
     id         : "Formal parameter",
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         (_, { current_state : s }) { return s === formal_parameter; },
-	initialize (node, token, parser) {
+    is         : (_, { current_state : s }) => s === formal_parameter,
+	initialize : (node, token, parser) => {
         parser.change_state("binding_element");
-        this.init(node, parser.generate_next_node());
+        init(node, parser.generate_next_node());
     },
 
     refine (node, expression, parser) {
-        this.init(node, parser.refine("binding_element", expression));
+        init(node, parser.refine("binding_element", expression));
     },
-
-    init (node, element) {
-        node.binding_element = element;
-        node.start           = element.start;
-        node.end             = element.end;
-    }
 };

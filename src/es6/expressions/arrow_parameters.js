@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_parameters.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,6 +26,7 @@ module.exports = {
 
     is         : (_, { current_state : s }) => s === arrow_parameters,
 	initialize : (node, token, parser) => {
+        parser.throw_unexpected_token("should not be called:" + node.id);
         let expression = get_last_non_comment_node(parser);
         switch (expression.id) {
             case "Arrow formal parameters": break;
@@ -37,4 +38,20 @@ module.exports = {
         node.start      = expression.start;
         node.end        = expression.end;
     },
+
+    refine (node, expression, parser) {
+        switch (expression.id) {
+            case "Arguments":
+                expression = parser.refine(
+                    "arrow_formal_parameters", expression
+                );
+                break;
+            default:
+                parser.throw_unexpected_refine();
+        }
+
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
+    }
 };

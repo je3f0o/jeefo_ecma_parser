@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -46,13 +46,8 @@ module.exports = ast_node_table => {
         { expression : "Numeric literal" } ,
     ]);
 
-    // Register expressions
-    require("./expressions")(ast_node_table);
-
     // TODO: refactor later
     [
-        "./expressions/call_expression",
-
         // 11.6.2.1 - Keywords
         "./expressions/keyword",
 
@@ -81,6 +76,10 @@ module.exports = ast_node_table => {
         "./expressions/member_expression",
         "./binary_operators/member_operator",
 
+        // 12.3.4 Function calls
+        "./expressions/call_expression",
+        "./expressions/function_call_expression",
+
         //.....
         "./expressions/binding_rest_element",
 
@@ -90,11 +89,17 @@ module.exports = ast_node_table => {
         "./expressions/left_hand_side_expression",
 
         // 12.15.5 - Destructuring assignment
+        // array
         "./expressions/assignment_element",
         "./expressions/assignment_pattern",
         "./expressions/assignment_rest_element",
         "./expressions/array_assignment_pattern",
         "./expressions/destructuring_assignment_target",
+        // object
+        "./expressions/assignment_property",
+        "./expressions/object_assignment_pattern",
+        "./expressions/assignment_property_element",
+        "./expressions/assignment_property_identifier",
 
         // 13.3.3 - Destructuring binding patterns
         "./expressions/binding_pattern",
@@ -111,12 +116,14 @@ module.exports = ast_node_table => {
         "./expressions/arguments",
         "./statements/expression_statement",
 
-        // Async functions
+        // 14.6 - Async function defenitions
         "./common/async_function_body",
+        "./expressions/async_method",
+        "./expressions/async_method_body",
+        "./expressions/async_concise_body",
+        "./expressions/async_arrow_function",
         "./expressions/async_function_expression",
         "./declarations/async_function_declaration",
-
-        "./covers/cover_call_expression_and_async_arrow_head",
     ].forEach(path => {
         const def = require(path);
         if (! def.initialize) {
@@ -140,6 +147,11 @@ module.exports = ast_node_table => {
         {
             path    : "./expressions/super_property",
             keyword : "super",
+        },
+        // ...
+        {
+            path    : "./expressions/await_experession",
+            keyword : "await",
         },
     ].forEach(({ path, keyword }) => {
         ast_node_table.register_reserved_word(keyword, require(path));

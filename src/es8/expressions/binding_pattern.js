@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_pattern.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,6 +32,14 @@ module.exports = {
                 break;
             case "Object literal" :
                 pattern_name = "object_binding_pattern";
+                break;
+            case "Assignment pattern" :
+                if (expression.pattern.id === "Array assignment pattern") {
+                    pattern_name = "array_binding_pattern";
+                } else {
+                    pattern_name = "object_binding_pattern";
+                }
+                expression = expression.pattern;
                 break;
             default:
                 parser.throw_unexpected_refine(node, expression);

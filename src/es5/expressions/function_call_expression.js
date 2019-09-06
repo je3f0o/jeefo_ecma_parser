@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_call_expression.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-08-27
+* Updated at  : 2019-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -52,7 +52,7 @@ const arguments_definition = new AST_Node_Definition({
 module.exports = {
     id         : "Function call expression",
 	type       : "Expression",
-	precedence : precedence_enum.FUNCTION_CALL,
+	precedence : precedence_enum.CALL_EXPRESSION,
 
     is : (token, parser) => {
         if (is_expression(parser) && is_open_parenthesis(parser)) {

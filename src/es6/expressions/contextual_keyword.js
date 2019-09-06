@@ -20,40 +20,46 @@ const { get_pre_comment }    = require("../../helpers");
 const { contextual_keyword } = require("../enums/states_enum");
 
 const keywords = [
-    "get", "set", "static",
+    "get", "set", "async", "static",
 ];
 
-const is_keyword = node => {
-    return node.id === "Identifier name" && keywords.includes(node.value);
+const init = (node, token, comment, parser) => {
+    if (! keywords.includes(token.value)) {
+        parser.throw_unexpected_token(`Invalid '${ node.id }'`, token);
+    }
+
+    node.pre_comment = comment;
+    node.value       = token.value;
+    node.start       = token.start;
+    node.end         = token.end;
 };
 
 module.exports = {
     id         : "Contextual keyword",
     type       : "Terminal symbol token",
     precedence : TERMINAL_SYMBOL,
-
     is         : (_, { current_state : s }) => s === contextual_keyword,
-    initialize : (node, token, parser) => {
-        node.pre_comment = get_pre_comment(parser);
-        node.value       = token.value;
-        node.start       = token.start;
-        node.end         = token.end;
+
+    initialize (node, token, parser) {
+        if (token.id !== "Identifier") {
+            parser.throw_unexpected_token(`Invalid token to passed in '${
+                node.id
+            }'`);
+        }
+        init(node, token, get_pre_comment(parser), parser);
     },
 
-    refine (node, property_name, parser) {
-        if (property_name.id !== "Property name") {
-            parser.throw_unexpected_refine(node, property_name);
-        }
-        const name = property_name.name;
-        if (! is_keyword(name)) {
-            parser.throw_unexpected_token(`Invalid keyword to refine in: ${
-                node.id
-            }`);
+    refine (node, expression, parser) {
+        switch (expression.id) {
+            case "Property name" :
+                expression = expression.name;
+                break;
+            case "Identifier reference" :
+                break;
+            default:
+                parser.throw_unexpected_refine(node, expression);
         }
 
-        node.pre_comment = name.pre_comment;
-        node.value       = name.value;
-        node.start       = name.start;
-        node.end         = name.end;
-    }
+        init(node, expression, expression.pre_comment, parser);
+    },
 };
