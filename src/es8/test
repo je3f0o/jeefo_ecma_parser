@@ -60,6 +60,7 @@ o = {
     id,
     id : id,
     id : { z = 2 },
+    id : { [prop] : id },
     id : [, id, id = value, {} = {}, [] = [], [], o.p, ...rest],
     id = 123
 } = {};
@@ -91,6 +92,7 @@ async (
 fn();
 
 // Statements
+var   let = 2;
 let   $var;
 const $var = value;
 

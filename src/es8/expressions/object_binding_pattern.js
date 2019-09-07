@@ -26,6 +26,7 @@ module.exports = {
 
 	initialize (node, token, parser) {
         parser.change_state("expression");
+        // Trick to skip object validation in ObjectLiteral
         parser.context_stack.push("Object literal");
         const object_literal = parser.generate_next_node();
         parser.context_stack.pop();

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_literal.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :

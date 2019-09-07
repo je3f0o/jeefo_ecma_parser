@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_statement.js
 * Created at  : 2019-03-18
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,9 +24,9 @@ module.exports = {
     type       : "Statement",
     precedence : STATEMENT,
 
-    is         : (_, parser) => parser.current_state === statement,
+    is         : (_, { current_state : s }) => s === statement,
     initialize : (node, token, parser) => {
-        parser.change_state("delimiter");
+        parser.change_state("keyword");
         const keyword  = parser.generate_next_node();
         let terminator = null;
 
@@ -35,6 +35,7 @@ module.exports = {
 
         if (parser.next_token) {
             parser.expect(';', is_terminator);
+            parser.change_state("punctuator");
             terminator = parser.generate_next_node();
         }
 

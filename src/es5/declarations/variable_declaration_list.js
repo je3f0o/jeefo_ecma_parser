@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_declaration_list.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,9 +24,7 @@ module.exports = {
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is : (token, parser) => {
-        return parser.current_state === variable_declaration_list;
-    },
+    is         : (_, { current_state : s }) => s === variable_declaration_list,
     initialize : (node, token, parser) => {
         const list       = [];
         const delimiters = [];
@@ -38,7 +36,7 @@ module.exports = {
 
             if (parser.next_token === null) { break; }
             else if (is_comma(parser)) {
-                parser.change_state("delimiter");
+                parser.change_state("punctuator");
                 delimiters.push(parser.generate_next_node());
                 parser.prepare_next_state("variable_declaration", true);
             }
