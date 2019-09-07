@@ -26,7 +26,6 @@ module.exports = ast_node_table => {
     ast_node_table.remove_node_defs([
         { expression : "Identifier"        } ,
         { expression : "Delimiter"        } ,
-        { expression : "Binding pattern"      } ,
         { expression : "Binding element"      } ,
         { expression : "Binding identifier"   } ,
         { expression : "Array binding pattern"   } ,

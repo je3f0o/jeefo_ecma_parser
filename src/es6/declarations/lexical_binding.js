@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : lexical_binding.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,32 +18,37 @@
 const { DECLARATION }     = require("../enums/precedence_enum");
 const { error_reporter }  = require("../helpers");
 const { lexical_binding } = require("../enums/states_enum");
-const {
-    is_assign,
-    is_destructuring_binding_pattern
-} = require("../../helpers");
+const { is_assign_token } = require("../../helpers");
 
 module.exports = {
     id         : "Lexical binding",
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is         : (_, parser) => parser.current_state === lexical_binding,
+    is         : (_, { current_state : s }) => s === lexical_binding,
     initialize : (node, token, parser) => {
-        let initializer = null;
+        let initializer = null, is_destructuring;
 
-        parser.change_state("assignable_declaration", false);
-        const binding = parser.generate_next_node().declaration;
-        parser.set_prev_node(binding);
-        parser.prepare_next_node_definition();
-
-        if (parser.next_token) {
-            if (is_assign(parser)) {
-                parser.change_states("initializer", "expression");
-                initializer = parser.generate_next_node();
-            } else if (is_destructuring_binding_pattern(binding)) {
-                error_reporter.missing_initializer_in_destructuring(parser);
+        if (token.id === "Identifier") {
+            if (token.value === "let") {
+                parser.throw_unexpected_token(
+                    "let is disallowed as a lexically bound name"
+                );
             }
+            parser.change_state("binding_identifier");
+        } else {
+            is_destructuring = true;
+            parser.change_state("binding_pattern");
+        }
+        const binding = parser.generate_next_node();
+
+        parser.prepare_next_state("punctuator");
+        if (parser.next_token && is_assign_token(parser.next_token)) {
+            parser.change_state("initializer");
+            initializer = parser.generate_next_node();
+        }
+        if (is_destructuring && ! initializer) {
+            error_reporter.missing_initializer_in_destructuring(parser);
         }
 
         node.binding     = binding;

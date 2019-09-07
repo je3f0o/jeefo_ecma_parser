@@ -18,12 +18,40 @@
 const { EXPRESSION }      = require("../enums/precedence_enum");
 const { binding_pattern } = require("../enums/states_enum");
 
+const init = (node, pattern) => {
+    node.pattern = pattern;
+    node.start   = pattern.start;
+    node.end     = pattern.end;
+};
+
 module.exports = {
     id         : "Binding pattern",
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is     : (_, { current_state : s }) => s === binding_pattern,
+    is         : (_, { current_state : s }) => s === binding_pattern,
+    initialize : (node, token, parser) => {
+        if (token.id !== "Delimiter") {
+            parser.throw_unexpected_token(
+                `Unexpected token to initialize in: ${ node.id }`
+            );
+        }
+
+        switch (token.value) {
+            case '[' :
+                parser.change_state("array_binding_pattern");
+                break;
+            case '{' :
+                parser.change_state("object_binding_pattern");
+                break;
+            default:
+                parser.throw_unexpected_token(
+                    `Unexpected token to initialize in: ${ node.id }`
+                );
+        }
+        init(node, parser.generate_next_node());
+    },
+
     refine : (node, expression, parser) => {
         let pattern_name;
         switch (expression.id) {
@@ -44,10 +72,6 @@ module.exports = {
             default:
                 parser.throw_unexpected_refine(node, expression);
         }
-        const pattern = parser.refine(pattern_name, expression);
-
-        node.pattern = pattern;
-        node.start   = pattern.start;
-        node.end     = pattern.end;
+        init(node, parser.refine(pattern_name, expression));
     }
 };

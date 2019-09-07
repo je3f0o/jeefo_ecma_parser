@@ -22,8 +22,17 @@ module.exports = {
     id         : "Object binding pattern",
 	type       : "Expression",
 	precedence : EXPRESSION,
+    is         : (_, { current_state : s }) => s === object_binding_pattern,
 
-    is     : (_, { current_state : s }) => s === object_binding_pattern,
+	initialize (node, token, parser) {
+        parser.change_state("expression");
+        parser.context_stack.push("Object literal");
+        const object_literal = parser.generate_next_node();
+        parser.context_stack.pop();
+
+        this.refine(node, object_literal, parser);
+    },
+
     refine : (node, expression, parser) => {
         let list;
         switch (expression.id) {

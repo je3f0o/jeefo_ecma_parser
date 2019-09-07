@@ -90,6 +90,21 @@ async (
 
 fn();
 
+// Statements
+let   $var;
+const $var = value;
+
+let [] = [];
+let [,] = [];
+let [,a] = [];
+let [,[]] = [];
+
+let { prop = default_value } = {};
+let { prop:binding_id = default_value, a } = {};
+let { prop:{ nested } } = {};
+let { prop:[] } = {};
+
+// Functions and class
 async function async_fn () { }
 async_fn = async function () { await fn(); };
 async_fn = async function yield () { await fn(); };

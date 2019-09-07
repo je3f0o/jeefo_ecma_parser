@@ -20,7 +20,7 @@ const { get_pre_comment }    = require("../../helpers");
 const { contextual_keyword } = require("../enums/states_enum");
 
 const keywords = [
-    "get", "set", "async", "static",
+    "let", "get", "set", "async", "static",
 ];
 
 const init = (node, token, comment, parser) => {

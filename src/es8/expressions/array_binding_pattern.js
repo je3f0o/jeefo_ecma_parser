@@ -22,9 +22,14 @@ module.exports = {
     id         : "Array binding pattern",
 	type       : "Expression",
 	precedence : EXPRESSION,
+    is         : (_, { current_state : s }) => s === array_binding_pattern,
 
-    is     : (_, { current_state : s }) => s === array_binding_pattern,
-	refine : (node, expression, parser) => {
+	initialize (node, token, parser) {
+        parser.change_state("expression");
+        this.refine(node, parser.generate_next_node(), parser);
+    },
+
+	refine (node, expression, parser) {
         let list;
         switch (expression.id) {
             case "Array literal" :

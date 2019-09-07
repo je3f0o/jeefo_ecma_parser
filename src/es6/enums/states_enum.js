@@ -45,7 +45,10 @@ module.exports = [
 
     "binding_element",
     "binding_pattern",
+    "binding_property",
     "binding_identifier",
+    "single_name_binding",
+    "binding_property_element",
 
     "meta_property",
     "arrow_parameters",
@@ -68,6 +71,7 @@ module.exports = [
     // Lexical declaration
     "binding_list",
     "lexical_binding",
+    "lexical_property",
     "lexical_declaration",
 
     // For statement's lexical declarations

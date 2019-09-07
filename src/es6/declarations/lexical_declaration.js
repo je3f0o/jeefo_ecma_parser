@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : lexical_declaration.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -24,10 +24,14 @@ module.exports = {
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is         : (token, parser) => parser.current_state === statement,
+    is         : (token, { current_state : s }) => s === statement,
     initialize : (node, token, parser) => {
-        parser.change_state("delimiter");
-        const keyword  = parser.generate_next_node();
+        if (token.value === "let") {
+            parser.change_state("contextual_keyword");
+        } else {
+            parser.change_state("keyword");
+        }
+        const keyword = parser.generate_next_node();
         let terminator = null;
 
         parser.prepare_next_state("binding_list", true);
@@ -39,6 +43,7 @@ module.exports = {
 
         if (parser.next_token) {
             parser.expect(';', is_terminator);
+            parser.change_state("punctuator");
             terminator = parser.generate_next_node();
         }
 

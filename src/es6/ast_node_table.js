@@ -59,7 +59,6 @@ module.exports = ast_node_table => {
 
         "./part/property_name",
         "./part/identifier_reference",
-        "./covers/binding_pattern",
 
         "./expressions/generator_body",
         "./expressions/function_expression",
@@ -84,6 +83,9 @@ module.exports = ast_node_table => {
         "./declarations/variable_declaration",
 
         // Lexical declarations
+        "./expressions/binding_property",
+        "./expressions/single_name_binding",
+        "./expressions/binding_property_element",
         "./declarations/binding_list",
         "./declarations/lexical_binding",
 

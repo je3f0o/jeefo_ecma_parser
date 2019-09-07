@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_list.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -25,7 +25,7 @@ module.exports = {
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is         : (_, parser) => parser.current_state === binding_list,
+    is         : (_, { current_state : s }) => s === binding_list,
     initialize : (node, token, parser) => {
         const { keyword, prev_node } = parser.prev_node;
         const list       = [];
