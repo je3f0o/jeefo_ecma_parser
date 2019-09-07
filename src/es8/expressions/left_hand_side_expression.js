@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : left_hand_side_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -81,9 +81,7 @@ module.exports = {
         node.end        = expression.end;
     },
 
-    _refine (expression, parser) {
-        const node = new this.Node();
-
+    refine (node, expression, parser) {
         switch (expression.id) {
             case "Super property"     :
             case "Member expression"  :
@@ -99,7 +97,11 @@ module.exports = {
         node.expression = expression;
         node.start      = expression.start;
         node.end        = expression.end;
+    },
 
+    _refine (expression, parser) {
+        const node = new this.Node();
+        this.refine(node, expression, parser);
         return node;
     },
 

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : lexical_declaration.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,10 @@
 
 // ignore:end
 
-const { statement }     = require("../enums/states_enum");
-const { DECLARATION }   = require("../enums/precedence_enum");
-const { is_terminator } = require("../../helpers");
+const { statement }                    = require("../enums/states_enum");
+const { DECLARATION }                  = require("../enums/precedence_enum");
+const { is_comma, is_terminator }      = require("../../helpers");
+const { missing_initializer_in_const } = require("../helpers/error_reporter");
 
 module.exports = {
     id         : "Lexical declaration",
@@ -31,15 +32,31 @@ module.exports = {
         } else {
             parser.change_state("keyword");
         }
-        const keyword = parser.generate_next_node();
-        let terminator = null;
+        const list       = [];
+        const keyword    = parser.generate_next_node();
+        const is_const   = keyword.value === "const";
+        const delimiters = [];
+        let terminator   = null;
 
-        parser.prepare_next_state("binding_list", true);
-        parser.prev_node = {
-            keyword,
-            prev_node : parser.prev_node
-        };
-        const binding_list = parser.generate_next_node();
+        do {
+            parser.prepare_next_state("lexical_binding", true);
+            const binding = parser.generate_next_node();
+            const error_occurred = (
+                is_const &&
+                ! binding.initializer &&
+                ! parser.is_terminated
+            );
+            if (error_occurred) {
+                missing_initializer_in_const(parser, binding);
+            }
+            list.push(binding);
+
+            if (parser.next_token === null) { break; }
+            else if (is_comma(parser)) {
+                parser.change_state("punctuator");
+                delimiters.push(parser.generate_next_node());
+            }
+        } while (! is_terminator(parser));
 
         if (parser.next_token) {
             parser.expect(';', is_terminator);
@@ -48,9 +65,10 @@ module.exports = {
         }
 
         node.keyword      = keyword;
-        node.binding_list = binding_list;
+        node.binding_list = list;
+        node.delimiters   = delimiters;
         node.terminator   = terminator;
         node.start        = keyword.start;
-        node.end          = (terminator || binding_list).end;
+        node.end          = (terminator || list[list.length - 1]).end;
     }
 };

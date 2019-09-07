@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_statement.js
 * Created at  : 2019-03-18
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,9 @@
 
 // ignore:end
 
-const { statement }     = require("../enums/states_enum");
-const { STATEMENT }     = require("../enums/precedence_enum");
-const { is_terminator } = require("../../helpers");
+const { statement }               = require("../enums/states_enum");
+const { STATEMENT }               = require("../enums/precedence_enum");
+const { is_comma, is_terminator } = require("../../helpers");
 
 module.exports = {
     id         : "Variable statement",
@@ -27,11 +27,21 @@ module.exports = {
     is         : (_, { current_state : s }) => s === statement,
     initialize : (node, token, parser) => {
         parser.change_state("keyword");
-        const keyword  = parser.generate_next_node();
-        let terminator = null;
+        const keyword    = parser.generate_next_node();
+        const list       = [];
+        const delimiters = [];
+        let terminator   = null;
 
-        parser.prepare_next_state("variable_declaration_list", true);
-        const declaration_list = parser.generate_next_node();
+        do {
+            parser.prepare_next_state("variable_declaration", true);
+            list.push(parser.generate_next_node());
+
+            if (parser.next_token === null) { break; }
+            else if (is_comma(parser)) {
+                parser.change_state("punctuator");
+                delimiters.push(parser.generate_next_node());
+            }
+        } while (! is_terminator(parser));
 
         if (parser.next_token) {
             parser.expect(';', is_terminator);
@@ -40,9 +50,10 @@ module.exports = {
         }
 
         node.keyword          = keyword;
-        node.declaration_list = declaration_list;
+        node.declaration_list = list;
+        node.delimiters       = delimiters;
         node.terminator       = terminator;
         node.start            = keyword.start;
-        node.end              = (terminator || declaration_list).end;
+        node.end              = (terminator || list[list.length - 1]).end;
     }
 };

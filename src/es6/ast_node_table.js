@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -93,22 +93,18 @@ module.exports = ast_node_table => {
         "./declarations/assignable_declaration",
 
         // For statement expressions
+        "./expressions/for_header",
         "./expressions/for_in_header",
         "./expressions/for_of_header",
         "./expressions/for_iterator_header",
         "./expressions/for_iterator_condition",
         "./expressions/for_iterator_initializer",
-        "./controllers/for_header_controller",
 
         // For statements declarations
         "./declarations/for_binding",
         "./declarations/for_declaration",
-        "./declarations/binding_list_no_in",
-        "./declarations/lexical_binding_no_in",
-        "./declarations/lexical_declaration_no_in",
         "./declarations/variable_declaration_no_in",
         "./declarations/variable_declaration_list_no_in",
-        "./declarations/es5_legacy_variable_declaration_no_in",
 
         // 14 - Functions
         "./expressions/concise_body",

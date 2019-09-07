@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_declaration.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,26 +18,36 @@
 const { DECLARATION }     = require("../enums/precedence_enum");
 const { for_declaration } = require("../enums/states_enum");
 
-const error_message = (
-    "for-in loop variable declaration may not have an initializer."
-);
-
 module.exports = {
     id         : "For declaration",
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is         : (_, parser) => parser.current_state === for_declaration,
-    initialize : (node, token, parser) => {
-        const { keyword, binding, initializer } = parser.prev_node;
+    is         : (_, { current_state : s }) => s === for_declaration,
+    initialize : (node) => {
+        console.log(node.id);
+        process.exit();
+    },
 
-        if (initializer) {
-            parser.throw_unexpected_token(error_message, initializer);
+    refine (node, lexical_declaration, parser) {
+        const {
+            keyword,
+            binding_list : [binding_element]
+        } = lexical_declaration;
+
+        if (binding_element.initializer) {
+            parser.throw_unexpected_token(
+                `for-${
+                    parser.next_token.value
+                } loop variable declaration may not have an initializer.`,
+                binding_element
+            );
         }
 
         node.keyword = keyword;
-        node.binding = binding;
+        node.binding = binding_element.binding;
         node.start   = keyword.start;
-        node.end     = binding.end;
+        node.end     = binding_element.end;
+
     }
 };

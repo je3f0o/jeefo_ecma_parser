@@ -105,6 +105,7 @@ let { prop = default_value } = {};
 let { prop:binding_id = default_value, a } = {};
 let { prop:{ nested } } = {};
 let { prop:[] } = {};
+let { [computed]:[] } = {};
 
 // Functions and class
 async function async_fn () { }
@@ -122,39 +123,53 @@ A = class A extends B {};
 
 class A extends B {
     ;
-
     3.14       () {}
     "str"      () {}
     static     () {}
-    [computed] () {}
-
     // Getters
     get 3.14       () {}
     get "str"      () {}
     get static     () {}
     get [computed] () {}
-
     // Setter
     set 3.14       (v) {}
     set "str"      (v) {}
     set static     (v) {}
     set [computed] (v) {}
-
     // Statics
     static 3.14       () {}
     static "str"      () {}
     static static     () {}
     static [computed] () {}
-
     // Static getters
     static get 3.14       () {}
     static get "str"      () {}
     static get static     () {}
     static get [computed] () {}
-
     // Static setters
     static set 3.14       (v) {}
     static set "str"      (v) {}
     static set static     (v) {}
     static set [computed] (v) {}
 }
+
+for (var i in []) {}
+for (var i = 2 in []) {}
+for (let i in []) {}
+for (let [] in []) {}
+for (const i in []) {}
+for (const [] in []) {}
+for (i in []) {}
+
+for (var i of []) {}
+for (let i of []) {}
+for (let [] of []) {}
+for (const i of []) {}
+for (const [] of []) {}
+for (o in []) {}
+
+for (var i = 2;;) {}
+for (let i = 2;;) {}
+for (const i = 2;;) {}
+for (;;) {}
+for (i = 0, len = 10;;) {}

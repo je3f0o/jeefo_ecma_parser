@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_iterator_condition.js
 * Created at  : 2019-08-30
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,26 +15,26 @@
 
 // ignore:end
 
-const { is_terminator }           = require("../../helpers");
-const { terminal_definition }     = require("../../common");
-const { for_iterator_condition }  = require("../enums/states_enum");
-const { EXPRESSION, TERMINATION } = require("../enums/precedence_enum");
+const { EXPRESSION }             = require("../enums/precedence_enum");
+const { is_terminator }          = require("../../helpers");
+const { for_iterator_condition } = require("../enums/states_enum");
 
 module.exports = {
     id         : "For iterator condition",
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is : (_, parser) => {
-        return parser.current_state === for_iterator_condition;
-    },
+    is         : (_, { current_state : s }) => s === for_iterator_condition,
     initialize : (node, token, parser) => {
-        parser.change_state("expression");
-        const expression = parser.parse_next_node(TERMINATION);
+        let expression = null, terminator;
+        if (! is_terminator(parser)) {
+            parser.change_state("expression_expression");
+            expression = parser.generate_next_node();
+        }
 
-        let terminator;
         if (is_terminator(parser)) {
-            terminator = terminal_definition.generate_new_node(parser);
+            parser.change_state("punctuator");
+            terminator = parser.generate_next_node();
         } else if (! parser.next_token) {
             parser.throw_unexpected_end_of_stream();
         } else {

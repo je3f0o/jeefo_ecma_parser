@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,7 +23,7 @@ module.exports = [
     "property_set_parameter",
 
     "expression",
-    "expression_no_in",
+    "expression_expression",
 
     "function_body",
     "function_expression",
@@ -32,19 +32,17 @@ module.exports = [
     "statement",
     "if_statement",
 
-    "of_operator",
-    "variable_declaration_no_in",
-    "variable_declaration_list_no_in",
-
     // Variable statements
     "variable_declaration",
-    "variable_declaration_list",
 
     "initializer",
 
+    "for_header",
     "for_in_header",
     "for_iterator_header",
-    "for_header_controller",
+    "of_operator",
+    "variable_declaration_no_in",
+    "variable_declaration_list_no_in",
 
     "for_iterator_condition",
     "for_iterator_initializer",

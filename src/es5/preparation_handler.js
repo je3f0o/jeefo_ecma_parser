@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preparation_handler.js
 * Created at  : 2019-06-28
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,9 +16,6 @@
 // ignore:end
 
 const ignore_comments = require("./helpers/ignore_comments");
-const {
-    expression_no_in,
-} = require("./enums/states_enum");
 
 const operators = "++,--".split(',');
 
@@ -31,16 +28,9 @@ function try_terminate (prev_node, parser) {
 }
 
 const is_valid_delimiter = (() => {
-    const valid_terminal_values = ["extends"];
-
     return parser => {
         if (parser.next_token.value === '{') {
-            const node = parser.previous_nodes.find(node => {
-                if (node.id === "Terminal symbol") {
-                    return valid_terminal_values.includes(node.value);
-                }
-            });
-            return node !== undefined;
+            return parser.context_stack.includes("Class heritage");
         }
 
         return true;
@@ -51,22 +41,15 @@ const is_possible_ASI = (() => {
     const possible_ending_characters = "]})".split('');
 
     return (prev_node, parser) => {
-        if (prev_node.type === "Primitive") { return true; }
+        switch (prev_node.id) {
+            case "Binding identifier" :
+            case "Primary expression" :
+                return true;
+        }
         const last_char = parser.tokenizer.streamer.at(prev_node.end.index);
         return possible_ending_characters.includes(last_char);
     };
 })();
-
-const binary_identifiers = [
-    "in", "instanceof"
-];
-
-const is_of_operator = parser => {
-    return (
-        parser.current_state    === expression_no_in &&
-        parser.next_token.value === "of"
-    );
-};
 
 module.exports = parser => {
     let prev_node = null;
@@ -87,11 +70,14 @@ module.exports = parser => {
             try_terminate(prev_node, parser);
             break;
         case "Identifier" :
-            if (binary_identifiers.includes(parser.next_token.value)) {
-                return;
-            }
-            if (is_of_operator(parser)) {
-                return;
+            switch (parser.next_token.value) {
+                case "instanceof": return;
+                case "in":
+                case "of":
+                    if (parser.context_stack.includes("for_header")) {
+                        return parser.terminate(prev_node);
+                    }
+                    break;
             }
             try_terminate(prev_node, parser);
             break;

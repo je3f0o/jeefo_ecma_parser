@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators.js
 * Created at  : 2019-01-24
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,18 +15,17 @@
 
 // ignore:end
 
-const states_enum                   = require("../enums/states_enum");
+const { expression }                = require("../enums/states_enum");
 const { terminal_definition }       = require("../../common");
 const { get_last_non_comment_node } = require("../../helpers");
 const {
-    is_expression,
-    prepare_next_expression,
     get_right_value,
+    prepare_next_expression,
 } = require("../helpers");
 
 module.exports = function register_binary_operators (ast_node_table) {
     const is_binary = parser => {
-        if (is_expression(parser)) {
+        if (parser.current_state === expression) {
             return get_last_non_comment_node(parser) !== null;
         }
     };
@@ -204,8 +203,12 @@ module.exports = function register_binary_operators (ast_node_table) {
                 );
             }
             */
-            if (parser.current_state === states_enum.expression) {
-                return get_last_non_comment_node(parser) !== null;
+            const is_in_operator = (
+                parser.current_state === expression &&
+                get_last_non_comment_node(parser) !== null
+            );
+            if (is_in_operator) {
+                return ! parser.context_stack.includes("for_header");
             }
         },
         initialize : initialize

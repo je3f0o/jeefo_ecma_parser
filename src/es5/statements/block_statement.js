@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : block_statement.js
 * Created at  : 2017-08-18
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,14 +23,11 @@ module.exports = {
 	type       : "Statement",
 	precedence : STATEMENT,
 
-    is (token, parser) {
-        if (parser.current_state === statement) {
-            return is_delimiter_token(token, '{');
-        }
+    is (token, { current_state }) {
+        return current_state === statement && is_delimiter_token(token, '{');
     },
 	initialize (node, token, parser) {
-        console.log(parser);
-        parser.change_state("function_body", false);
+        parser.change_state("function_body");
         parser.next_node_definition.initialize(node, token, parser);
 
         parser.terminate(node);

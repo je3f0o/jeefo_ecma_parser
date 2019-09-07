@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_declaration_no_in.js
-* Created at  : 2019-08-30
-* Updated at  : 2019-09-02
+* Created at  : 2019-09-01
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,11 +23,24 @@ module.exports = {
     type       : "Declaration",
     precedence : DECLARATION,
 
-    is (_, parser) {
-        return parser.current_state === variable_declaration_no_in;
+    is (_, { current_state }) {
+        return current_state === variable_declaration_no_in;
     },
-    initialize (node, token, parser) {
-        parser.change_state("lexical_binding_no_in");
-        parser.next_node_definition.initialize(node, token, parser);
+    initialize : (node) => {
+        console.log(node.id);
+        process.exit();
+    },
+
+    refine (node, var_stmt) {
+        const {
+            keyword,
+            declaration_list :[{ binding, initializer }]
+        } = var_stmt;
+
+        node.keyword     = keyword;
+        node.binding     = binding;
+        node.initializer = initializer;
+        node.start       = keyword.start;
+        node.end         = initializer.end;
     }
 };

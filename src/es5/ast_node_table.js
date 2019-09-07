@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2017-08-16
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -60,6 +60,7 @@ require("./statements")(ast_node_table);
     "./literals/array_literal",
     "./literals/object_literal",
     "./expressions/elision",
+    "./expressions/expression",
     "./expressions/identifier_name",
     "./expressions/property_set_parameter",
 ].forEach(path => {

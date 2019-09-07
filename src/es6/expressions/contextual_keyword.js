@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : contextual_keyword.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -20,7 +20,7 @@ const { get_pre_comment }    = require("../../helpers");
 const { contextual_keyword } = require("../enums/states_enum");
 
 const keywords = [
-    "let", "get", "set", "async", "static",
+    "of", "let", "get", "set", "async", "static",
 ];
 
 const init = (node, token, comment, parser) => {

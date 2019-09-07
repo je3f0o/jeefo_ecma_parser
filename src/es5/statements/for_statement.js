@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_statement.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -27,22 +27,23 @@ module.exports = {
     type       : "Statement",
     precedence : STATEMENT,
 
-    is         : (_, parser) => parser.current_state === statement,
+    is         : (_, { current_state : s }) => s === statement,
     initialize : (node, token, parser) => {
-        parser.change_state("delimiter");
+        parser.change_state("keyword");
         const keyword = parser.generate_next_node();
 
-        parser.prepare_next_state("delimiter", true);
+        parser.prepare_next_state("punctuator", true);
         parser.expect('(', is_open_parenthesis);
         const open = parser.generate_next_node();
 
-        parser.prepare_next_state("for_header_controller", true);
-        const expression = parser.parse_next_node(TERMINATION);
+        parser.prepare_next_state("for_header", true);
+        const expression = parser.next_node_definition.parse(parser);
 
         if (! parser.next_token) {
             parser.throw_unexpected_end_of_stream();
         }
         parser.expect(')', is_close_parenthesis);
+        parser.change_state("punctuator");
         const close = parser.generate_next_node();
 
         parser.prepare_next_state(null, true);

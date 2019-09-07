@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : lexical_binding.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -42,12 +42,18 @@ module.exports = {
         }
         const binding = parser.generate_next_node();
 
-        parser.prepare_next_state("punctuator");
+        parser.set_prev_node(binding);
+        parser.prepare_next_node_definition();
         if (parser.next_token && is_assign_token(parser.next_token)) {
             parser.change_state("initializer");
             initializer = parser.generate_next_node();
         }
-        if (is_destructuring && ! initializer) {
+        const error_occurred = (
+            is_destructuring &&
+            ! initializer &&
+            ! parser.is_terminated
+        );
+        if (error_occurred) {
             error_reporter.missing_initializer_in_destructuring(parser);
         }
 

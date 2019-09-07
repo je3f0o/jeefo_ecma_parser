@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_iterator_header.js
 * Created at  : 2019-08-30
-* Updated at  : 2019-09-01
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,23 +15,44 @@
 
 // ignore:end
 
-const { for_iterator_header }     = require("../enums/states_enum");
-const { EXPRESSION, TERMINATION } = require("../enums/precedence_enum");
+const { EXPRESSION }           = require("../enums/precedence_enum");
+const { for_iterator_header }  = require("../enums/states_enum");
+const { is_close_parenthesis } = require("../../helpers");
 
 module.exports = {
     id         : "For iterator header",
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === for_iterator_header,
-    initialize : (node, token, parser) => {
-        const { initializer } = parser.prev_node;
+    is         : (_, { current_state : s }) => s === for_iterator_header,
+    initialize : (node) => {
+        console.log(node.id);
+        process.exit();
+    },
 
+    refine : (node, initializer, parser) => {
+        switch (initializer.id) {
+            case "Lexical declaration"      :
+            case "For iterator initializer" :
+                break;
+            case "Variable statement" :
+                initializer = parser.refine(
+                    "variable_declaration_list_no_in",
+                    initializer
+                );
+                break;
+            default:
+                parser.throw_unexpected_refine(node, initializer);
+        }
+
+        let update = null;
         parser.prepare_next_state("for_iterator_condition", true);
         const condition = parser.generate_next_node();
 
-        parser.prepare_next_state("expression", true);
-        const update = parser.parse_next_node(TERMINATION);
+        parser.prepare_next_state("expression_expression", true);
+        if (! is_close_parenthesis(parser)) {
+            update = parser.generate_next_node();
+        }
 
         node.initializer = initializer;
         node.condition   = condition;

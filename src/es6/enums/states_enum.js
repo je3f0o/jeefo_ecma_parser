@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -81,7 +81,6 @@ module.exports = [
     "binding_list_no_in",
     "lexical_binding_no_in",
     "lexical_declaration_no_in",
-    "es5_legacy_variable_declaration_no_in",
 
     "static_method",
     "class_tail",
