@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -49,12 +49,16 @@ module.exports = {
     is_open_square_bracket  : is_delimiter('['),
     is_close_square_bracket : is_delimiter(']'),
 
-    is_arrow ({ next_token : token }) {
+    is_arrow_token (token) {
         return token.id === "Arrow";
     },
 
     is_assign_token (token) {
         return token.id === "Operator" && token.value === '=';
+    },
+
+    is_identifier_token (token) {
+        return token.id === "Identifier";
     },
 
     is_asterisk_token (token) {
@@ -87,14 +91,6 @@ module.exports = {
 
     has_no_line_terminator (last_token, next_token) {
         return last_token.end.line === next_token.start.line;
-    },
-
-    parse_asignment_expression (parser) {
-        const expression = parser.parse_next_node(1);
-        if (! expression) {
-            parser.throw_unexpected_token();
-        }
-        return expression;
     },
 
     get_pre_comment (parser) {

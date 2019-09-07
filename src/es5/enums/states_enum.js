@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-02-07
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -59,6 +59,8 @@ module.exports = [
     "property_list",
     "property_name",
     "property_assign",
+    "getter_method",
+    "setter_method",
     "method_definition",
 
     "labelled_statement",

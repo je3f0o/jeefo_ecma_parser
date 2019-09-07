@@ -42,12 +42,13 @@ module.exports = {
     refine (node, expression, parser) {
         switch (expression.id) {
             case "Arguments":
+            case "Cover parenthesized expression and arrow parameter list":
                 expression = parser.refine(
                     "arrow_formal_parameters", expression
                 );
                 break;
             default:
-                parser.throw_unexpected_refine();
+                parser.throw_unexpected_refine(node, expression);
         }
 
         node.expression = expression;

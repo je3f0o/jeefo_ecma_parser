@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : cover_parenthesized_expression_and_arrow_parameters.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -20,11 +20,10 @@ const { get_last_non_comment_node } = require("../../helpers");
 const {
     expression,
     grouping_expression,
-    arrow_formal_parameters,
 } = require("../enums/states_enum");
 const {
     is_comma,
-    is_arrow,
+    is_arrow_token,
     is_delimiter_token,
     is_close_parenthesis,
 } = require("../../helpers");
@@ -67,26 +66,28 @@ module.exports = {
         parser.change_state("punctuator");
         const close = parser.generate_next_node();
 
-        node.open            = open;
-        node.expression_list = list;
-        node.delimiters      = delimiters;
-        node.close           = close;
+        node.open_parenthesis  = open;
+        node.expression_list   = list;
+        node.delimiters        = delimiters;
+        node.close_parenthesis = close;
+        node.end               = close.end;
 
         if (! is_function_parameters) {
+            const next_token = parser.look_ahead();
             if (list.length === 0) {
-                parser.prepare_next_node_definition(true);
-                parser.expect("=>", is_arrow);
-                is_function_parameters = true;
-            } else {
-                parser.prepare_next_node_definition();
-                if (parser.next_token && is_arrow(parser)) {
+                if (next_token && is_arrow_token(next_token)) {
                     is_function_parameters = true;
+                } else {
+                    parser.throw_unexpected_token();
                 }
+            } else if (next_token && is_arrow_token(next_token)) {
+                is_function_parameters = true;
             }
         }
 
         if (is_function_parameters) {
-            parser.current_state = arrow_formal_parameters;
+            parser.end(node);
+            parser.current_state = expression;
         } else {
             parser.current_state = grouping_expression;
         }

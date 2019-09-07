@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_call_expression.js
 * Created at  : 2019-09-06
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,6 +22,7 @@ const {
     async_arrow_function,
 } = require("../enums/states_enum");
 const {
+    is_arrow_token,
     is_delimiter_token,
     get_last_non_comment_node,
 } = require("../../helpers");
@@ -45,10 +46,12 @@ module.exports = {
         parser.change_state("arguments_state");
         const args = parser.generate_next_node();
 
+        const next_token = parser.look_ahead();
         const is_async_function = (
             callee.id               === "Primary expression" &&
             callee.expression.id    === "Identifier reference" &&
-            callee.expression.value === "async"
+            callee.expression.value === "async" &&
+            next_token && is_arrow_token(next_token)
         );
 
         if (is_async_function) {

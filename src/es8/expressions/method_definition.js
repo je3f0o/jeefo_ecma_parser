@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : method_definition.js
-* Created at  : 2019-08-25
+* Created at  : 2019-09-07
 * Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
@@ -15,42 +15,44 @@
 
 // ignore:end
 
-const { METHOD_DEFINITION } = require("../enums/precedence_enum");
+const { EXPRESSION }        = require("../enums/precedence_enum");
 const { method_definition } = require("../enums/states_enum");
-
-const init = (node, property_name, parser) => {
-    /*
-    parser.change_state("formal_parameters");
-    const parameters = parser.generate_next_node();
-
-    const prev_suffixes = parser.suffixes;
-    parser.suffixes = [];
-
-    parser.prepare_next_state("method_body", true);
-    const body = parser.generate_next_node();
-
-    parser.suffixes = prev_suffixes;
-
-    node.property_name = property_name;
-    node.parameters    = parameters;
-    node.body          = body;
-    node.start         = property_name.start;
-    node.end           = body.end;
-    */
-};
+const {
+    is_asterisk_token,
+    is_delimiter_token,
+} = require("../../helpers");
 
 module.exports = {
     id         : "Method definition",
     type       : "Expression",
-    precedence : METHOD_DEFINITION,
+    precedence : EXPRESSION,
 
     is         : (_, { current_state : s }) => s === method_definition,
     initialize : (node, token, parser) => {
-        parser.change_state("property_name");
-        const property_name = parser.generate_next_node();
+        if (token.id === "Identifier") {
+            switch (token.value) {
+                case "get" :
+                    parser.change_state("getter_method");
+                    break;
+                case "set" :
+                    parser.change_state("setter_method");
+                    break;
+                case "async" :
+                    parser.change_state("async_method");
+                    break;
+                default:
+                    parser.change_state("method");
+            }
+        } else if (is_asterisk_token(token)) {
+            parser.change_state("generator_method");
+        } else {
+            parser.change_state("method");
+        }
+        const expression = parser.generate_next_node();
 
-        parser.prepare_next_state("formal_parameters", true);
-        init(node, property_name, parser);
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
     },
 
     refine (node, property_name, parser) {
@@ -66,6 +68,13 @@ module.exports = {
                     break;
                 case "set" :
                     expression_name = "setter_method";
+                    break;
+                case "async" :
+                    if (is_delimiter_token(parser.next_token, '(')) {
+                        expression_name = "method";
+                    } else {
+                        expression_name = "async_method";
+                    }
                     break;
                 default:
                     expression_name = "method";

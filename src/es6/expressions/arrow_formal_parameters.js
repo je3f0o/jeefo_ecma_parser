@@ -29,20 +29,23 @@ module.exports = {
         process.exit();
     },
 	refine : (node, expression, parser) => {
-        let open, list, delimiters, close;
+        let list;
         switch (expression.id) {
             case "Arguments" :
                 list = expression.list;
+                break;
+            case "Cover parenthesized expression and arrow parameter list":
+                list = expression.expression_list;
                 break;
             default:
                 parser.throw_unexpected_refine(node, expression);
         }
 
-        ({
+        const {
             delimiters,
             open_parenthesis  : open,
             close_parenthesis : close,
-        } = expression);
+        } = expression;
 
         list = list.map(item => {
             return parser.refine("formal_parameter", item);

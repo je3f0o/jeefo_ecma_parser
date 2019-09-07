@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : class_expression.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,24 +15,27 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { is_identifier }       = require("../../helpers");
-const { class_expression }    = require("../enums/states_enum");
-const { terminal_definition } = require("../../common");
+const { EXPRESSION }       = require("../enums/precedence_enum");
+const { class_expression } = require("../enums/states_enum");
 
 module.exports = {
     id         : "Class expression",
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === class_expression,
+    is         : (_, { current_state : s }) => s === class_expression,
     initialize : (node, token, parser) => {
-        let name             = null;
-        const keyword        = terminal_definition.generate_new_node(parser);
-        const { prev_state } = parser;
+        let name = null;
 
-        parser.prepare_next_state("expression", true);
-        if (is_identifier(parser)) {
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
+
+        parser.prepare_next_state("binding_identifier", true);
+        const has_identifier = (
+            parser.next_token.id    === "Identifier" &&
+            parser.next_token.value !== "extends"
+        );
+        if (has_identifier) {
             name = parser.generate_next_node();
             parser.prepare_next_state("class_tail", true);
         } else {
@@ -46,7 +49,6 @@ module.exports = {
         node.start   = keyword.start;
         node.end     = tail.end;
 
-        parser.ending_index  = node.end.index;
-        parser.current_state = prev_state;
+        parser.end(node);
     }
 };

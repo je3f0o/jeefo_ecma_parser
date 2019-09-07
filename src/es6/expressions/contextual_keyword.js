@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : contextual_keyword.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -52,7 +52,7 @@ module.exports = {
     refine (node, expression, parser) {
         switch (expression.id) {
             case "Property name" :
-                expression = expression.name;
+                expression = expression.expression;
                 break;
             case "Identifier reference" :
                 break;

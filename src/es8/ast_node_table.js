@@ -37,7 +37,7 @@ module.exports = ast_node_table => {
         { expression : "Function call expression" } ,
         { expression : "Formal parameter list" } ,
         { expression : "Identifier reference" } ,
-        { expression : "Terminal symbol" } ,
+        { expression : "Method definition" } ,
 
         { reserved_word : "null" } ,
         { reserved_word : "true" } ,
@@ -48,6 +48,8 @@ module.exports = ast_node_table => {
 
     // TODO: refactor later
     [
+        "./expressions/method_definition",
+
         // 11.6.2.1 - Keywords
         "./expressions/keyword",
 

@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : method_definition.js
-* Created at  : 2019-08-25
+* File Name   : method.js
+* Created at  : 2019-09-07
 * Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
@@ -15,12 +15,10 @@
 
 // ignore:end
 
-const { METHOD_DEFINITION } = require("../enums/precedence_enum");
-const { method_definition } = require("../enums/states_enum");
+const { method }     = require("../enums/states_enum");
+const { EXPRESSION } = require("../enums/precedence_enum");
 
 const init = (node, property_name, parser) => {
-    /*
-    parser.change_state("formal_parameters");
     const parameters = parser.generate_next_node();
 
     const prev_suffixes = parser.suffixes;
@@ -36,15 +34,14 @@ const init = (node, property_name, parser) => {
     node.body          = body;
     node.start         = property_name.start;
     node.end           = body.end;
-    */
 };
 
 module.exports = {
-    id         : "Method definition",
+    id         : "Method",
     type       : "Expression",
-    precedence : METHOD_DEFINITION,
+    precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === method_definition,
+    is         : (_, { current_state : s }) => s === method,
     initialize : (node, token, parser) => {
         parser.change_state("property_name");
         const property_name = parser.generate_next_node();
@@ -58,25 +55,7 @@ module.exports = {
             parser.throw_unexpected_refine(node, property_name);
         }
 
-        let expression_name;
-        if (property_name.expression.id === "Identifier name") {
-            switch (property_name.expression.value) {
-                case "get" :
-                    expression_name = "getter_method";
-                    break;
-                case "set" :
-                    expression_name = "setter_method";
-                    break;
-                default:
-                    expression_name = "method";
-            }
-        } else {
-            expression_name = "method";
-        }
-        const expression = parser.refine(expression_name, property_name);
-
-        node.expression = expression;
-        node.start      = expression.start;
-        node.end        = expression.end;
+        parser.change_state("formal_parameters");
+        init(node, property_name, parser);
     }
 };

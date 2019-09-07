@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : property_definition.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -30,13 +30,6 @@ const is_possible_reference_id = (() => {
     };
 })();
 
-const get_method = parser => {
-    parser.change_state("method_definition");
-    const definition = parser.generate_next_node();
-    parser.prepare_next_node_definition(true);
-    return definition;
-};
-
 module.exports = {
     id         : "Property definition",
     type       : "Expression",
@@ -46,7 +39,9 @@ module.exports = {
     initialize : (node, token, parser) => {
         let definition;
         if (is_asterisk_token(token)) {
-            definition = get_method(parser);
+            parser.change_state("method_definition");
+            definition = parser.generate_next_node();
+            parser.prepare_next_node_definition(true);
         } else {
             const next_token = parser.look_ahead(true);
 
@@ -59,14 +54,18 @@ module.exports = {
                 parser.prepare_next_node_definition(true);
             } else {
                 parser.change_state("property_name");
-                parser.set_prev_node(parser.generate_next_node());
+                const property_name = parser.generate_next_node();
                 parser.prepare_next_node_definition(true);
 
                 if (is_delimiter_token(parser.next_token, ':')) {
-                    parser.change_state("property_assignment");
-                    definition = parser.generate_next_node();
+                    definition = parser.refine(
+                        "property_assignment", property_name
+                    );
                 } else {
-                    definition = get_method(parser);
+                    definition = parser.refine(
+                        "method_definition", property_name
+                    );
+                    parser.prepare_next_node_definition(true);
                 }
             }
         }

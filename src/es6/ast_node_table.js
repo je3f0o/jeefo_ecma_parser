@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -49,6 +49,7 @@ module.exports = ast_node_table => {
     [
         "./expressions/contextual_keyword",
         "./literals/object_literal",
+        "./expressions/method",
         "./expressions/method_body",
         "./expressions/property_definition",
         "./expressions/property_assignment",
@@ -67,9 +68,10 @@ module.exports = ast_node_table => {
         "./expressions/binding_identifier",
         "./expressions/formal_parameter_list",
 
+        // Class
         "./common/class_tail",
         "./common/class_body",
-        "./common/terminal_symbol",
+        "./expressions/static_method",
 
         "./expressions/initializer",
 

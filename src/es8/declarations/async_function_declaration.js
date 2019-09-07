@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_function_declaration.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -51,11 +51,11 @@ module.exports = {
     is         : is_async_fn,
     initialize : (node, token, parser) => {
         // Async keyword
-        parser.change_state("async_state");
+        parser.change_state("contextual_keyword");
         const async_keyword = parser.generate_next_node();
 
         // Function keyword
-        parser.prepare_next_state("delimiter");
+        parser.prepare_next_state("keyword");
         const function_keyword = parser.generate_next_node();
 
         // Name
@@ -63,7 +63,7 @@ module.exports = {
         const name = parser.generate_next_node();
 
         // Parameters
-        parser.prepare_next_state("formal_parameter_list", true);
+        parser.prepare_next_state("formal_parameters", true);
         const parameters = parser.generate_next_node();
 
         // Body

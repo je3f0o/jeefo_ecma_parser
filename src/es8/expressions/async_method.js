@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_method.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,19 +15,18 @@
 
 // ignore:end
 
-const { ASYNC_METHOD }              = require("../enums/precedence_enum");
-const { is_specific_method }        = require("../../es5/helpers");
-const { get_last_non_comment_node } = require("../../helpers");
+const { EXPRESSION }   = require("../enums/precedence_enum");
+const { async_method } = require("../enums/states_enum");
 
 module.exports = {
     id         : "Async method",
     type       : "Expression",
-    precedence : ASYNC_METHOD,
+    precedence : EXPRESSION,
 
-    is         : is_specific_method("async"),
-    initialize : (node, token, parser) => {
-        const async_node = get_last_non_comment_node(parser);
-        const keyword    = parser.refine("contextual_keyword", async_node);
+    is         : (_, { current_state : s }) => s === async_method,
+
+    refine : (node, expression, parser) => {
+        const keyword = parser.refine("contextual_keyword", expression);
 
         // Property
         parser.change_state("property_name");

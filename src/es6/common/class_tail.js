@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : class_tail.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,8 +23,8 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === class_tail,
-    initialize : (node, current_token, parser) => {
+    is         : (_, { current_state : s }) => s === class_tail,
+    initialize : (node, token, parser) => {
         let heritage = null;
         parser.change_state("class_heritage");
         if (parser.is_next_node("Class heritage")) {

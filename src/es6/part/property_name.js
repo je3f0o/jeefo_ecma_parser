@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : property_name.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -34,10 +34,10 @@ module.exports = {
         } else {
             parser.change_state("computed_property_name");
         }
-        const name = parser.generate_next_node();
+        const expression = parser.generate_next_node();
 
-        node.name  = name;
-        node.start = name.start;
-        node.end   = name.end;
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
     }
 };

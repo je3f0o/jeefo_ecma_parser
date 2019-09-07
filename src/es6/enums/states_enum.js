@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -30,9 +30,11 @@ const next_state_value = (() => {
 
 module.exports = [
     // Generators
+    "method",
     "method_body",
     "spread_element",
     "generator_body",
+    "generator_method",
     "property_definition",
     "grouping_expression",
     "property_assignment",
@@ -41,7 +43,6 @@ module.exports = [
 
     "contextual_keyword",
 
-    "reference_id",
     "binding_element",
     "binding_pattern",
     "binding_identifier",
@@ -52,6 +53,7 @@ module.exports = [
 
     // 14.2 - Arrow function
     "concise_body",
+    "arrow_function",
     "formal_parameters",
     "arrow_function_body",
     "arrow_formal_parameters",
@@ -77,6 +79,7 @@ module.exports = [
     "lexical_declaration_no_in",
     "es5_legacy_variable_declaration_no_in",
 
+    "static_method",
     "class_tail",
     "class_body",
     "class_heritage",

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : generator_method.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,20 +15,15 @@
 
 // ignore:end
 
-const { GENERATOR_METHOD }  = require("../enums/precedence_enum");
-const { method_definition } = require("../enums/states_enum");
-const { is_asterisk_token } = require("../../helpers");
-
-const is_generator_method = (token, { current_state }) => {
-    return current_state === method_definition && is_asterisk_token(token);
-};
+const { EXPRESSION }       = require("../enums/precedence_enum");
+const { generator_method } = require("../enums/states_enum");
 
 module.exports = {
     id         : "Generator method",
     type       : "Expression",
-    precedence : GENERATOR_METHOD,
+    precedence : EXPRESSION,
 
-    is         : is_generator_method,
+    is         : (_, { current_state : s }) => s === generator_method,
     initialize : (node, token, parser) => {
         parser.change_state("punctuator");
         const asterisk = parser.generate_next_node();

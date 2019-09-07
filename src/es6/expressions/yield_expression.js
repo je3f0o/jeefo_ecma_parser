@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : yield_expression.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,7 +18,7 @@
 const { expression }       = require("../enums/states_enum");
 const { YIELD_EXPRESSION } = require("../enums/precedence_enum");
 const {
-    is_asterisk,
+    is_asterisk_token,
     has_no_line_terminator,
 } = require("../../helpers");
 
@@ -43,7 +43,7 @@ module.exports = {
         const next_token = parser.look_ahead(true);
         if (has_no_line_terminator(keyword, next_token)) {
             parser.prepare_next_state("assignment_expression", true);
-            if (is_asterisk(parser.next_token)) {
+            if (is_asterisk_token(parser.next_token)) {
                 parser.change_state("punctuator");
                 asterisk = parser.generate_next_node();
                 parser.prepare_next_state("assignment_expression", true);

@@ -76,6 +76,7 @@ module.exports = [
     "function_rest_parameter",
 
     // 14.6 - Async function definitions
+    "async_method",
     "async_method_body",
     "async_concise_body",
 

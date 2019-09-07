@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : left_hand_side_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -30,6 +30,13 @@ const destructuring_expressions = [
     "Object literal"
 ];
 
+const is_valid_expression = [
+    "Literal",
+    "Null literal",
+    "Primary expression",
+    "Identifier reference",
+];
+
 module.exports = {
     id         : "Left hand side expression",
     type       : "Expression",
@@ -37,6 +44,41 @@ module.exports = {
 
     is (_, { current_state }) {
         return current_state === left_hand_side_expression;
+    },
+
+    initialize (node, token, parser) {
+        parser.change_state("expression");
+        LOOP:
+        while (parser.next_node_definition) {
+            parser.ending_index = parser.next_token.end.index;
+            parser.set_prev_node(parser.generate_next_node());
+
+            if (! parser.next_token) {
+                parser.throw_unexpected_end_of_stream();
+            }
+
+            if (! is_valid_expression.includes(parser.prev_node.id)) {
+                parser.throw_unexpected_token(
+                    `Unexpected '${ parser.prev_node.id }' in: '${
+                        node.id
+                    }'`,
+                    parser.prev_node
+                );
+            }
+
+            if (parser.next_token.end.index === parser.ending_index) {
+                parser.prepare_next_node_definition(true);
+            } else {
+                parser.next_node_definition = parser.ast_node_table.find(
+                    parser.next_token, parser
+                );
+            }
+        }
+        const expression = parser.prev_node;
+
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
     },
 
     _refine (expression, parser) {
