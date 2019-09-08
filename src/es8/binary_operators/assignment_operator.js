@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -53,13 +53,10 @@ module.exports = {
             assignment = parser.refine(
                 "assignment_pattern", last_node.expression
             );
-        } else if (! last_node.is_valid_simple_assignment_target) {
-            console.log(last_node);
-            process.exit();
         } else if (! last_node.is_valid_simple_assignment_target(parser)) {
             parser.throw_unexpected_token(
                 "Invalid left-hand side in assignment",
-                assignment.expression
+                last_node
             );
         } else {
             assignment = def._refine(last_node, parser);

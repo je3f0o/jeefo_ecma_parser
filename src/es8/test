@@ -121,6 +121,8 @@ A = class extends B {};
 A = class extends null {};
 A = class A extends B {};
 
+fn()[a] = 2;
+
 class A extends B {
     ;
     3.14       () {}

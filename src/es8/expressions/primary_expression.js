@@ -42,8 +42,6 @@ module.exports = {
             case "Async function expression" :
                 break;
             default:
-            console.log(prev_node);
-            process.exit();
                 parser.throw_unexpected_token(
                     `Invalid expression in primary_expression: ${
                         prev_node.id

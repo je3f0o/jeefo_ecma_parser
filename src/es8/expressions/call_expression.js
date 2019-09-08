@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : call_expression.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -63,5 +63,14 @@ module.exports = {
         node.expression = input_node;
         node.start      = input_node.start;
         node.end        = input_node.end;
+    },
+
+    protos : {
+        is_valid_simple_assignment_target (parser) {
+            if (this.expression.id === "Member operator") {
+                return this.expression.property.id === "Identifier name";
+            }
+            return this.expression.is_valid_simple_assignment_target(parser);
+        }
     }
 };
