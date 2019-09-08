@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : initializer.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -49,9 +49,7 @@ module.exports = {
         );
 
         if (! is_valid_object) {
-            parser.throw_unexpected_token(`Unexpected refine in ${
-                node.id
-            }`);
+            parser.throw_unexpected_refine(node, operator || expression);
         }
 
         init(node, operator, expression);

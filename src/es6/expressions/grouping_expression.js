@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : grouping_expression.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -17,8 +17,8 @@
 
 const { GROUPING_EXPRESSION } = require("../enums/precedence_enum");
 const {
+    primary_expression,
     grouping_expression,
-    expression : expression_state,
 } = require("../enums/states_enum");
 
 module.exports = {
@@ -40,7 +40,6 @@ module.exports = {
         node.start             = open_parenthesis.start;
         node.end               = close_parenthesis.end;
 
-        parser.end(node);
-        parser.current_state = expression_state;
+        parser.current_state = primary_expression;
     }
 };

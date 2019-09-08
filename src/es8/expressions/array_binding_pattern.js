@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_binding_pattern.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -46,6 +46,9 @@ module.exports = {
         } = expression;
 
         const element_list = list.map(element => {
+            if (element.id === "Assignment rest element") {
+                return parser.refine("binding_rest_element", element);
+            }
             return parser.refine("binding_element", element);
         });
 

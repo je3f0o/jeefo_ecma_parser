@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -48,6 +48,7 @@ module.exports = [
     "binding_property",
     "binding_identifier",
     "single_name_binding",
+    "binding_element_pattern",
     "binding_property_element",
 
     "super_call",

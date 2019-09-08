@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : primary_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -34,13 +34,16 @@ module.exports = {
             case "Object literal"            :
             case "Template literal"          :
             case "Identifier reference"      :
-                break;
+            // Cover parenthesized expression
+            case "Grouping expression"       :
             // Functions
             case "Function expression"       :
             case "Generator expression"      :
             case "Async function expression" :
                 break;
             default:
+            console.log(prev_node);
+            process.exit();
                 parser.throw_unexpected_token(
                     `Invalid expression in primary_expression: ${
                         prev_node.id

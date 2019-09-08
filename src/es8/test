@@ -108,7 +108,7 @@ let { prop:[] } = {};
 let { [computed]:[] } = {};
 
 // Functions and class
-async function async_fn () { }
+async function async_fn ({ a : s }) { }
 async_fn = async function () { await fn(); };
 async_fn = async function yield () { await fn(); };
 

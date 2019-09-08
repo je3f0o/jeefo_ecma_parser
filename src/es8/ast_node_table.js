@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -106,6 +106,7 @@ module.exports = ast_node_table => {
         // 13.3.3 - Destructuring binding patterns
         "./expressions/binding_pattern",
         "./expressions/binding_element",
+        "./expressions/binding_element_pattern",
         "./expressions/array_binding_pattern",
         "./expressions/object_binding_pattern",
 

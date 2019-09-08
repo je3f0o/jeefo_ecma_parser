@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : throw_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { statement }     = require("../enums/states_enum");
-const { STATEMENT }     = require("../enums/precedence_enum");
+const { statement } = require("../enums/states_enum");
+const { STATEMENT } = require("../enums/precedence_enum");
 const {
     is_terminator,
     has_no_line_terminator,
