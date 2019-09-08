@@ -18,6 +18,7 @@
 module.exports = ast_node_table => {
     ast_node_table.remove_node_defs([
         { expression    : "Property name",            } ,
+        { expression    : "Array literal" },
         { expression    : "Object literal",           } ,
         { expression    : "Property control",         } ,
         { expression    : "Grouping expression",      } ,
@@ -36,9 +37,6 @@ module.exports = ast_node_table => {
         { reserved_word : "function"                  } ,
     ]);
 
-    // Register literals
-    require("./literals")(ast_node_table);
-
     // Register declarations
     require("./declarations")(ast_node_table);
 
@@ -48,7 +46,14 @@ module.exports = ast_node_table => {
     // TODO: refactor later
     [
         "./expressions/contextual_keyword",
+
+        // 12.2.5 - Array literal
+        "./literals/array_literal",
+        // 12.2.6 - Object literal
         "./literals/object_literal",
+        // 12.2.9 - Template literal
+        "./literals/template_literal",
+
         "./expressions/method",
         "./expressions/method_body",
         "./expressions/property_definition",

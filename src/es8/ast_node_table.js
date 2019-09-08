@@ -47,11 +47,8 @@ module.exports = ast_node_table => {
 
     // TODO: refactor later
     [
-        "./expressions/method_definition",
-
         // 11.6.2.1 - Keywords
-        "./expressions/keyword",
-
+        "./terminals/keyword",
         // 11.7 - Punctuators
         "./terminals/punctuator",
 
@@ -118,6 +115,9 @@ module.exports = ast_node_table => {
 
         "./expressions/arguments",
         "./statements/expression_statement",
+
+        // 14.3 - Method definition
+        "./expressions/method_definition",
 
         // 14.6 - Async function defenitions
         "./common/async_function_body",
