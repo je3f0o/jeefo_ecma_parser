@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : template_literal.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,13 +15,10 @@
 
 // ignore:end
 
-const { AST_Node_Definition }    = require("@jeefo/parser");
-const { is_close_curly }         = require("../../helpers");
-const { PRIMITIVE, TERMINATION } = require("../enums/precedence_enum");
-const {
-    is_expression,
-    prepare_next_expression,
-} = require("../../es5/helpers");
+const { AST_Node_Definition }            = require("@jeefo/parser");
+const { is_close_curly }                 = require("../../helpers");
+const { PRIMITIVE, TERMINATION }         = require("../enums/precedence_enum");
+const { expression, primary_expression } = require("../enums/states_enum");
 
 const template_string = new AST_Node_Definition({
 	id         : "Template literal string",
@@ -72,7 +69,7 @@ const template_expression = new AST_Node_Definition({
         const start        = streamer.clone_cursor_position();
 
 		streamer.cursor.move(1);
-        prepare_next_expression(parser, true);
+        parser.prepare_next_state("expression", true);
 
         const expression = parser.parse_next_node(TERMINATION);
         parser.expect('}', is_close_curly);
@@ -88,14 +85,13 @@ module.exports = {
     type       : "Primitive",
     precedence : PRIMITIVE,
 
-    is : (token, parser) => {
-        return is_expression(parser) && token.id === "Backtick";
+    is : (token, { current_state }) => {
+        return current_state === expression && token.id === "Backtick";
     },
     initialize : (node, current_token, parser) => {
-        const body              = [];
-        const { streamer }      = parser.tokenizer;
-        const start_positioin   = streamer.clone_cursor_position();
-        const { current_state } = parser;
+        const body            = [];
+        const { streamer }    = parser.tokenizer;
+        const start_positioin = streamer.clone_cursor_position();
 		let next_character = streamer.next();
 
         LOOP:
@@ -117,8 +113,8 @@ module.exports = {
         node.start = start_positioin;
         node.end   = streamer.clone_cursor_position();
 
+        // It's important, since there is no real next token
         parser.next_token    = node;
-        parser.ending_index  = node.end.index;
-        parser.current_state = current_state;
+        parser.current_state = primary_expression;
     }
 };

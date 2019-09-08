@@ -50,6 +50,7 @@ module.exports = [
     "single_name_binding",
     "binding_property_element",
 
+    "super_call",
     "meta_property",
     "arrow_parameters",
     "cover_initialized_name",

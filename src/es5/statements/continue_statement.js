@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : continue_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-04-02
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -10,19 +10,19 @@
 // ignore:start
 "use strict";
 
-/* globals */
-/* exported */
+/* globals*/
+/* exported*/
 
 // ignore:end
 
-const states_enum     = require("../enums/states_enum"),
-      precedence_enum = require("../enums/precedence_enum");
+const { statement } = require("../enums/states_enum");
+const { STATEMENT } = require("../enums/precedence_enum");
 
 module.exports = {
 	id         : "Continue statement",
 	type       : "Statement",
-	precedence : precedence_enum.STATEMENT,
+	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === states_enum.statement,
+	is         : (_, { current_state : s }) => s === statement,
     initialize : require("./break_statement").initialize
 };

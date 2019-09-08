@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : method_definition.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,7 +29,10 @@ module.exports = {
 
     is         : (_, { current_state : s }) => s === method_definition,
     initialize : (node, token, parser) => {
-        if (token.id === "Identifier") {
+        const next_token = parser.look_ahead(true);
+        if (is_delimiter_token(next_token, '(')) {
+            parser.change_state("method");
+        } else if (token.id === "Identifier") {
             switch (token.value) {
                 case "get" :
                     parser.change_state("getter_method");
@@ -61,7 +64,9 @@ module.exports = {
         }
 
         let expression_name;
-        if (property_name.expression.id === "Identifier name") {
+        if (is_delimiter_token(parser.next_token, '(')) {
+            expression_name = "method";
+        } else if (property_name.expression.id === "Identifier name") {
             switch (property_name.expression.value) {
                 case "get" :
                     expression_name = "getter_method";

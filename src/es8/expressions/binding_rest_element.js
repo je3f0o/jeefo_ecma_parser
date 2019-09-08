@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_rest_element.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -62,7 +62,7 @@ module.exports = {
         node.ellipsis = ellipsis;
         node.element  = element;
         node.start    = ellipsis.start;
-        node.end      = element.start;
+        node.end      = element.end;
     },
 
     refine (node, expression, parser) {

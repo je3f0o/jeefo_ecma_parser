@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_body.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -31,7 +31,7 @@ module.exports = {
     is         : (token, { current_state : s }) => s === function_body,
     initialize : (node, token, parser) => {
         parser.expect('{', is_open_curly);
-        parser.context_stack.push(node);
+        parser.context_stack.push(node.id);
         const list = [];
 
         parser.change_state("punctuator");

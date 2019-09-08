@@ -59,6 +59,7 @@ module.exports = ast_node_table => {
 
         "./part/property_name",
         "./part/identifier_reference",
+        "./expressions/catch_parameter",
 
         "./expressions/generator_body",
         "./expressions/function_expression",

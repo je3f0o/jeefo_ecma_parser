@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : tokenizer.js
 * Created at  : 2017-04-08
-* Updated at  : 2019-06-28
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const JeefoTokenizer = require("@jeefo/parser").JeefoTokenizer;
-const delimiters     = require("./token_definitions/delimiters");
+const { JeefoTokenizer } = require("@jeefo/parser");
+const delimiters         = require("./token_definitions/delimiters");
 
 const es5_tokenizer = new JeefoTokenizer();
 

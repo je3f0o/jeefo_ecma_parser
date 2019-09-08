@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -78,6 +78,7 @@ module.exports = ast_node_table => {
         "./binary_operators/member_operator",
 
         // 12.3.4 Function calls
+        "./expressions/super_call",
         "./expressions/call_expression",
         "./expressions/function_call_expression",
 

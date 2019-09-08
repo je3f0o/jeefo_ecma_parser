@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : break_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -28,22 +28,15 @@ module.exports = {
 	type       : "Statement",
 	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === statement,
+	is         : (token, { current_state : s }) => s === statement,
     initialize : (node, current_token, parser) => {
         const keyword  = terminal_definition.generate_new_node(parser);
         let identifier = null, terminator = null;
 
-        parser.prepare_next_state("expression");
-        if (parser.next_token            !== null &&
-            parser.next_token.value      !== ';'  &&
-            parser.next_token.start.line === keyword.end.line) {
-            parser.expect("an identifier", parser => {
-                return parser.next_node_definition    !== null &&
-                       parser.next_node_definition.id === "Identifier";
-            });
+        parser.prepare_next_state("label_identifier");
+        if (parser.next_node_definition) {
             identifier = parser.generate_next_node(parser);
-
-            parser.prepare_next_state("delimiter");
+            parser.prepare_next_state("punctuator");
         }
 
         const has_terminator = (

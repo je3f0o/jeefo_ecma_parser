@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_literal.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -44,6 +44,7 @@ validate_expression = (node, parser) => {
             validate_expression(node.expression, parser);
             break;
         case "Literal" :
+        case "Identifier reference" :
             break;
         case "Object literal" :
             validate_object_literal(node.property_definition_list, parser);
@@ -56,7 +57,7 @@ validate_expression = (node, parser) => {
                 parser.throw_unexpected_token(
                     `Unimplemented '${
                         node.id
-                    }' expression: validate_expression`,
+                    }' expression in: validate_expression()`,
                     node
                 );
             }

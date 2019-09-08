@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : concise_body.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -25,7 +25,7 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === concise_body,
+    is         : (_, { current_state : s }) => s === concise_body,
     initialize : (node, token, parser) => {
         const prev_suffixes = parser.suffixes;
         const clone = prev_suffixes.concat();
@@ -35,7 +35,7 @@ module.exports = {
         if (is_delimiter_token(token, '{')) {
             parser.change_state("arrow_function_body");
         } else {
-            parser.change_state("asignment_expression");
+            parser.change_state("assignment_expression");
         }
         const expression = parser.generate_next_node();
 

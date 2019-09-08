@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : member_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,14 +22,16 @@ const {
     member_expression,
 } = require("../enums/states_enum");
 
+const is_null = expr => {
+    return expr.id === "Literal" && expr.expression.id === "Null literal";
+};
+
 module.exports = {
     id         : "Member expression",
     type       : "Expression",
     precedence : MEMBER_EXPRESSION,
+    is         : (_, { current_state : s }) => s === member_expression,
 
-    is (token, parser) {
-        return parser.current_state === member_expression;
-    },
     initialize (node, token, parser) {
         const expr = get_last_non_comment_node(parser);
         node.expression  = expr;
@@ -42,9 +44,15 @@ module.exports = {
 
     refine (node, expression, parser) {
         switch (expression.id) {
-            case "Meta property"      :
-            case "Super property"     :
-            case "Primary expression" : break;
+            case "Meta property"  :
+            case "Super property" : break;
+            case "Primary expression" :
+                if (is_null(expression.expression)) {
+                    parser.throw_unexpected_token(
+                        "Cannot read property of null"
+                    );
+                }
+                break;
             default:
                 parser.throw_unexpected_refine(node, expression);
         }

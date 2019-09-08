@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test_parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -40,7 +40,16 @@ if (process.argv.length > 2) {
     //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/peer.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/bootstrap.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/main.js", "utf8");
-    source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/operators/binary_operators.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/operators/binary_operators.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/delimiters.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/tokenizer.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_parser/src/unexpected_token_exception.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_parser/src/ast_node_table.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_parser/index.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/jqlite/src/event_methods.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/jqlite/src/index.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/template/tokens/element.js", "utf8");
+    source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/resource/index.js", "utf8");
 }
 
 const nodes = parser.parse(source);

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : computed_member_expression.js
 * Created at  : 2019-03-19
-* Updated at  : 2019-08-29
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,12 +15,11 @@
 
 // ignore:end
 
-const { is_expression }       = require("../helpers");
-const { terminal_definition } = require("../../common");
+const { MEMBER_EXPRESSION } = require("../enums/precedence_enum");
 const {
-    TERMINATION,
-    MEMBER_EXPRESSION,
-} = require("../enums/precedence_enum");
+    expression,
+    member_expression,
+} = require("../enums/states_enum");
 const {
     is_delimiter_token,
     is_close_square_bracket,
@@ -33,7 +32,9 @@ module.exports = {
 	precedence : MEMBER_EXPRESSION,
 
     is : (token, parser) => {
-        if (is_expression(parser) && is_delimiter_token(token, '[')) {
+        if (parser.current_state !== expression) { return; }
+
+        if (is_delimiter_token(token, '[')) {
             const lvalue = get_last_non_comment_node(parser);
             if (lvalue !== null) {
                 // TODO: check lvalue
@@ -44,16 +45,16 @@ module.exports = {
 
 	initialize : (node, current_token, parser) => {
         const object = get_last_non_comment_node(parser);
-        const prev_state = parser.current_state;
 
-        parser.change_state("delimiter");
-        const open = terminal_definition.generate_new_node(parser);
+        parser.change_state("punctuator");
+        const open = parser.generate_next_node();
 
-        parser.prepare_next_state("expression", true);
-        const expression = parser.parse_next_node(TERMINATION);
+        parser.prepare_next_state("expression_expression", true);
+        const expression = parser.generate_next_node();
 
         parser.expect(']', is_close_square_bracket);
-        const close = terminal_definition.generate_new_node(parser);
+        parser.change_state("punctuator");
+        const close = parser.generate_next_node();
 
         node.object               = object;
         node.open_square_bracket  = open;
@@ -62,7 +63,10 @@ module.exports = {
         node.start                = object.start;
         node.end                  = close.end;
 
-        parser.ending_index  = node.end.index;
-        parser.current_state = prev_state;
+        parser.current_state = member_expression;
     },
+
+    protos : {
+        is_valid_simple_assignment_target () { return true; }
+    }
 };

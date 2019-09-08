@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : keyword.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,7 +32,7 @@ const keywords = [
     "new",
     "return",
     "super, switch".split(", "),
-    "this, throw, trye, typeof".split(", "),
+    "this, throw, try, typeof".split(", "),
     "var, void".split(", "),
     "while, with".split(", "),
     "yield",

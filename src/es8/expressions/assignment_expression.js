@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_expression.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -35,4 +35,17 @@ module.exports = {
         node.start      = expression.start;
         node.end        = expression.end;
     },
+
+    refine (node, expression, parser) {
+        switch (expression.id) {
+            case "Primary expression" :
+                break;
+            default:
+                parser.throw_unexpected_refine(node, expression);
+        }
+
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
+    }
 };

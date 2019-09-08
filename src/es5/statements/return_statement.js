@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : return_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-02
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,16 +15,19 @@
 
 // ignore:end
 
-const { statement }              = require("../enums/states_enum");
-const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
+const { statement } = require("../enums/states_enum");
+const { STATEMENT } = require("../enums/precedence_enum");
 const {
     is_terminator,
     has_no_line_terminator,
 } = require("../../helpers");
 
 const valid_return_contexts = [
+    "Method body",
     "Function body",
+    "Async method body",
     "Async function body",
+    "Arrow function body",
 ];
 
 module.exports = {
@@ -37,7 +40,7 @@ module.exports = {
             const { context_stack } = parser;
             let i = context_stack.length;
             while (i--) {
-                if (valid_return_contexts.includes(context_stack[i].id)) {
+                if (valid_return_contexts.includes(context_stack[i])) {
                     return true;
                 }
             }
@@ -47,20 +50,17 @@ module.exports = {
     initialize (node, token, parser) {
         let expression = null, terminator = null;
 
-        parser.change_state("delimiter");
+        parser.change_state("keyword");
         const keyword  = parser.generate_next_node();
 
-        parser.prepare_next_state("expression", true);
+        parser.prepare_next_state("expression_expression", true);
         if (has_no_line_terminator(keyword, parser.next_token)) {
             if (! is_terminator(parser)) {
-                parser.post_comment = null;
-                expression = parser.parse_next_node(TERMINATION);
-                if (! expression) {
-                    parser.throw_unexpected_token();
-                }
+                expression = parser.generate_next_node();
             }
 
             if (is_terminator(parser)) {
+                parser.change_state("punctuator");
                 terminator = parser.generate_next_node();
             }
         }

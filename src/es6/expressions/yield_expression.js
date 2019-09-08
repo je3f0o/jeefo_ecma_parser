@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : yield_expression.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,6 +22,10 @@ const {
     has_no_line_terminator,
 } = require("../../helpers");
 
+const valid_contexts = [
+    "Generator body",
+];
+
 module.exports = {
     id         : "Yield expression",
     type       : "Expression",
@@ -29,9 +33,11 @@ module.exports = {
 
     is (token, { current_state, context_stack }) {
         if (current_state === expression) {
-            const context = context_stack[context_stack.length - 1];
-            if (context && context.id === "Generator body") {
-                return true;
+            let i = context_stack.length;
+            while (i--) {
+                if (valid_contexts.includes(context_stack[i])) {
+                    return true;
+                }
             }
         }
     },

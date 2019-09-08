@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : literal.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,11 +23,11 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === literal,
+    is         : (_, { current_state : s }) => s === literal,
 	initialize : (node, token, parser) => {
-        node.literal = parser.prev_node;
-        node.start   = token.start;
-        node.end     = token.end;
+        node.expression = parser.prev_node;
+        node.start      = token.start;
+        node.end        = token.end;
 
         parser.ending_index -= 1;
         parser.current_state = primary_expression;

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_element.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description : I discarded SingleNameBinding. Maybe i will add later or not...
@@ -15,8 +15,9 @@
 
 // ignore:end
 
-const { EXPRESSION }      = require("../enums/precedence_enum");
-const { binding_element } = require("../enums/states_enum");
+const { EXPRESSION }          = require("../enums/precedence_enum");
+const { binding_element }     = require("../enums/states_enum");
+const { is_identifier_token } = require("../../helpers");
 
 function refine_primary_expression (node, expression, parser) {
     switch (expression.id) {
@@ -50,6 +51,9 @@ function refine_binding_element (node, expression, parser) {
     let initializer = null, element;
 
     switch (expression.id) {
+        case "Function rest parameter" :
+            element = expression;
+            break;
         case "Assignment element" :
             switch (expression.target.expression.id) {
                 case "Left hand side expression":
@@ -119,10 +123,25 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         (_, { current_state : s }) { return s === binding_element; },
-	initialize (node, token, parser) {
-        parser.change_state("assignment_expression");
-        this.refine(node, parser.generate_next_node(), parser);
+    is         : (_, { current_state : s }) => s === binding_element,
+	initialize : (node, token, parser) => {
+        if (is_identifier_token(token)) {
+            parser.change_state("single_name_binding");
+        } else {
+            parser. throw_unexpected_token(node.id);
+            console.log(parser);
+            console.log(node.id);
+            console.log(token);
+            process.exit();
+            parser.change_state("binding_element_pattern");
+        }
+        const expression = parser.generate_next_node();
+
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
+
+        parser.end(node);
     },
 
     refine (node, expression, parser) {

@@ -23,6 +23,7 @@ module.exports = [
     "property_set_parameter",
 
     "expression",
+    "member_expression",
     "expression_expression",
 
     "function_body",
@@ -51,6 +52,7 @@ module.exports = [
     "assignable_expression",
 
     "try_statement",
+    "catch_parameter",
     "case_clause",
     "default_clause",
 

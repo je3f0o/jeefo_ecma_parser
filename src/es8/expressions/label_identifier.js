@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : label_identifier.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,7 +29,7 @@ module.exports = {
         }
     },
     initialize (node, token, parser) {
-        parser.change_state("identifier_reference", false);
+        parser.change_state("binding_identifier");
         parser.next_node_definition.initialize(node, token, parser);
     }
 };

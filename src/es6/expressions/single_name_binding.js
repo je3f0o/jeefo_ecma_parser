@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : single_name_binding.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,6 +16,7 @@
 // ignore:end
 
 const { EXPRESSION }          = require("../enums/precedence_enum");
+const { is_assign_token }     = require("../../helpers");
 const { single_name_binding } = require("../enums/states_enum");
 
 module.exports = {
@@ -24,9 +25,20 @@ module.exports = {
     precedence : EXPRESSION,
 
     is         : (_, { current_state : s }) => s === single_name_binding,
-    initialize : (node) => {
-        console.log(node.id);
-        process.exit();
+    initialize : (node, token, parser) => {
+        let initializer = null;
+        parser.change_state("binding_identifier");
+        const identifier = parser.generate_next_node();
+
+        parser.prepare_next_state("initializer");
+        if (is_assign_token(parser.next_token)) {
+            initializer = parser.generate_next_node();
+        }
+
+        node.binding_identifier = identifier;
+        node.initializer        = initializer;
+        node.start              = identifier.start;
+        node.end                = (initializer || identifier).end;
     },
 
     refine : (node, expression, parser) => {

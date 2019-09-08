@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_parameters.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -45,6 +45,14 @@ module.exports = {
             case "Cover parenthesized expression and arrow parameter list":
                 expression = parser.refine(
                     "arrow_formal_parameters", expression
+                );
+                break;
+            case "Primary expression":
+                if (expression.expression.id !== "Identifier reference") {
+                    parser.throw_unexpected_token();
+                }
+                expression = parser.refine(
+                    "binding_identifier", expression.expression
                 );
                 break;
             default:

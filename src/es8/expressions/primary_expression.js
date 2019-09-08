@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : primary_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,7 +32,9 @@ module.exports = {
             case "This keyword"              :
             case "Array literal"             :
             case "Object literal"            :
+            case "Template literal"          :
             case "Identifier reference"      :
+                break;
             // Functions
             case "Function expression"       :
             case "Generator expression"      :

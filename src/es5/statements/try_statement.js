@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : try_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,27 +15,22 @@
 
 // ignore:end
 
-const { terminal_definition }      = require("../../common");
-const { STATEMENT, TERMINATION }   = require("../enums/precedence_enum");
+const { STATEMENT }                = require("../enums/precedence_enum");
 const { statement, try_statement } = require("../enums/states_enum");
-const {
-    is_identifier,
-    is_open_curly,
-    is_close_parenthesis,
-} = require("../../helpers");
 
 const finally_block = {
     id         : "Finally block",
     type       : "Statement",
     precedence : -1,
 
-    is         : (token, parser) => parser.current_state === try_statement,
+    is         : (_, { current_state : s }) => s === try_statement,
     initialize : (node, current_token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
 
         parser.prepare_next_state(null, true);
-        parser.expect('{', is_open_curly);
-        const block = parser.parse_next_node(TERMINATION);
+        parser.expect('{', parser => parser.is_next_node("Block statement"));
+        const block = parser.generate_next_node();
 
         node.keyword = keyword;
         node.block   = block;
@@ -49,38 +44,25 @@ const catch_block = {
     type       : "Statement",
     precedence : -1,
 
-    is         : (token, parser) => parser.current_state === try_statement,
-    initialize : (node, current_token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+    is         : (_, { current_state : s }) => s === try_statement,
+    initialize : (node, token, parser) => {
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
 
         // Parameter
-        parser.prepare_next_state("delimiter", true);
-        parser.expect('(', parser => parser.next_token.value === '(');
-        const open = parser.generate_next_node();
-
-        parser.prepare_next_state("expression", true);
-        if (is_close_parenthesis(parser)) {
-            parser.throw_unexpected_token("Missing identifier");
-        }
-        parser.expect("identifier", is_identifier);
+        parser.prepare_next_state("catch_parameter", true);
         const parameter = parser.generate_next_node();
 
-        parser.prepare_next_state("delimiter", true);
-        parser.expect(')', is_close_parenthesis);
-        const close = parser.generate_next_node();
-
         // Block statement
-        parser.prepare_next_state("block_statement", true);
-        parser.expect('{', parser => parser.next_token.value === '{');
+        parser.prepare_next_state(null, true);
+        parser.expect('{', parser => parser.is_next_node("Block statement"));
         const block = parser.generate_next_node();
 
-        node.keyword           = keyword;
-        node.open_parenthesis  = open;
-        node.parameter         = parameter;
-        node.close_parenthesis = close;
-        node.block             = block;
-        node.start             = keyword.start;
-        node.end               = block.end;
+        node.keyword   = keyword;
+        node.parameter = parameter;
+        node.block     = block;
+        node.start     = keyword.start;
+        node.end       = block.end;
     }
 };
 
@@ -89,14 +71,15 @@ const try_statement_def = {
     type       : "Statement",
     precedence : STATEMENT,
 
-    is         : (token, parser) => parser.current_state === statement,
+    is         : (_, { current_state : s }) => s === statement,
     initialize : (node, token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
         let handler = null, finalizer = null;
 
         parser.prepare_next_state(null, true);
-        parser.expect('{', is_open_curly);
-        const block = parser.parse_next_node(TERMINATION);
+        parser.expect('{', parser => parser.is_next_node("Block statement"));
+        const block = parser.generate_next_node();
 
         parser.prepare_next_state("try_statement", true);
         if (parser.is_next_node("Catch block")) {

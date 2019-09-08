@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : member_operator.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-05
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,13 @@
 
 // ignore:end
 
-const { MEMBER_EXPRESSION }             = require("../enums/precedence_enum");
-const { get_last_non_comment_node }     = require("../../helpers");
-const { expression, member_expression } = require("../enums/states_enum");
+const { MEMBER_EXPRESSION }         = require("../enums/precedence_enum");
+const { get_last_non_comment_node } = require("../../helpers");
+const {
+    expression,
+    call_expression,
+    member_expression,
+} = require("../enums/states_enum");
 
 const is_dot = token => {
     return token.id === "Operator" && token.value === '.';
@@ -36,8 +40,22 @@ module.exports = {
     initialize : (node, token, parser) => {
         // Object
         let object = get_last_non_comment_node(parser);
-        if (object.id !== "Member expression") {
-            object = parser.refine("member_expression", object);
+        let is_call_expr;
+        switch (object.id) {
+            case "Member expression"          :
+            case "Computed member expression" :
+                break;
+            case "Primary expression" :
+                object = parser.refine("member_expression", object);
+                break;
+            case "Call expression" :
+                is_call_expr = true;
+                break;
+            default:
+                parser.throw_unexpected_token(
+                    `Unexpected '${ object.id }' in: '${ node.id }'`,
+                    object
+                );
         }
 
         // Operator
@@ -54,7 +72,11 @@ module.exports = {
         node.start    = object.start;
         node.end      = property.end;
 
-        parser.current_state = member_expression;
+        if (is_call_expr) {
+            parser.current_state = call_expression;
+        } else {
+            parser.current_state = member_expression;
+        }
     },
 
     protos : {

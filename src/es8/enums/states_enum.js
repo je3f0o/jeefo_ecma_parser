@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -47,7 +47,6 @@ module.exports = [
     // 12.3 - Left hand side expressions
     "new_expression",
     "member_operator",
-    "member_expression",
     "left_hand_side_expression",
 
     // 12.15 - Assigment expression

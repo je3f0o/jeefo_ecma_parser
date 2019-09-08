@@ -73,6 +73,10 @@ module.exports = parser => {
             switch (parser.next_token.value) {
                 case "instanceof": return;
                 case "in":
+                    if (parser.context_stack.includes("for_header")) {
+                        return parser.terminate(prev_node);
+                    }
+                    return;
                 case "of":
                     if (parser.context_stack.includes("for_header")) {
                         return parser.terminate(prev_node);
