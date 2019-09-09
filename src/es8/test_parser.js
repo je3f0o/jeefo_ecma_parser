@@ -51,7 +51,8 @@ if (process.argv.length > 2) {
     //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/template/tokens/element.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/resource/index.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/statements/throw_statement.js", "utf8");
-    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/services/session_manager.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/services/session_manager.js", "utf8");
+    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/uuid_v4.js", "utf8");
 }
 
 const nodes = parser.parse(source);

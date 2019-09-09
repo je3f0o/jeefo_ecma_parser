@@ -71,6 +71,7 @@ module.exports = ast_node_table => {
         "./expressions/new_expression",
         "./expressions/member_expression",
         "./binary_operators/member_operator",
+        "./expressions/left_hand_side_expression",
 
         // 12.3.4 Function calls
         "./expressions/super_call",
@@ -83,7 +84,6 @@ module.exports = ast_node_table => {
         // 12.15 - Assigment expression
         "./expressions/assignment_expression",
         "./binary_operators/assignment_operator",
-        "./expressions/left_hand_side_expression",
 
         // 12.15.5 - Destructuring assignment
         // array

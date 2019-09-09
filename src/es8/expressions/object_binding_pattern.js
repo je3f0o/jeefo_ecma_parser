@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_binding_pattern.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,6 +26,7 @@ module.exports = {
 
 	initialize (node, token, parser) {
         parser.change_state("expression");
+
         // Trick to skip object validation in ObjectLiteral
         parser.context_stack.push("Object literal");
         const object_literal = parser.generate_next_node();

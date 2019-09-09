@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_property.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -48,7 +48,7 @@ module.exports = {
                     "binding_property_element",
                     property.definition
                 );
-                return;
+                break;
             default:
                 parser.throw_unexpected_refine(node, property.definition);
         }
