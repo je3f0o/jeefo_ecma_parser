@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-04
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,64 +15,20 @@
 
 // ignore:end
 
-const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
+const { statement }     = require("../enums/states_enum");
+const { is_terminator } = require("../../helpers");
 const {
-    is_terminator,
-    is_delimiter_token,
-} = require("../../helpers");
-const {
-    statement,
-    labelled_statement,
-} = require("../enums/states_enum");
-
-const expression_delimiters = ['[', '('];
-const expression_keywords = [
-    "new",
-    "void",
-    "delete",
-    "typeof",
-
-    "null",
-    "true",
-    "false",
-    "undefined",
-];
-const unary_expressions = [ "~", "!", "+", "-", "++", "--" ];
+    TERMINATION,
+    EXPRESSION_STATEMENT,
+} = require("../enums/precedence_enum");
 
 module.exports = {
     id         : "Expression statement",
     type       : "Statement",
-    precedence : STATEMENT,
+    precedence : EXPRESSION_STATEMENT,
 
-    is : (token, parser) => {
-        if (parser.current_state !== statement) { return; }
-
-        switch (token.id) {
-            case "Slash"  :
-            case "String" :
-            case "Number" :
-                return true;
-            case "Identifier" :
-                if (expression_keywords.includes(token.value)) {
-                    return true;
-                } else if (! parser.is_reserved_word(token.value)) {
-                    const next_token = parser.look_ahead();
-                    if (next_token && is_delimiter_token(next_token, ':')) {
-                        parser.current_state = labelled_statement;
-                        return;
-                    }
-
-                    return true;
-                }
-                break;
-            case "Delimiter" :
-                return expression_delimiters.includes(token.value);
-            case "Operator" :
-                return unary_expressions.includes(token.value);
-        }
-    },
-
-    initialize : (node, current_token, parser) => {
+    is         : (_, { current_state : s }) => s === statement,
+    initialize : (node, token, parser) => {
         let terminator      = null;
         parser.post_comment = null;
 

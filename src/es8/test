@@ -12,9 +12,11 @@ false;
 3.14;
 'single quote string';
 "double quote string";
+/*
 assignment_expression = computed = static = value = expr = str = 2;
 object = o = {};
 spread_element = id = [];
+*/
 
 // 12.2.5 - Array initializer
 [];
@@ -56,14 +58,14 @@ o = {
 
 // 12.15.5 - Destructuring assignment
 [, id, id = value, {} = {}, [] = [], [], o.p, ...rest] = [,,[]];
-o = {
+({
     id,
     id : id,
     id : { z = 2 },
     id : { [prop] : id },
     id : [, id, id = value, {} = {}, [] = [], [], o.p, ...rest],
     id = 123
-} = {};
+} = {});
 
 o = { z : {}, i : [2 > {}] };
 
@@ -178,12 +180,5 @@ for (i = 0, len = 10;;) {}
 
 a,b,c;
 
-({
-    id,
-    id : id,
-    id : { z = 2 },
-    id : { [prop] : id },
-    id : [, id, id = value, {} = {}, [] = [], [], o.p, ...rest],
-    id = 123
-} = {});
-
+label :
+while (false) {}

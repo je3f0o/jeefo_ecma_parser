@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-03
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :

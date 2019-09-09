@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binary_operators.js
 * Created at  : 2019-01-24
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -150,31 +150,6 @@ module.exports = function register_binary_operators (ast_node_table) {
 			precedence : 5,
 			is         : token => token.value === "||",
 		},
-
-		// Assignment expression (3)
-		{
-            id         : "Assignment expression",
-			precedence : 3,
-			is         : token => {
-				switch (token.value) {
-					case    '=' :
-					case   "+=" :
-					case   "-=" :
-					case   "*=" :
-					case   "/=" :
-					case   "%=" :
-					case   "&=" :
-					case   "|=" :
-					case   "^=" :
-					case  "**=" :
-					case  "<<=" :
-					case  ">>=" :
-					case ">>>=" :
-						return true;
-				}
-				return false;
-			},
-		}
 	];
 
 	operator_definitions.forEach(operator_definition => {

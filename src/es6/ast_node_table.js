@@ -22,7 +22,6 @@ module.exports = ast_node_table => {
         { expression    : "Object literal",           } ,
         { expression    : "Property control",         } ,
         { expression    : "Grouping expression",      } ,
-        { expression    : "Expression statement"      } ,
         { expression    : "Formal parameter list",    } ,
         { expression    : "Function call expression", } ,
         { expression    : "Function expression", } ,
@@ -83,8 +82,6 @@ module.exports = ast_node_table => {
         "./expressions/assignable_left_hand_side_expression",
 
         // Statements
-        "./statements/expression_statement",
-
         // Variable declarations
         "./declarations/variable_declaration",
 

@@ -1,6 +1,6 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
-* File Name   : assignment_operator.js
-* Created at  : 2019-09-03
+* File Name   : assignment_expression.js
+* Created at  : 2019-09-09
 * Updated at  : 2019-09-09
 * Author      : jeefo
 * Purpose     :
@@ -23,10 +23,9 @@ module.exports = {
     id         : "Assignment operator",
     type       : "Binary operator",
     precedence : ASSIGNMENT_OPERATOR,
-
-    is (token, parser) {
-        if (parser.current_state === expression && token.id === "Operator") {
-            switch (token.value) {
+    is         : ({ id, value }, parser) => {
+        if (parser.current_state === expression && id === "Operator") {
+            switch (value) {
                 case    '=' :
                 case   "+=" :
                 case   "-=" :
@@ -44,23 +43,16 @@ module.exports = {
             }
         }
     },
-    initialize (node, token, parser) {
-        let last_node = get_last_non_comment_node(parser), assignment;
-        parser.change_state("left_hand_side_expression");
-        const def = parser.next_node_definition;
 
-        if (token.value === '=' && def.is_destructuring(last_node)) {
-            assignment = parser.refine(
-                "assignment_pattern", last_node.expression
-            );
-        } else if (! last_node.is_valid_simple_assignment_target(parser)) {
+    initialize (node, token, parser) {
+        const last_node = get_last_non_comment_node(parser);
+        if (! last_node.is_valid_simple_assignment_target(parser)) {
             parser.throw_unexpected_token(
                 "Invalid left-hand side in assignment",
                 last_node
             );
-        } else {
-            assignment = def._refine(last_node, parser);
         }
+        const assignment = parser.refine(last_node, parser);
 
         parser.change_state("punctuator");
         const operator = parser.generate_next_node();
