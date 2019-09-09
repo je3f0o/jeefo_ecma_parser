@@ -54,68 +54,12 @@ function parse_integer (streamer, start_index, length) {
 
             length += 1;
             next_character = streamer.at(start_index + length);
-        } else if (
-            delimiters.includes(next_character) ||
-            white_spaces.includes(next_character)
-        ) {
-            break;
         } else {
-            throw new SyntaxError("Invalid or unexpected token");
+            break;
         }
     }
 
     return { length, is_potential_octal };
-}
-
-function parse_decimal (streamer, start_index, length) {
-    let next_character = streamer.at(start_index + length);
-
-    if (next_character === '.') {
-        length += 1;
-        next_character = streamer.at(start_index + length);
-
-        while (next_character) {
-            if (next_character >= '0' && next_character <= '9') {
-                length += 1;
-                next_character = streamer.at(start_index + length);
-            } else {
-                break;
-            }
-        }
-    }
-
-    if (next_character === 'e' || next_character === 'E') {
-        length += 1;
-        next_character = streamer.at(start_index + length);
-
-        if (next_character === '-') {
-            length += 1;
-            next_character = streamer.at(start_index + length);
-        }
-
-        if (next_character < '0' && next_character > '9') {
-            throw new SyntaxError("Invalid or unexpected token");
-        }
-
-        while (next_character) {
-            if (next_character >= '0' && next_character <= '9') {
-                length += 1;
-                next_character = streamer.at(start_index + length);
-            } else {
-                break;
-            }
-        }
-    }
-
-    let is_invalid = next_character !== null;
-    is_invalid &= ! delimiters.includes(next_character);
-    is_invalid &= ! white_spaces.includes(next_character);
-
-    if (is_invalid) {
-        throw new SyntaxError("Invalid or unexpected token");
-    }
-
-    return length;
 }
 
 function parse_decimal_integer_literal (streamer, start_index, offset) {
@@ -143,6 +87,29 @@ function parse_signed_integer (streamer, start_index, offset) {
     return parse_decimal_integer_literal(streamer, start_index, offset);
 }
 
+function parse_decimal (streamer, start_index, offset) {
+    let next_char = streamer.at(start_index + offset), is_exponent;
+
+    if (next_char === '.') {
+        next_char = streamer.at(start_index + offset + 1);
+        if (next_char >= '0' && next_char <= '9') {
+            offset = parse_decimal_integer_literal(
+                streamer, start_index, offset + 1
+            );
+            next_char = streamer.at(start_index + offset);
+        }
+    }
+
+    if (exponent_indicator.includes(next_char)) {
+        is_exponent = true;
+        offset = parse_signed_integer(
+            streamer, start_index, offset + 1
+        );
+    }
+
+    return { offset, is_exponent };
+}
+
 module.exports = {
     id       : "Number",
     priority : 10,
@@ -157,10 +124,10 @@ module.exports = {
     },
 
     initialize : (token, current_character, streamer) => {
-        let is_float = current_character === '.', type, offset;
+        let type, offset, is_decimal;
         const start = streamer.clone_cursor_position();
 
-        if (is_float) {
+        if (current_character === '.') {
             offset = parse_decimal_integer_literal(streamer, start.index, 1);
             const next_char = streamer.at(start.index + offset);
             if (exponent_indicator.includes(next_char)) {
@@ -170,7 +137,7 @@ module.exports = {
                 type = "Decimal";
             }
         } else if (current_character === '0') {
-            const next_char = streamer.get_next_character();
+            let next_char = streamer.get_next_character();
 
             if (hex_indicator.includes(next_char)) {
                 type   = "Hex integer";
@@ -185,54 +152,42 @@ module.exports = {
                 if (result.is_potential_octal) {
                     type = "Octal integer";
 
-                    const next_character = streamer.at(start.index + offset);
-                    let is_invalid = next_character === '.' ||
-                                     next_character === 'e' ||
-                                     next_character === 'E';
-
-                    is_invalid &= ! delimiters.includes(next_character) &&
-                                  ! white_spaces.includes(next_character);
-
-                    if (is_invalid) {
+                    next_char = streamer.at(start.index + offset);
+                    let is_valid = (
+                        next_char !== '.' &&
+                        (
+                            delimiters.includes(next_char) ||
+                            white_spaces.includes(next_char)
+                        )
+                    );
+                    if (! is_valid) {
                         throw new SyntaxError("Invalid or unexpected token");
                     }
                 } else {
-                    type   = "Decimal";
-                    offset = parse_decimal(streamer, start.index, offset);
+                    is_decimal = true;
                 }
             }
         } else {
             offset = parse_decimal_integer_literal(streamer, start.index, 1);
+            is_decimal = true;
+        }
 
-            let next_char = streamer.at(start.index + offset);
-            if (next_char === '.') {
-                is_float = true;
-                next_char = streamer.at(start.index + offset + 1);
-                if (next_char >= '0' && next_char <= '9') {
-                    offset = parse_decimal_integer_literal(
-                        streamer, start.index, offset + 1
-                    );
-                }
-            }
+        if (is_decimal) {
+            const result = parse_decimal(streamer, start.index, offset);
+            offset = result.offset;
 
-            next_char = streamer.at(start.index + offset);
-            if (exponent_indicator.includes(next_char)) {
-                type   = "Exponent";
-                offset = parse_signed_integer(
-                    streamer, start.index, offset + 1
-                );
+            if (result.is_exponent) {
+                type = "Exponent";
             } else {
                 type = "Decimal";
             }
 
-            next_char = streamer.at(start.index + offset);
-            const is_invalid = (
-                ! delimiters.includes(next_char) ||
-                ! white_spaces.includes(next_char)
+            const next_char = streamer.at(start.index + offset);
+            const is_valid = (
+                delimiters.includes(next_char) ||
+                white_spaces.includes(next_char)
             );
-            if (is_invalid) {
-                console.log(next_char);
-                console.log(streamer.cursor);
+            if (! is_valid) {
                 throw new SyntaxError("Invalid or unexpected token");
             }
         }

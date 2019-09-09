@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test_parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-09
+* Updated at  : 2019-09-10
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -62,5 +62,5 @@ const nodes = parser.parse(source);
 //const nodes = parser.parse("a=2");
 
 console.log("===========================");
-nodes.forEach(node => print_node(node));
+//nodes.forEach(node => print_node(node));
 //console.log(parser.node_table.get_reserved_words());
