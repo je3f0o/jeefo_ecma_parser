@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-05
-* Updated at  : 2019-08-28
+* Updated at  : 2019-09-10
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,7 +15,7 @@
 
 // ignore:end
 
-[
+const path_names = [
     "is_expression",
     "get_expression",
     "get_right_value",
@@ -25,6 +25,8 @@
     "get_variable_declarator",
     "get_variable_declaration_list",
     "get_comma_separated_expressions",
-].forEach(name => {
+];
+
+for (let name of path_names) {
     exports[name] = require(`./${ name }`);
-});
+}

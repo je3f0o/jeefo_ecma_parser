@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_expression.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-11
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,9 @@
 
 // ignore:end
 
-const { EXPRESSION, COMMA }     = require("../enums/precedence_enum");
-const { assignment_expression } = require("../enums/states_enum");
+const { EXPRESSION, COMMA }         = require("../enums/precedence_enum");
+const { assignment_expression }     = require("../enums/states_enum");
+const { get_last_non_comment_node } = require("../../helpers");
 
 module.exports = {
     id         : "Assignment expression",
@@ -26,7 +27,10 @@ module.exports = {
     is         : (_, { current_state : s }) => s === assignment_expression,
 	initialize : (node, token, parser) => {
         parser.change_state("expression");
-        const expression = parser.parse_next_node(COMMA);
+        let expression = parser.parse_next_node(COMMA);
+        if (expression.id === "Comment") {
+            expression = get_last_non_comment_node(parser);
+        }
         if (! expression) {
             parser.throw_unexpected_token();
         }

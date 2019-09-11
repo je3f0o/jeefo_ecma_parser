@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test_parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-10
+* Updated at  : 2019-09-11
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -52,7 +52,9 @@ if (process.argv.length > 2) {
     //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/resource/index.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/statements/throw_statement.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/services/session_manager.js", "utf8");
-    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/uuid_v4.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/uuid_v4.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/component/src/component_definition.js", "utf8");
+    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/components/shaders/basic_2d_shader.js", "utf8");
 }
 
 const nodes = parser.parse(source);
@@ -62,5 +64,5 @@ const nodes = parser.parse(source);
 //const nodes = parser.parse("a=2");
 
 console.log("===========================");
-//nodes.forEach(node => print_node(node));
+nodes.forEach(node => print_node(node));
 //console.log(parser.node_table.get_reserved_words());

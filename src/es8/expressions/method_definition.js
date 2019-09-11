@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : method_definition.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-10
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -32,6 +32,8 @@ module.exports = {
         const next_token = parser.look_ahead(true);
         if (is_delimiter_token(next_token, '(')) {
             parser.change_state("method");
+        } else if (is_asterisk_token(token)) {
+            parser.change_state("generator_method");
         } else if (token.id === "Identifier") {
             switch (token.value) {
                 case "get" :
@@ -46,8 +48,6 @@ module.exports = {
                 default:
                     parser.change_state("method");
             }
-        } else if (is_asterisk_token(token)) {
-            parser.change_state("generator_method");
         } else {
             parser.change_state("method");
         }
