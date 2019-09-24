@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_concise_body.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-21
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -36,7 +36,7 @@ module.exports = {
         parser.suffixes = new_suffixes;
 
         if (is_delimiter_token(token, '{')) {
-            parser.change_state("arrow_function_body");
+            parser.change_state("async_arrow_function_body");
         } else {
             parser.change_state("assignment_expression");
         }

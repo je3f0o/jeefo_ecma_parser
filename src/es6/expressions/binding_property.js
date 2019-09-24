@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_property.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-09
+* Updated at  : 2019-09-16
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -35,22 +35,22 @@ module.exports = {
         }
 
         let expression;
-        switch (property.definition.id) {
+        switch (property.expression.id) {
             case "Identifier reference" :
             case "Cover initialized name" :
                 expression = parser.refine(
                     "single_name_binding",
-                    property.definition
+                    property.expression
                 );
                 break;
             case "Property assignment":
                 expression = parser.refine(
                     "binding_property_element",
-                    property.definition
+                    property.expression
                 );
                 break;
             default:
-                parser.throw_unexpected_refine(node, property.definition);
+                parser.throw_unexpected_refine(node, property.expression);
         }
 
         node.expression = expression;

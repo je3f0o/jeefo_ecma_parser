@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : property_definition.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-07
+* Updated at  : 2019-09-16
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -37,20 +37,20 @@ module.exports = {
 
     is         : (token, { current_state : s }) => s === property_definition,
     initialize : (node, token, parser) => {
-        let definition;
+        let expression;
         if (is_asterisk_token(token)) {
             parser.change_state("method_definition");
-            definition = parser.generate_next_node();
+            expression = parser.generate_next_node();
             parser.prepare_next_node_definition(true);
         } else {
             const next_token = parser.look_ahead(true);
 
             if (is_assign_token(next_token)) {
                 parser.change_state("cover_initialized_name");
-                definition = parser.generate_next_node();
+                expression = parser.generate_next_node();
             } else if (is_possible_reference_id(next_token)) {
                 parser.change_state("identifier_reference");
-                definition = parser.generate_next_node();
+                expression = parser.generate_next_node();
                 parser.prepare_next_node_definition(true);
             } else {
                 parser.change_state("property_name");
@@ -58,11 +58,11 @@ module.exports = {
                 parser.prepare_next_node_definition(true);
 
                 if (is_delimiter_token(parser.next_token, ':')) {
-                    definition = parser.refine(
+                    expression = parser.refine(
                         "property_assignment", property_name
                     );
                 } else {
-                    definition = parser.refine(
+                    expression = parser.refine(
                         "method_definition", property_name
                     );
                     parser.prepare_next_node_definition(true);
@@ -70,8 +70,8 @@ module.exports = {
             }
         }
 
-        node.definition = definition;
-        node.start      = definition.start;
-        node.end        = definition.end;
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
     }
 };

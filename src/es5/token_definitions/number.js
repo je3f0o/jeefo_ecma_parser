@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : number.js
 * Created at  : 2019-03-05
-* Updated at  : 2019-09-10
+* Updated at  : 2019-09-19
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -91,7 +91,8 @@ function parse_decimal (streamer, start_index, offset) {
     let next_char = streamer.at(start_index + offset), is_exponent;
 
     if (next_char === '.') {
-        next_char = streamer.at(start_index + offset + 1);
+        offset += 1;
+        next_char = streamer.at(start_index + offset);
         if (next_char >= '0' && next_char <= '9') {
             offset = parse_decimal_integer_literal(
                 streamer, start_index, offset + 1

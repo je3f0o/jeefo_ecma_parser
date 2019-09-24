@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : await_experession.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-09-09
+* Updated at  : 2019-09-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -21,6 +21,7 @@ const { AWAIT_EXPRESSION } = require("../enums/precedence_enum");
 const valid_contexts = [
     "Async method body",
     "Async function body",
+    "Async arrow function body",
 ];
 
 module.exports = {
@@ -38,7 +39,7 @@ module.exports = {
                 }
             }
             parser.throw_unexpected_token(
-                "await is only valid in async function"
+                "await is only valid in async function", token
             );
         }
     },

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : template_literal.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -28,33 +28,65 @@ const template_string = new AST_Node_Definition({
     is         : () => {},
     initialize : (node, current_token, parser) => {
         const { streamer } = parser.tokenizer;
-        const start        = streamer.clone_cursor_position();
+        const start        = (
+            parser.template_start ||
+            streamer.clone_cursor_position()
+        );
+        delete parser.template_start;
+
         let length         = 0;
-		let next_character = streamer.get_current_character();
+        let current_index  = start.index;
+        let virtual_length = 0;
+        let next_character = streamer.get_current_character();
+        let end;
 
         LOOP:
         while (true) {
             switch (next_character) {
-                case '\\':
-                    length += 1;
+                case '\t' :
+                    virtual_length += streamer.tab_size - 1;
                     break;
-                case '$':
-                    if (streamer.at(start.index + length + 1) === '{') {
+                case '\n' :
+                    streamer.cursor.move(length);
+                    if (start.index === streamer.cursor.position.index) {
+                        streamer.cursor.position.line -= 1;
+                    }
+                    next_character = streamer.get_next_character();
+                    if (next_character === '`') {
+                        end = streamer.clone_cursor_position();
                         break LOOP;
                     }
+                    next_character = streamer.next();
+                    current_index  = streamer.cursor.position.index;
+                    length = virtual_length = 0;
+                    continue LOOP;
+                case '\\':
+                    length         += 1;
+                    virtual_length += 1;
                     break;
-                case '`' : break LOOP;
                 case null: parser.throw_unexpected_end_of_stream();
             }
 
-            length += 1;
-            next_character = streamer.at(start.index + length);
+            next_character = streamer.at(current_index + length + 1);
+            switch (next_character) {
+                case '$':
+                    if (streamer.at(current_index + length + 2) === '{') {
+                        break LOOP;
+                    }
+                    break;
+                case '`':
+                    break LOOP;
+            }
+            length         += 1;
+            virtual_length += 1;
         }
-        streamer.cursor.move(length - 1);
+        if (! end) {
+            streamer.cursor.move(length, virtual_length);
+        }
 
         node.value = streamer.substring_from_offset(start.index);
         node.start = start;
-        node.end   = streamer.clone_cursor_position();
+        node.end   = end || streamer.clone_cursor_position();
     }
 });
 
@@ -89,16 +121,27 @@ module.exports = {
         return current_state === expression && token.id === "Backtick";
     },
     initialize : (node, current_token, parser) => {
-        const body            = [];
-        const { streamer }    = parser.tokenizer;
-        const start_positioin = streamer.clone_cursor_position();
-		let next_character = streamer.next();
+        const body           = [];
+        const { streamer }   = parser.tokenizer;
+        const start_position = streamer.clone_cursor_position();
+		let next_character = streamer.get_next_character();
+        if (next_character !== '\n') {
+            streamer.cursor.move(1);
+        }
 
         LOOP:
         while (true) {
             switch (next_character) {
+                case '\n':
+                    streamer.cursor.move(1);
+                    parser.template_start = streamer.clone_cursor_position();
+                    streamer.cursor.move(-1);
+                    streamer.next();
+                    break;
                 case '`' : break LOOP;
-                case null: parser.throw_unexpected_end_of_stream();
+                case null:
+                    parser.throw_unexpected_end_of_stream();
+                    break;
             }
 
             if (next_character === '$' && streamer.is_next_character('{')) {
@@ -110,7 +153,7 @@ module.exports = {
         }
 
         node.body  = body;
-        node.start = start_positioin;
+        node.start = start_position;
         node.end   = streamer.clone_cursor_position();
 
         // It's important, since there is no real next token

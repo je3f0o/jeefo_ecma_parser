@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : this_keyword.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -27,6 +27,7 @@ module.exports = {
     is         : (_, parser) => parser.current_state === expression,
 	initialize : (node, token, parser) => {
         node.pre_comment = get_pre_comment(parser);
+        node.value       = "this";
         node.start       = token.start;
         node.end         = token.end;
 

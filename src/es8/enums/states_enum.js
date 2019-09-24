@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-21
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -91,8 +91,9 @@ module.exports = [
 
     // Async functions
     "async_arrow_function",
-    "async_function_body",
+    "async_arrow_function_body",
     "async_function_expression",
+    "async_function_body",
 ].reduce((states, key, index) => {
     if (states[key]) {
         console.log("Duplicated state:", key);

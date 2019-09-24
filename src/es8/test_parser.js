@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test_parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-11
+* Updated at  : 2019-09-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -54,7 +54,11 @@ if (process.argv.length > 2) {
     //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/services/session_manager.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/uuid_v4.js", "utf8");
     //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/component/src/component_definition.js", "utf8");
-    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/components/shaders/basic_2d_shader.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/component/src/structure_component.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/components/shaders/basic_2d_shader.js", "utf8");
+    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/components/main_component.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/components/player.js", "utf8");
+    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/services/session_manager.js", "utf8");
 }
 
 const nodes = parser.parse(source);

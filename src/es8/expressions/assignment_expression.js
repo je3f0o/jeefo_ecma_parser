@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_expression.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-11
+* Updated at  : 2019-09-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -28,6 +28,9 @@ module.exports = {
 	initialize : (node, token, parser) => {
         parser.change_state("expression");
         let expression = parser.parse_next_node(COMMA);
+        if (! expression) {
+            console.log(parser);
+        }
         if (expression.id === "Comment") {
             expression = get_last_non_comment_node(parser);
         }

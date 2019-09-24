@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_literal.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-16
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -71,16 +71,16 @@ validate_array_literal = (elements, parser) => {
 };
 
 validate_object_literal = (properties, parser) => {
-    properties.forEach(({ definition }) => {
-        switch (definition.id) {
+    properties.forEach(({ expression }) => {
+        switch (expression.id) {
             case "Cover initialized name":
                 parser.throw_unexpected_token(
                     "Invalid shorthand property initializer",
-                    definition
+                    expression
                 );
                 break;
             case "Property assignment":
-                let node = definition.expression;
+                let node = expression.expression;
                 for (let id of nested_literals_tree) {
                     if (node.id === id) {
                         node = node.expression;

@@ -1,3 +1,21 @@
+
+style = `
+my-main {
+    display: block;
+}
+	`;
+str = `\`${ attrs[i].value }\``;
+str = `
+ANON_FN
+return anonymous.call(this_arg, $ctrls);
+`;
+
+str = `[${MARKER}="${this.id}"]`;
+a = `
+    "${ a }"
+`;
+
+
 //"use strict";
 // 12.2 - Primary expressions
 // --------------------------

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : return_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-09
+* Updated at  : 2019-09-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -28,6 +28,7 @@ const valid_return_contexts = [
     "Async method body",
     "Async function body",
     "Arrow function body",
+    "Async arrow function body",
 ];
 
 module.exports = {

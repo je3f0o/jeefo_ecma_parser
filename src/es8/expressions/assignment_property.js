@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_property.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-06
+* Updated at  : 2019-09-16
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -30,24 +30,24 @@ module.exports = {
         }
 
         let expression;
-        switch (property.definition.id) {
+        switch (property.expression.id) {
             case "Identifier reference" :
-                expression = property.definition;
+                expression = property.expression;
                 break;
             case "Cover initialized name" :
                 expression = parser.refine(
                     "assignment_property_identifier",
-                    property.definition
+                    property.expression
                 );
                 break;
             case "Property assignment":
                 expression = parser.refine(
                     "assignment_property_element",
-                    property.definition
+                    property.expression
                 );
                 return;
             default:
-                parser.throw_unexpected_refine(node, property.definition);
+                parser.throw_unexpected_refine(node, property.expression);
         }
 
         node.expression = expression;
