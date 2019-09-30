@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_literal.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-16
+* Updated at  : 2019-10-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -44,6 +44,7 @@ validate_expression = (node, parser) => {
             validate_expression(node.expression, parser);
             break;
         case "Literal" :
+        case "Template literal" :
         case "Identifier reference" :
             break;
         case "Object literal" :

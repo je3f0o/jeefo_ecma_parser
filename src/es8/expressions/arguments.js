@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arguments.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-08
+* Updated at  : 2019-09-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -39,7 +39,7 @@ module.exports = {
         parser.prepare_next_state("assignment_expression", true);
         while (! is_close_parenthesis(parser)) {
             if (parser.next_token.id === "Rest") {
-                parser.change_states("spread_element", "expression");
+                parser.change_state("spread_element");
             }
             list.push(parser.generate_next_node());
 
