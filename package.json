@@ -1,7 +1,7 @@
 {
-  "name": "jeefo_javascript_parser",
-  "version": "0.0.20",
-  "description": "jeefo javascript parser",
+  "name": "@jeefo/ecma_parser",
+  "version": "0.0.0",
+  "description": "Part of jeefo framework.",
   "author": {
     "name": "je3f0o",
     "email": "je3f0o@gmail.com"
@@ -11,9 +11,8 @@
   "copyright": "2017",
   "main": "index.js",
   "scripts": {
-    "test_es5": "./node_modules/mocha/bin/mocha \"specs/es5/**/*_specs.js\"",
-    "test_es5_statements": "./node_modules/mocha/bin/mocha \"specs/es5/statements/*_specs.js\"",
-    "build": "node build"
+    "save": "git add . && git c \"`date`\" && git p",
+    "jeefo_publish": "node node_modules/@jeefo/publish/publish.js"
   },
   "repository": {
     "type": "git",
@@ -21,16 +20,17 @@
   },
   "keywords": [
     "jeefo",
+    "je3f0o",
     "token",
     "parser",
-    "tokenizer"
+    "tokenizer",
+    "ECMA Parser"
   ],
   "devDependencies": {
     "expect.js": "^0.3.1",
     "mocha": "^6.0.2"
   },
   "dependencies": {
-    "@jeefo/parser": "^0.0.1",
-    "@jeefo/tokenizer": "^0.0.1"
+    "@jeefo/parser": "0.0.21"
   }
 }

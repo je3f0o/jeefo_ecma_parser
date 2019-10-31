@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : boolean_literal.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-04
+* Updated at  : 2019-10-11
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -21,11 +21,11 @@ const { expression, literal } = require("../enums/states_enum.js");
 
 module.exports = {
     id         : "Boolean literal",
-	type       : "Expression",
-	precedence : EXPRESSION,
+    type       : "Expression",
+    precedence : EXPRESSION,
 
-    is         : (_, parser) => parser.current_state === expression,
-	initialize : (node, token, parser) => {
+    is         : (_, { current_state : s }) => s === expression,
+    initialize : (node, token, parser) => {
         node.pre_comment = get_pre_comment(parser);
         node.value       = token.value;
         node.start       = token.start;
