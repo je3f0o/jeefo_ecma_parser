@@ -1,6 +1,6 @@
 {
     "name": "@jeefo/ecma_parser",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Part of jeefo framework.",
     "author": {
         "name": "je3f0o",
@@ -33,6 +33,6 @@
         "mocha": "^6.0.2"
     },
     "dependencies": {
-        "@jeefo/parser": "0.0.23"
+        "@jeefo/parser": "0.0.24"
     }
 }
