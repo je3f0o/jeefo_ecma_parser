@@ -1,6 +1,6 @@
 {
     "name": "@jeefo/ecma_parser",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Part of jeefo framework.",
     "author": {
         "name": "je3f0o",
@@ -12,6 +12,7 @@
     "main": "index.js",
     "scripts": {
         "save": "git add . && git c \"`date`\" && git p",
+        "save_version": "git add . && git c \"v$npm_package_version\" && git p",
         "jeefo_publish": "node node_modules/@jeefo/publish/publish.js"
     },
     "repository": {
@@ -32,6 +33,6 @@
         "mocha": "^6.0.2"
     },
     "dependencies": {
-        "@jeefo/parser": "0.0.21"
+        "@jeefo/parser": "0.0.23"
     }
 }
