@@ -1,4 +1,10 @@
 
+zz = `
+    zzz
+    ${ ff }
+qwe
+`;
+
 style = `
 my-main {
     display: block;
@@ -200,3 +206,4 @@ a,b,c;
 
 label :
 while (false) {}
+
