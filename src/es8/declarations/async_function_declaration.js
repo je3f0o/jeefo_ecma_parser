@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_function_declaration.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-09-07
+* Updated at  : 2019-12-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,13 +15,16 @@
 
 // ignore:end
 
-const { is_expression }              = require("../../es5/helpers");
-const { is_identifier_value }        = require("../../helpers");
+const { is_expression } = require("../../es5/helpers");
+const {
+    is_identifier_value,
+    has_no_line_terminator,
+} = require("../../helpers");
 const { ASYNC_FUNCTION_DECLARATION } = require("../enums/precedence_enum");
 const {
     statement,
     async_function_expression,
-    async_arrow_binding_identifier,
+    async_arrow_function_with_id,
 } = require("../enums/states_enum");
 
 const is_async_fn  = (token, parser) => {
@@ -30,14 +33,18 @@ const is_async_fn  = (token, parser) => {
     const next_token = parser.look_ahead();
     if (! next_token || next_token.start.line > token.end.line) { return; }
 
-    if (next_token.id === "Identifier") {
+    const is_possible_async_fn = (
+        next_token.id === "Identifier" &&
+        has_no_line_terminator(token, next_token)
+    );
+    if (is_possible_async_fn) {
         if (parser.current_state === statement) {
             return next_token.value === "function";
         } else if (is_expression(parser)) {
             if (next_token.value === "function") {
                 parser.current_state = async_function_expression;
             } else {
-                parser.current_state = async_arrow_binding_identifier;
+                parser.current_state = async_arrow_function_with_id;
             }
         }
     }

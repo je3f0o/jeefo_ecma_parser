@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_call_expression.js
 * Created at  : 2019-09-06
-* Updated at  : 2019-09-07
+* Updated at  : 2019-12-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -51,7 +51,8 @@ module.exports = {
             callee.id               === "Primary expression" &&
             callee.expression.id    === "Identifier reference" &&
             callee.expression.value === "async" &&
-            next_token && is_arrow_token(next_token)
+            next_token && is_arrow_token(next_token) &&
+            next_token.start.line === args.end.line
         );
 
         if (is_async_function) {

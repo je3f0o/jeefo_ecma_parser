@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_function.js
 * Created at  : 2019-08-12
-* Updated at  : 2019-09-08
+* Updated at  : 2019-12-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,17 +15,24 @@
 
 // ignore:end
 
-const { EXPRESSION }                = require("../enums/precedence_enum");
-const { expression }                = require("../enums/states_enum");
-const { get_last_non_comment_node } = require("../../helpers");
+const { EXPRESSION } = require("../enums/precedence_enum");
+const { expression } = require("../enums/states_enum");
+const {
+    is_arrow_token,
+    has_no_line_terminator,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 module.exports = {
     id         : "Arrow function",
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is (token, { current_state }) {
-        return current_state === expression && token.id === "Arrow";
+    is (token, parser) {
+        if (parser.current_state === expression && is_arrow_token(token)) {
+            const last_node = get_last_non_comment_node(parser);
+            return last_node && has_no_line_terminator(last_node, token);
+        }
     },
     initialize (node, token, parser) {
         const last_node = get_last_non_comment_node(parser);

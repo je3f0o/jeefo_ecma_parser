@@ -93,6 +93,10 @@ o = {
 
 o = { z : {}, i : [2 > {}] };
 
+// 14.7
+fn = async yeild => {
+    await fn();
+};
 
 3..property;
 //super.property = assignment_expression;

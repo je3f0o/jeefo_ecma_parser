@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_formal_parameters.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-03
+* Updated at  : 2019-12-13
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -27,7 +27,6 @@ module.exports = {
         return parser.current_state === arrow_formal_parameters;
     },
 	initialize (node, token, parser) {
-        console.log(node.id);
         const {
             list : input_list,
             delimiters,

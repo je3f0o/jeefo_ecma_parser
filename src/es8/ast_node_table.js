@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-21
+* Updated at  : 2019-12-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -122,10 +122,13 @@ module.exports = ast_node_table => {
         "./expressions/async_method",
         "./expressions/async_method_body",
         "./expressions/async_concise_body",
-        "./expressions/async_arrow_function",
-        "./expressions/async_arrow_function_body",
         "./expressions/async_function_expression",
         "./declarations/async_function_declaration",
+
+        // 14.7 - Async arrow function definitions
+        "./expressions/async_arrow_function",
+        "./expressions/async_arrow_function_body",
+        "./expressions/async_arrow_binding_identifier",
     ].forEach(path => {
         const def = require(path);
         if (! def.initialize) {

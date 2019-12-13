@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-21
+* Updated at  : 2019-12-14
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -78,6 +78,14 @@ module.exports = [
     "async_method",
     "async_method_body",
     "async_concise_body",
+    "async_function_body",
+    "async_function_expression",
+
+    // 14.7 - Async arrow function definitions
+    "async_arrow_function",
+    "async_arrow_function_body",
+    "async_arrow_function_with_id",
+    "async_arrow_binding_identifier",
 
     // ...
     "arguments_state",
@@ -88,12 +96,6 @@ module.exports = [
 
     // Bindings
     "assignment_pattern",
-
-    // Async functions
-    "async_arrow_function",
-    "async_arrow_function_body",
-    "async_function_expression",
-    "async_function_body",
 ].reduce((states, key, index) => {
     if (states[key]) {
         console.log("Duplicated state:", key);
