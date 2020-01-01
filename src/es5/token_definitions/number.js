@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : number.js
 * Created at  : 2019-03-05
-* Updated at  : 2019-09-19
+* Updated at  : 2019-12-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -184,12 +184,14 @@ module.exports = {
             }
 
             const next_char = streamer.at(start.index + offset);
-            const is_valid = (
-                delimiters.includes(next_char) ||
-                white_spaces.includes(next_char)
-            );
-            if (! is_valid) {
-                throw new SyntaxError("Invalid or unexpected token");
+            if (next_char) {
+                const is_valid = (
+                    delimiters.includes(next_char) ||
+                    white_spaces.includes(next_char)
+                );
+                if (! is_valid) {
+                    throw new SyntaxError("Invalid or unexpected token");
+                }
             }
         }
 
