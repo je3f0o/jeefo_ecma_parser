@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : unary_operators.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-08-28
+* Updated at  : 2020-02-27
 * Author      : jeefo
 * Purpose     :
 * Description : Prefix and postfix unary operator parsers.
@@ -73,10 +73,10 @@ module.exports = function register_unary_operators (ast_node_table) {
     // initialize
     skeleton_def.initialize = (node, current_token, parser) => {
         const keyword = terminal_definition.generate_new_node(parser);
-        prepare_next_expression(parser, true);
+        parser.prepare_next_state("expression", true);
 
         node.keyword    = keyword;
-        node.expression = parser.parse_next_node(node.precedence);
+        node.expression = parser.parse_next_node(node.precedence - 1);
         node.start      = keyword.start;
         node.end        = node.expression.end;
     };
@@ -89,10 +89,10 @@ module.exports = function register_unary_operators (ast_node_table) {
     // Prefix operators (16)
     skeleton_def.initialize = (node, current_token, parser) => {
         const operator = terminal_definition.generate_new_node(parser);
-        prepare_next_expression(parser, true);
+        parser.prepare_next_state("expression", true);
 
         node.operator   = operator;
-        node.expression = parser.parse_next_node(node.precedence);
+        node.expression = parser.parse_next_node(node.precedence - 1);
         node.start      = operator.start;
         node.end        = node.expression.end;
     };

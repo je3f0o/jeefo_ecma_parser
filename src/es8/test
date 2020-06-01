@@ -5,6 +5,9 @@ zz = `
 qwe
 `;
 
+a = !! b;
+void void 2;
+
 style = `
 my-main {
     display: block;
