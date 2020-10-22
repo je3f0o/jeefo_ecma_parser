@@ -1,6 +1,6 @@
 {
     "name": "@jeefo/ecma_parser",
-    "version": "0.0.8",
+    "version": "0.0.9",
     "description": "Another ECMA parser. (under developing...)",
     "author": {
         "name": "je3f0o",
@@ -25,7 +25,7 @@
         "ECMA Parser"
     ],
     "devDependencies": {
-        "@jeefo/parser": "0.0.25",
+        "@jeefo/parser": "0.0.26",
         "@jeefo/publish": "0.0.31"
     },
     "dependencies": {}
