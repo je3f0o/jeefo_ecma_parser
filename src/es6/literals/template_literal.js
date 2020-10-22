@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : template_literal.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-12-13
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,14 +15,17 @@
 
 // ignore:end
 
-const { AST_Node_Definition }            = require("@jeefo/parser");
-const { is_close_curly }                 = require("../../helpers");
-const { PRIMITIVE, TERMINATION }         = require("../enums/precedence_enum");
-const { expression, primary_expression } = require("../enums/states_enum");
+const {expression}              = require("../enums/states_enum");
+const {AST_Node_Definition}     = require("@jeefo/parser");
+const {EXPRESSION, TERMINATION} = require("../enums/precedence_enum");
+const {
+    is_close_curly,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 const template_string = new AST_Node_Definition({
 	id         : "Template literal string",
-    type       : "Primitive",
+    type       : "Primary expression",
 	precedence : -1,
 
     is         : () => {},
@@ -129,21 +132,22 @@ const template_string = new AST_Node_Definition({
 
 const template_expression = new AST_Node_Definition({
 	id         : "Template literal expression",
-    type       : "Primitive",
+    type       : "Primary expression",
 	precedence : -1,
 
     is         : () => {},
-    initialize : (node, current_token, parser) => {
-        const { streamer } = parser.tokenizer;
-        const start        = streamer.clone_cursor_position();
+    initialize : (node, token, parser) => {
+        const {streamer} = parser.tokenizer;
+        const start      = streamer.clone_cursor_position();
 
 		streamer.cursor.move(1);
         parser.prepare_next_state("expression", true);
-
-        const expression = parser.parse_next_node(TERMINATION);
+        parser.parse_next_node(TERMINATION);
+        const expr = get_last_non_comment_node(parser, true);
         parser.expect('}', is_close_curly);
+        parser.is_terminated = false;
 
-        node.expression = expression;
+        node.expression = expr;
         node.start      = start;
         node.end        = streamer.clone_cursor_position();
     }
@@ -151,13 +155,12 @@ const template_expression = new AST_Node_Definition({
 
 module.exports = {
     id         : "Template literal",
-    type       : "Primitive",
-    precedence : PRIMITIVE,
+    type       : "Primary expression",
+    precedence : EXPRESSION,
 
-    is : (token, { current_state }) => {
-        return current_state === expression && token.id === "Backtick";
-    },
-    initialize : (node, current_token, parser) => {
+    is : ({id}, {current_state: s}) => s === expression && id === "Backtick",
+
+    initialize (node, token, parser) {
         const body           = [];
         const { streamer }   = parser.tokenizer;
         const start_position = streamer.clone_cursor_position();
@@ -199,26 +202,8 @@ module.exports = {
         node.start = start_position;
         node.end   = streamer.clone_cursor_position();
 
-        /*
-        node.body.forEach(n => {
-            console.log("----------");
-            console.log(streamer.substring_from_token(n)
-                .replace(/ /g, '.')
-                .replace(/\n/g, '\\n')
-            );
-            console.log(n.start);
-            console.log(n.end);
-            console.log("--------------------------");
-        });
-        console.log();
-        console.log(streamer.substring_from_token(node));
-        console.log(node.start);
-        console.log(node.end);
-        process.exit();
-        */
-
-        // It's important, since there is no real next token
-        parser.next_token    = node;
-        parser.current_state = primary_expression;
+        token.start = token.end = node.end;
+        parser.next_token = token;
+        parser.end(node);
     }
 };

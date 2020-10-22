@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_expression.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-09-08
+* Updated at  : 2020-08-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,29 +15,29 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { is_open_parenthesis } = require("../../helpers");
+const {EXPRESSION}          = require("../enums/precedence_enum");
+const {is_open_parenthesis} = require("../../helpers");
 const {
-    primary_expression,
+    expression,
     function_expression,
 } = require("../enums/states_enum");
 
 module.exports = {
     id         : "Function expression",
-    type       : "Expression",
+    type       : "Primary expression",
     precedence : EXPRESSION,
+    is         : (_, {current_state: s}) => s === function_expression,
 
-    is         : (_, parser) => parser.current_state === function_expression,
     initialize : (node, token, parser) => {
         let name = null;
         parser.change_state("keyword");
         const keyword = parser.generate_next_node();
 
         const prev_suffix = parser.suffixes;
-        parser.suffixes = [];
+        parser.suffixes = ["in"];
 
         parser.prepare_next_state("binding_identifier", true);
-        if (! is_open_parenthesis(parser)) {
+        if (parser.next_token.id === "Identifier") {
             name = parser.generate_next_node();
             parser.prepare_next_state("formal_parameters", true);
         } else {
@@ -56,6 +56,6 @@ module.exports = {
         node.end         = body.end;
 
         parser.suffixes      = prev_suffix;
-        parser.current_state = primary_expression;
+        parser.current_state = expression;
     }
 };

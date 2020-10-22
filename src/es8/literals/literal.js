@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : literal.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-08
+* Updated at  : 2020-08-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -34,6 +34,6 @@ module.exports = {
     },
 
     protos : {
-        is_valid_simple_assignment_target () { return false; }
+        is_valid_simple_assignment_target : () => false,
     }
 };

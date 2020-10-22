@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : sequence_expression.js
 * Created at  : 2019-03-28
-* Updated at  : 2019-09-08
+* Updated at  : 2020-08-27
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { COMMA }      = require("../enums/precedence_enum");
-const { expression } = require("../enums/states_enum");
+const {COMMA}      = require("../enums/precedence_enum");
+const {expression} = require("../enums/states_enum");
 const {
     is_comma,
     is_delimiter_token,
@@ -37,7 +37,9 @@ module.exports = {
     },
     initialize : (node, token, parser) => {
         let last_node = get_last_non_comment_node(parser);
-        last_node = parser.refine("assignment_expression", last_node);
+        last_node = parser.refine("assignment_expression", {
+            id: node.id, last_node
+        });
 
         const delimiters  = [];
         const expressions = [last_node];

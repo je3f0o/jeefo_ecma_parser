@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : number.js
 * Created at  : 2019-03-05
-* Updated at  : 2019-12-25
+* Updated at  : 2020-10-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -140,7 +140,10 @@ module.exports = {
         } else if (current_character === '0') {
             let next_char = streamer.get_next_character();
 
-            if (hex_indicator.includes(next_char)) {
+            if (next_char === null) {
+                offset     = 1;
+                is_decimal = true;
+            } else if (hex_indicator.includes(next_char)) {
                 type   = "Hex integer";
                 offset = parse_hex_integer(streamer, start.index, 2);
             } else if (exponent_indicator.includes(next_char)) {

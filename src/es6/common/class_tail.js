@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : class_tail.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-09-07
+* Updated at  : 2020-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,22 +15,21 @@
 
 // ignore:end
 
-const { EXPRESSION } = require("../enums/precedence_enum");
-const { class_tail } = require("../enums/states_enum");
+const {EXPRESSION}          = require("../enums/precedence_enum");
+const {class_tail}          = require("../enums/states_enum");
+const {is_identifier_token} = require("../../helpers");
 
 module.exports = {
     id         : "Class tail",
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === class_tail,
+    is         : (_, {current_state: s}) => s === class_tail,
     initialize : (node, token, parser) => {
         let heritage = null;
-        parser.change_state("class_heritage");
-        if (parser.is_next_node("Class heritage")) {
+        if (is_identifier_token(token, "extends")) {
+            parser.change_state("class_heritage");
             heritage = parser.generate_next_node();
-        } else if (parser.next_token.id === "Identifier") {
-            parser.throw_unexpected_token("Unexpected identifier");
         }
 
         parser.change_state("class_body");

@@ -1,4 +1,135 @@
 
+object
+.
+// comment
+identifier;
+
+const {p = 1} = {};
+
+fn = async (p1,p2) => { /*cccc*/ };
+
+with (expr) {}
+
+s = () => {
+},
+object_define_property(5);
+
+[let] = [];
+
+"use strict";
+
+(1,2,
+() => {}
+,4
+)
+
+1,2,
+3
+fn = () => {}; + 1
+
+// 11.9.1 - Rules of Automatic Semicolon Insertion
+a
+b
+do; while(false) 'ASI before me'
+
+// Expression Error cases
+//a 1;
+//a = function () {} + 1
+
+o = {
+    get
+    ,
+    p
+        :
+            expr
+    ,
+    method
+           (
+            )
+             {
+              }
+    ,
+    *
+      gen
+          (
+           )
+            {
+            }
+    ,
+    get
+        abc
+            (
+             )
+              {
+               }
+    ,
+    set
+        abc
+            (
+             v
+              )
+               {
+                }
+    ,
+    async abc
+              (
+               )
+                {
+                 }
+    ,
+};
+
+// Identifiers
+// ===========
+//for (;false;) label: function fn () {}
+
+x = ref_id;
+({binding_id} = {});
+
+// Error case
+//in = ref_id;
+//enum = ref_id;
+
+// Error case when strict mode
+//let = ref_id;
+//static = ref_id;
+//implements = ref_id;
+
+super
+     .
+      super;
+
+super
+[
+    p
+];
+
+o
+ .
+  p;
+
+({operator, right: expression} = expr);
+router.get('*', async ({ request }, res) => {})
+
+x = o.m(v => {});
+async function f () { x = await f(); }
+console.warn(`Undefined mime: ${
+    mime
+}`);
+
+o = {
+    p : [
+        new Something(),
+    ]
+};
+
+const a = 1
+
+const calculate_list_style = ({
+    $list, $select, $container, $root = jqlite(document.body)
+} /* c */ = {}) => {
+};
+
 zz = `
     zzz
     ${ ff }
@@ -12,18 +143,19 @@ style = `
 my-main {
     display: block;
 }
-	`;
+`;
+
 str = `\`${ attrs[i].value }\``;
 str = `
 ANON_FN
 return anonymous.call(this_arg, $ctrls);
 `;
 
+
 str = `[${MARKER}="${this.id}"]`;
 a = `
     "${ a }"
 `;
-
 
 //"use strict";
 // 12.2 - Primary expressions
@@ -94,21 +226,27 @@ o = {
     id = 123
 } = {});
 
+//({ nested : { p2 = 1 } });
+
+fn = (...rest) => {}
+fn = (...{}) => {}
+fn = (...[]) => {}
+
 o = { z : {}, i : [2 > {}] };
 
 // 14.7
-fn = async yeild => {
-    await fn();
-};
+fn = async yeild => { await fn(); };
 
 3..property;
-//super.property = assignment_expression;
 object.property = assignment_expression;
+super.property = assignment_expression;
 
 id_ref = assignment_expression;
 fn = function       () {};
 fn = function await () {};
 fn = function yield () {};
+
+fn = async () => await 2;
 
 async (
     p1, {}, [],
@@ -119,15 +257,40 @@ async (
     [...{}] = []
 ) => {};
 
+function call (a,b,c) {
+}
+call(1,2,3);
+
 () => {};
 (p1, {}, [], p2 = 1, {} = {}, [] = []) => {};
 
 fn();
 
-// Statements
-var   let = 2;
+// Declarations and the Variable statement
+// Variable statement
+var a;
+var a,b;
+var a=1,b;
+var a,b=1;
+var [] = [];
+var {} = {};
+var a,
+    b
+var a
+    ,b
+
+// error
+//var () = {};
+
 let   $var;
 const $var = value;
+const x = o.let;
+// error cases
+//let const = 123;
+//let {let} = {};
+//fn = async () => { let await = 123; }
+// Non-strict mode
+//var let = 2;
 
 let [] = [];
 let [,] = [];
@@ -138,6 +301,8 @@ let { prop = default_value } = {};
 let { prop:binding_id = default_value, a } = {};
 let { prop:{ nested } } = {};
 let { prop:[] } = {};
+let { 123:[] } = {};
+let { "str":[] } = {};
 let { [computed]:[] } = {};
 
 // Functions and class
@@ -161,56 +326,98 @@ class A extends B {
     3.14       () {}
     "str"      () {}
     static     () {}
+    id         () {}
     // Getters
     get 3.14       () {}
     get "str"      () {}
     get static     () {}
     get [computed] () {}
+    get id         () {}
     // Setter
     set 3.14       (v) {}
     set "str"      (v) {}
     set static     (v) {}
     set [computed] (v) {}
+    set id         (v) {}
     // Statics
     static 3.14       () {}
     static "str"      () {}
     static static     () {}
     static [computed] () {}
+    static id         () {}
     // Static getters
     static get 3.14       () {}
     static get "str"      () {}
     static get static     () {}
     static get [computed] () {}
+    static get id         () {}
     // Static setters
     static set 3.14       (v) {}
     static set "str"      (v) {}
     static set static     (v) {}
     static set [computed] (v) {}
+    static set id         (v) {}
+    // Static async
+    static async 3.14       () {}
+    static async "str"      () {}
+    static async static     () {}
+    static async [computed] () {}
 }
 
-for (var i in []) {}
-for (var i = 2 in []) {}
-for (let i in []) {}
-for (let [] in []) {}
-for (const i in []) {}
-for (const [] in []) {}
-for (i in []) {}
+// for_variable_declaration
+for (var i in []);
+for (var i of []);
+for (var i in
+    []
+);
+for (var i of
+    []
+);
+// Non-strict code.
+//for (var i = 2 in []);
 
-for (var i of []) {}
-for (let i of []) {}
-for (let [] of []) {}
-for (const i of []) {}
-for (const [] of []) {}
-for (o in []) {}
+// for_declaration
+for (let v in []);
+for (let v of []);
+for (let [] in []);
+for (let {} in []);
+for (let [] of []);
+for (let {} of []);
+for (const v in []);
+for (const [] in []);
+for (const {} in []);
+for (const [] of []);
+for (const {} of []);
+// Non-strict code.
+//for (let in []);
+//for (let of []);
+// error case
+//for (const of []) {}
+//for (const in []) {}
+//for (var {} = {} in []) {}
 
-for (var i = 2;;) {}
-for (let i = 2;;) {}
-for (const i = 2;;) {}
+// for_statement -> lexical_declaration
+for (const x = y, y = z;;);
+for (let x,y;;);
+for (const i = 123;;);
+
+for (var i = 2;;);
 for (;;) {}
 for (i = 0, len = 10;;) {}
+//for (var i = 2 in []); // Non-strict code.
+
+// Error cases
+//for (let x, let = 2;;) {}
 
 a,b,c;
 
 label :
 while (false) {}
+
+class Class {
+    constructor ({
+        $list, $select, $container, $root = jqlite(document.body)
+    } = {}) {
+    }
+}
 

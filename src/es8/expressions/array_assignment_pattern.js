@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_assignment_pattern.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-05
+* Updated at  : 2020-08-24
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,7 +23,7 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is     : (_, { current_state : s }) => s === array_assignment_pattern,
+    is     : (_, {current_state: s}) => s === array_assignment_pattern,
 	refine : (node, array_literal, parser) => {
         let {
             delimiters,
@@ -43,7 +43,7 @@ module.exports = {
         node.element_list         = element_list;
         node.delimiters           = delimiters;
         node.close_square_bracket = close_square_bracket;
-        node.start                = open_square_bracket.start;
-        node.end                  = close_square_bracket.end;
+        node.start                = array_literal.start;
+        node.end                  = array_literal.end;
     },
 };

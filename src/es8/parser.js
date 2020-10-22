@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-12-14
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -41,5 +41,17 @@ for_each(my_states, (key, value) => {
         parser.state.add(key, value);
     }
 });
+
+/*
+const get_node_definitions = () => {
+    const nodes = [];
+    Object.keys(parser.ast_node_table.reserved_words).forEach(key => {
+        nodes.push(parser.ast_node_table.reserved_words[key]);
+    });
+    return nodes.concat(parser.ast_node_table.node_definitions);
+};
+
+const nodes = get_node_definitions().map(n => n.id);
+*/
 
 module.exports = parser;

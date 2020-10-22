@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_arrow_function_body.js
 * Created at  : 2019-09-21
-* Updated at  : 2019-09-21
+* Updated at  : 2020-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,19 +15,18 @@
 
 // ignore:end
 
-const { ASYNC_ARROW_FUNCTION }      = require("../enums/precedence_enum");
-const { async_arrow_function_body } = require("../enums/states_enum");
+const {ASYNC_ARROW_FUNCTION}      = require("../enums/precedence_enum");
+const {async_arrow_function_body} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Async arrow function body",
-    type       : "Expression",
+    type       : "Assignment expression",
     precedence : ASYNC_ARROW_FUNCTION,
 
-    is         : (_, { current_state:s }) => s === async_arrow_function_body,
+    is         : (_, {current_state: s}) => s === async_arrow_function_body,
     initialize : (node, token, parser) => {
-        parser.suffixes.push("await");
+        token.on_looping = () => parser.suffixes.push("await");
         parser.change_state("function_body");
         parser.next_node_definition.initialize(node, token, parser);
-        parser.suffixes.pop();
     }
 };

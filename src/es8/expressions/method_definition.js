@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : method_definition.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-10
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,47 +15,63 @@
 
 // ignore:end
 
-const { EXPRESSION }        = require("../enums/precedence_enum");
-const { method_definition } = require("../enums/states_enum");
+const {STRUCTURE} = require("../enums/precedence_enum");
+const {
+    method_definition,
+    method_definition_async,
+    method_definition_getter,
+    method_definition_setter,
+    method_definition_generator,
+} = require("../enums/states_enum");
 const {
     is_asterisk_token,
     is_delimiter_token,
+    get_last_non_comment_node,
 } = require("../../helpers");
+
+const is_special_word = ({id, value}) =>
+    id === "Identifier name" && ["get", "set", "async"].includes(value);
+
+const parse_special_word = parser => {
+};
 
 module.exports = {
     id         : "Method definition",
-    type       : "Expression",
-    precedence : EXPRESSION,
+    type       : "Method definitions",
+    precedence : STRUCTURE,
+    is         : (_, {current_state: s}) => s === method_definition,
 
-    is         : (_, { current_state : s }) => s === method_definition,
-    initialize : (node, token, parser) => {
-        const next_token = parser.look_ahead(true);
-        if (is_delimiter_token(next_token, '(')) {
-            parser.change_state("method");
-        } else if (is_asterisk_token(token)) {
+    initialize (node, token, parser) {
+        if (is_asterisk_token(token)) {
             parser.change_state("generator_method");
-        } else if (token.id === "Identifier") {
-            switch (token.value) {
-                case "get" :
-                    parser.change_state("getter_method");
-                    break;
-                case "set" :
-                    parser.change_state("setter_method");
-                    break;
-                case "async" :
-                    parser.change_state("async_method");
-                    break;
-                default:
-                    parser.change_state("method");
-            }
         } else {
-            parser.change_state("method");
+            const property_name = get_last_non_comment_node(parser, true);
+            if (is_special_word(property_name.expression)) {
+                const next_token = parser.look_ahead(true);
+                if (is_delimiter_token(next_token, '(')) {
+                    parser.change_state("method");
+                } else {
+                    switch (property_name.expression.value) {
+                        case "get" :
+                            parser.change_state("getter_method");
+                            break;
+                        case "set" :
+                            parser.change_state("setter_method");
+                            break;
+                        case "async" :
+                            parser.change_state("async_method");
+                            break;
+                    }
+                }
+            } else {
+                parser.change_state("method");
+            }
         }
-        const expression = parser.generate_next_node();
 
-        node.expression = expression;
-        node.start      = expression.start;
-        node.end        = expression.end;
+        const method = parser.generate_next_node();
+        node.method  = method;
+        node.start   = method.start;
+        node.end     = method.end;
     },
 
     refine (node, property_name, parser) {

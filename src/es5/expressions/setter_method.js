@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : setter_method.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }    = require("../enums/precedence_enum");
-const { setter_method } = require("../enums/states_enum");
+const {STRUCTURE}     = require("../enums/precedence_enum");
+const {setter_method} = require("../enums/states_enum");
 
 const init = (node, keyword, parser) => {
     const property_name = parser.generate_next_node();
@@ -39,10 +39,10 @@ const init = (node, keyword, parser) => {
 
 module.exports = {
     id         : "Setter method",
-    type       : "Expression",
-    precedence : EXPRESSION,
+    type       : "Method definitions",
+    precedence : STRUCTURE,
 
-    is         : (_, { current_state : s }) => s === setter_method,
+    is         : (_, {current_state: s}) => s === setter_method,
     initialize : (node, token, parser) => {
         parser.change_state("contextual_keyword");
         const keyword  = parser.generate_next_node();

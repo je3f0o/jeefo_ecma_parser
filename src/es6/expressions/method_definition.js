@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : method_definition.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-09-07
+* Updated at  : 2020-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -41,11 +41,13 @@ const init = (node, property_name, parser) => {
 
 module.exports = {
     id         : "Method definition",
-    type       : "Expression",
+    type       : "Method definitions",
     precedence : METHOD_DEFINITION,
 
-    is         : (_, { current_state : s }) => s === method_definition,
+    is         : (_, {current_state: s}) => s === method_definition,
     initialize : (node, token, parser) => {
+        console.log("DEAD");
+        process.exit();
         parser.change_state("property_name");
         const property_name = parser.generate_next_node();
 

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_rest_element.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-08
+* Updated at  : 2020-08-26
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,30 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }           = require("../enums/precedence_enum");
-const { binding_rest_element } = require("../enums/states_enum");
-
-const identifier_tree = [
-    "New expression",
-    "Member expression",
-    "Primary expression",
-];
-
-function refine_left_hand_side_exrepssion (expression, parser) {
-    for (let id of identifier_tree) {
-        if (expression.id === id) {
-            expression = expression.expression;
-        } else {
-            break;
-        }
-    }
-    if (expression.id !== "Identifier reference") {
-        parser.throw_unexpected_token(
-            "Illegal property in declaration context", expression
-        );
-    }
-    return parser.refine("binding_identifier", expression);
-}
+const {EXPRESSION}           = require("../enums/precedence_enum");
+const {binding_rest_element} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Binding rest element",
@@ -54,8 +32,17 @@ module.exports = {
         node.start    = ellipsis.start;
 
         parser.prepare_next_state("binding_identifier", true);
-        if (! parser.next_node_definition) {
-            parser.change_state("binding_pattern");
+        switch (parser.next_token.id) {
+            case "Identifier": break;
+            case "Delimiter":
+                if (['{', '['].includes(parser.next_token.value)) {
+                    parser.change_state("binding_pattern");
+                } else {
+                    parser.throw_unexpected_token();
+                }
+                break;
+            default:
+                parser.throw_unexpected_token();
         }
         const element = parser.generate_next_node();
 
@@ -67,20 +54,23 @@ module.exports = {
 
     refine (node, expression, parser) {
         let ellipsis, element;
-        switch (expression.id) {
-            case "Assignment rest element" :
-                ellipsis = expression.ellipsis;
-                expression = expression.target.expression;
-                if (expression.id === "Left hand side expression") {
-                    element = refine_left_hand_side_exrepssion(
-                        expression.expression, parser
-                    );
-                } else {
-                    element = parser.refine("binding_pattern", expression);
-                }
-                break;
-            default:
-                parser.throw_unexpected_refine(node, expression);
+
+        try {
+            switch (expression.id) {
+                case "Assignment rest element" :
+                    ({ellipsis} = expression);
+                    const {target}   = expression;
+                    const state_name = target.id === "Identifier reference"
+                        ? "binding_identifier"
+                        : "binding_pattern";
+                    element = parser.refine(state_name, target);
+                    break;
+                default: throw expression;
+            }
+        } catch (error_node) {
+            console.log(error_node);
+            debugger
+            parser.throw_unexpected_refine(node, error_node);
         }
 
         node.ellipsis = ellipsis;

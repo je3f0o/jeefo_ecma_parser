@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : boolean_literal.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-10-11
+* Updated at  : 2020-08-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,23 +15,24 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { get_pre_comment }     = require("../../helpers");
-const { expression, literal } = require("../enums/states_enum.js");
+const { EXPRESSION }      = require("../enums/precedence_enum");
+const { expression }      = require("../enums/states_enum.js");
+const { get_pre_comment } = require("../../helpers");
 
 module.exports = {
     id         : "Boolean literal",
-    type       : "Expression",
+    type       : "Literal",
     precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === expression,
+    is         : (_, { current_state: s }) => s === expression,
     initialize : (node, token, parser) => {
         node.pre_comment = get_pre_comment(parser);
         node.value       = token.value;
         node.start       = token.start;
         node.end         = token.end;
-
-        parser.ending_index -= 1;
-        parser.current_state = literal;
     },
+
+    protos : {
+        is_valid_simple_assignment_target : () => false,
+    }
 };

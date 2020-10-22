@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : super_property.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-08
+* Updated at  : 2020-08-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,31 +15,35 @@
 
 // ignore:end
 
-const { MEMBER_EXPRESSION }  = require("../enums/precedence_enum");
-const { is_delimiter_token } = require("../../helpers");
+const {MEMBER_EXPRESSION} = require("../enums/precedence_enum");
 const {
-    super_call,
     expression,
-    member_expression,
+    super_call,
+    computed_super_property,
 } = require("../enums/states_enum");
-
-const is_dot = token => {
-    return token.id === "Operator" && token.value === '.';
-};
 
 module.exports = {
     id         : "Super property",
-    type       : "Expression",
+    type       : "Member expression",
     precedence : MEMBER_EXPRESSION,
 
     is (token, parser) {
-        if (parser.current_state === expression) {
-            const next_token = parser.look_ahead(true);
-            if (is_dot(next_token)) {
-                return true;
-            } else if (is_delimiter_token(next_token, '(')) {
-                parser.current_state = super_call;
-            }
+        if (parser.current_state !== expression) return;
+
+        const next_token = parser.look_ahead(true);
+        switch (next_token.id) {
+            case "Operator"  : return next_token.value === '.';
+            case "Delimiter" :
+                switch (next_token.value) {
+                    case '[' :
+                        parser.current_state = computed_super_property;
+                        break;
+                    case '(' :
+                        parser.current_state = super_call;
+                        break;
+                    default: parser.throw_unexpected_token();
+                }
+                break;
         }
     },
 
@@ -59,10 +63,7 @@ module.exports = {
         node.start    = keyword.start;
         node.end      = property.end;
 
-        parser.current_state = member_expression;
+        parser.end(node);
+        parser.current_state = expression;
     },
-
-    protos : {
-        is_valid_simple_assignment_target () { return true; }
-    }
 };

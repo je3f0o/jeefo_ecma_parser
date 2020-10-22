@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : test_parser.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-10-11
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -37,28 +37,18 @@ let source;
 if (process.argv.length > 2) {
     source = fs.readFileSync("./test", "utf8");
 } else {
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/peer.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/bootstrap.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/main.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/operators/binary_operators.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/delimiters.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/tokenizer.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_parser/src/unexpected_token_exception.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_parser/src/ast_node_table.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_parser/index.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/jqlite/src/event_methods.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/jqlite/src/index.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/template/tokens/element.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/resource/index.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/javascript_parser/src/es5/statements/throw_statement.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/services/session_manager.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/public/js/uuid_v4.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/component/src/component_definition.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/jeefo_modules/component/src/structure_component.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/components/shaders/basic_2d_shader.js", "utf8");
-    source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/components/main_component.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/components/player.js", "utf8");
-    //source = fs.readFileSync("/Users/jeefo/projects/my_own_secret_project/front_end/services/session_manager.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/@jeefo/ecma_parser/src/es6/expressions/initializer.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/service_worker/jeefo_router.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/service_worker/router.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/node_modules/@jeefo/parser/index.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/node_modules/@jeefo/parser/unexpected_token_exception.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/node_modules/@jeefo/utils/event_emitter.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/@jeefo/ecma_parser/src/es8/literals/numeric_literal.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/node_modules/@jeefo/jqlite/jeefo_element.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/wmc/front_end/libs/session/player.js", "utf8");
+    source = fs.readFileSync("/home/jeefo/projects/wmc/node_modules/@jeefo/material/services/typography.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/@jeefo/ecma_parser/node_modules/@jeefo/parser/index.js", "utf8");
+    //source = fs.readFileSync("/home/jeefo/projects/@jeefo/ecma_parser/node_modules/@jeefo/parser/ast_node_definition.js", "utf8");
 }
 
 const nodes = parser.parse(source);

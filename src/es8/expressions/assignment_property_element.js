@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_property_element.js
 * Created at  : 2019-09-06
-* Updated at  : 2019-09-06
+* Updated at  : 2020-08-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,10 +22,7 @@ module.exports = {
     id         : "Assignment property element",
 	type       : "Expression",
 	precedence : EXPRESSION,
-
-    is (_, { current_state }) {
-        return current_state === assignment_property_element;
-    },
+    is         : (_, {current_state: s}) => s === assignment_property_element,
 
 	refine (node, property, parser) {
         const element = parser.refine(

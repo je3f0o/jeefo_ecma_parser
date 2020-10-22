@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : expression_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,12 @@
 
 // ignore:end
 
-const { statement }     = require("../enums/states_enum");
-const { is_terminator } = require("../../helpers");
+const {statement, expression} = require("../enums/states_enum");
+const {
+    is_delimiter_token,
+    has_no_line_terminator,
+    get_last_non_comment_node,
+} = require("../../helpers");
 const {
     TERMINATION,
     EXPRESSION_STATEMENT,
@@ -27,29 +31,51 @@ module.exports = {
     type       : "Statement",
     precedence : EXPRESSION_STATEMENT,
 
-    is         : (_, { current_state : s }) => s === statement,
+    is         : (_, {current_state: s}) => s === statement,
     initialize : (node, token, parser) => {
-        let terminator      = null;
-        parser.post_comment = null;
-
+        const {streamer} = parser.tokenizer;
+        const prev_ASI = parser.ASI;
+        parser.ASI = true;
         parser.change_state("expression");
-        const expression = parser.parse_next_node(TERMINATION);
-        if (! expression) {
-            parser.throw_unexpected_token();
-        }
-
-        if (is_terminator(parser)) {
-            if (parser.post_comment !== null) {
-                parser.prev_node = parser.post_comment;
+        parser.context_stack.push(node.id);
+        let expr;
+        while (true) {
+            parser.parse_next_node(TERMINATION);
+            expr = get_last_non_comment_node(parser, true);
+            if (parser.is_terminated) {
+                const last_ch = streamer.get_current_character();
+                if (last_ch === '}') {
+                    const next_token = parser.look_ahead();
+                    if (next_token && is_delimiter_token(next_token, ',')) {
+                        parser.is_terminated = false;
+                        parser.current_state = expression;
+                        parser.prepare_next_node_definition();
+                        continue;
+                    }
+                }
             }
-            parser.change_state("punctuator");
+            break;
+        }
+        parser.context_stack.pop();
+
+        if (expr.id === "String literal" && expr.value === "use strict") {
+            parser.context_stack.push("strict mode");
+        }
+        parser.ASI = prev_ASI;
+        parser.end(expr);
+
+        let   terminator = null;
+        const next_token = parser.look_ahead();
+        if (next_token && has_no_line_terminator(expr, next_token)) {
+            parser.expect(';', is_delimiter_token(next_token, ';'));
+            parser.prepare_next_state("punctuator", true);
             terminator = parser.generate_next_node();
         }
 
-        node.expression = expression;
+        node.expression = expr;
         node.terminator = terminator;
-        node.start      = expression.start;
-        node.end        = (terminator || expression).end;
+        node.start      = expr.start;
+        node.end        = (terminator || expr).end;
 
         parser.terminate(node);
     }

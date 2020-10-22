@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_statement.js
 * Created at  : 2019-03-18
-* Updated at  : 2019-08-16
+* Updated at  : 2020-08-27
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,26 +15,26 @@
 
 // ignore:end
 
-const states_enum        = require("../../es5/enums/states_enum");
-const precedence_enum    = require("../../es5/enums/precedence_enum");
-const keyword_definition = require("../../es5/common/keyword_definition");
+const {STATEMENT} = require("../enums/precedence_enum");
+const {statement} = require("../enums/states_enum");
 
 const get_variable_bindings_list = require(
     "../helpers/get_variable_binding_list"
 );
+console.log("HELLO ???");
+process.exit();
 
 module.exports = {
     id         : "Variable statement",
     type       : "Statement",
-    precedence : precedence_enum.STATEMENT,
-
-    is : (current_token, parser) => {
-        return parser.current_state === states_enum.statement;
-    },
-    initialize : (node, current_token, parser) => {
-        const keyword  = keyword_definition.generate_new_node(parser);
+    precedence : STATEMENT,
+    is         : (_, {current_state: s}) => s === statement,
+    initialize : (node, token, parser) => {
+        parser.change_state("keyword");
+        const keyword  = parser.generate_next_node();
         let terminator = null;
 
+        // debug next
         parser.prepare_next_state("expression", true);
 
         const {

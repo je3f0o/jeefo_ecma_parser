@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : while_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-08-28
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,30 +15,38 @@
 
 // ignore:end
 
-const { statement }              = require("../enums/states_enum");
-const { terminal_definition }    = require("../../common");
-const { STATEMENT, TERMINATION } = require("../enums/precedence_enum");
+const {statement}              = require("../enums/states_enum");
+const {STATEMENT, TERMINATION} = require("../enums/precedence_enum");
+const {
+    is_identifier_token,
+    get_last_non_comment_node,
+} = require("../../helpers");
 
 module.exports = {
 	id         : "While statement",
-	type       : "Statement",
+	type       : "The while statement",
 	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === statement,
-    initialize : (node, current_token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+	is         : (_, {current_state: s}) => s === statement,
+    initialize : (node, token, parser) => {
+        parser.expect("while", is_identifier_token(token, "while"));
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
 
         parser.prepare_next_state("parenthesized_expression", true);
-        const expression = parser.generate_next_node();
+        const expr = parser.generate_next_node();
 
         // Statement
-        parser.prepare_next_state(null, true);
-        const statement = parser.parse_next_node(TERMINATION);
+        parser.prepare_next_state("statement", true);
+        parser.parse_next_node(TERMINATION);
+        const stmt = get_last_non_comment_node(parser, true);
 
         node.keyword           = keyword;
-        node.expression        = expression.expression;
-        node.statement         = statement;
+        node.expression        = expr;
+        node.statement         = stmt;
         node.start             = keyword.start;
-        node.end               = statement.end;
+        node.end               = stmt.end;
+
+        parser.terminate(node);
     }
 };

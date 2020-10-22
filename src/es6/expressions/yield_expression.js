@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : yield_expression.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-09-08
+* Updated at  : 2020-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,32 +15,21 @@
 
 // ignore:end
 
-const { expression }       = require("../enums/states_enum");
-const { YIELD_EXPRESSION } = require("../enums/precedence_enum");
+const {expression}       = require("../enums/states_enum");
+const {YIELD_EXPRESSION} = require("../enums/precedence_enum");
 const {
     is_asterisk_token,
     has_no_line_terminator,
 } = require("../../helpers");
 
-const valid_contexts = [
-    "Generator body",
-];
-
 module.exports = {
     id         : "Yield expression",
-    type       : "Expression",
+    type       : "Generator function definitions",
     precedence : YIELD_EXPRESSION,
 
-    is (token, { current_state, context_stack }) {
-        if (current_state === expression) {
-            let i = context_stack.length;
-            while (i--) {
-                if (valid_contexts.includes(context_stack[i])) {
-                    return true;
-                }
-            }
-        }
-    },
+    is: (token, {current_state: s, suffixes}) => (
+        s === expression && suffixes.includes("yield")
+    ),
     initialize (node, token, parser) {
         let asterisk  = null, expression = null;
         parser.change_state("keyword");

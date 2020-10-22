@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-09-06
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,58 +14,53 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-const { is_expression }      = require("../helpers");
-const { get_pre_comment }    = require("../../helpers");
-const { PRIMITIVE, COMMENT } = require("../enums/precedence_enum");
+const {expression}         = require("../enums/states_enum");
+const {get_pre_comment}    = require("../../helpers");
+const {PRIMITIVE, COMMENT} = require("../enums/precedence_enum");
 
 module.exports = function register_primitives (ast_node_table) {
     // Primitive key words
     const keyword_definition = {
-        type       : "Primitive",
+        type       : "Primary expression",
         precedence : PRIMITIVE,
-        is         : (token, parser) => is_expression(parser),
-        initialize : (node, current_token, parser) => {
+        is         : (_, {current_state: s}) => s === expression,
+        initialize : (node, token, parser) => {
             node.pre_comment = get_pre_comment(parser);
-            node.value       = current_token.value;
-            node.start       = current_token.start;
-            node.end         = current_token.end;
+            node.value       = token.value;
+            node.start       = token.start;
+            node.end         = token.end;
         }
     };
 
-    const primitive_keywords = [
+    [
         {
             id    : "Null literal",
             value : "null",
         },
         {
-            id    : "Undefined literal",
+            id    : "Undefined",
             value : "undefined",
         },
         {
-            id     : "Boolean literal",
-            values : ["true", "false"],
+            id    : "Boolean literal",
+            value : ["true", "false"],
         },
-    ];
-    primitive_keywords.forEach(keyword => {
-        keyword_definition.id = keyword.id;
-        if (keyword.value) {
-            ast_node_table.register_reserved_word(
-                keyword.value, keyword_definition
-            );
+    ].forEach(({id, value}) => {
+        keyword_definition.id = id;
+        if (Array.isArray(value)) {
+            ast_node_table.register_reserved_words(value, keyword_definition);
         } else {
-            ast_node_table.register_reserved_words(
-                keyword.values, keyword_definition
-            );
+            ast_node_table.register_reserved_word(value, keyword_definition);
         }
     });
 
     // Comment
     ast_node_table.register_node_definition({
         id         : "Comment",
-        type       : "Primitive",
+        type       : "Comment",
         precedence : COMMENT,
 
-        is         : token => token.id === "Comment",
+        is         : ({id}) => id === "Comment",
         initialize : (node, token, parser) => {
             let previous_comment = null;
             if (parser.prev_node && parser.prev_node.id === "Comment") {

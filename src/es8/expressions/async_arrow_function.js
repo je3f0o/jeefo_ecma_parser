@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_arrow_function.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-12-14
+* Updated at  : 2020-09-21
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,43 +15,46 @@
 
 // ignore:end
 
-const { ASYNC_ARROW_FUNCTION } = require("../enums/precedence_enum");
+const {EXPRESSION} = require("../enums/precedence_enum");
 const {
-    is_arrow_token,
-    is_identifier_token,
-    is_identifier_value,
+    is_arrow,
     has_no_line_terminator,
     get_last_non_comment_node
 } = require("../../helpers");
 const {
     expression,
     async_arrow_function,
-    async_arrow_function_with_id,
 } = require("../enums/states_enum");
-
-const async_arrow_function_states = [
-    async_arrow_function,
-    async_arrow_function_with_id,
-];
 
 module.exports = {
     id         : "Async arrow function",
-    type       : "Expression",
-    precedence : ASYNC_ARROW_FUNCTION,
-
-    is (token, { current_state }) {
-        return async_arrow_function_states.includes(current_state);
-    },
+    type       : "Assignment expression",
+    precedence : EXPRESSION,
+    is         : (_, {current_state: s}) => s === async_arrow_function,
 
     initialize (node, token, parser) {
         const prev_suffix = parser.suffixes;
-        parser.suffixes = ["await"];
+        parser.suffixes = ["in", "await"];
 
         let async_keyword, params;
-
-        if (parser.current_state === async_arrow_function_with_id) {
+        // TODO: make it two states
+        const left = get_last_non_comment_node(parser);
+        if (left) {
+            const {id, callee, arguments: args} = left;
+            parser.expect("CoverCallExpression", () => {
+                return id === "Function call expression";
+            });
+            async_keyword = parser.refine(
+                "terminal_symbol_keyword", callee.identifier.identifier_name
+            );
+            params = parser.refine("arrow_parameters", {
+                id: "Async arrow head",
+                args
+            });
+            parser.change_state("punctuator");
+        } else {
             // Async keyword
-            parser.change_state("contextual_keyword");
+            parser.change_state("terminal_symbol_keyword");
             async_keyword = parser.generate_next_node();
 
             // Async arrow binding identifier
@@ -60,20 +63,11 @@ module.exports = {
 
             // Arrow punctuator
             parser.prepare_next_state("punctuator", true);
-            parser.expect("Arrow punctuator", parser => {
-                return is_arrow_token(parser.next_token);
-            });
-            parser.expect("Malformed arrow punctuator", parser => {
-                return has_no_line_terminator(params, parser.next_token);
-            });
-        } else {
-            const { keyword, args } = get_last_non_comment_node(parser);
-            params        = parser.refine("arrow_parameters", args);
-            async_keyword = keyword;
-
-            parser.prepare_next_state("punctuator", true);
+            parser.expect("Arrow punctuator", is_arrow);
+            if (! has_no_line_terminator(params, parser.next_token)) {
+                parser.throw_unexpected_token("Malformed arrow punctuator");
+            }
         }
-
         const arrow_token = parser.generate_next_node();
 
         parser.prepare_next_state("async_concise_body", true);

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : destructuring_assignment_target.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-07
+* Updated at  : 2020-08-24
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,6 +18,8 @@
 const {EXPRESSION}                      = require("../enums/precedence_enum");
 const {destructuring_assignment_target} = require("../enums/states_enum");
 
+const lvalue = require("../semantics/left_hand_side_expression");
+
 const destructuring_expressions_tree = [
     "New expression",
     "Member expression"
@@ -25,29 +27,21 @@ const destructuring_expressions_tree = [
 
 module.exports = {
     id         : "Destructuring assignment target",
-	type       : "Expression",
+	type       : "Destructuring expression",
 	precedence : EXPRESSION,
 
-    is (_, { current_state }) {
-        return current_state === destructuring_assignment_target;
-    },
+    is : (_, {current_state: s}) => s === destructuring_assignment_target,
 
 	refine (node, expression, parser) {
-        parser.change_state("left_hand_side_expression");
-        const def = parser.next_node_definition;
-
-        if (def.is_destructuring(expression)) {
-            expression = parser.refine(
-                "assignment_pattern",
-                expression.expression
-            );
-        } else if (! expression.is_valid_simple_assignment_target(parser)) {
+        debugger
+        console.log(expression);
+        console.log("HELLO ????");
+        process.exit();
+        if (! lvalue.is_valid_simple_assignment_target(expression, parser)) {
             parser.throw_unexpected_token(
                 "Invalid destructuring assignment target",
                 expression
             );
-        } else {
-            expression = def._refine(expression, parser);
         }
 
         node.expression = expression;

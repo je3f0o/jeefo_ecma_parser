@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-18
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -39,22 +39,26 @@ module.exports = [
     "grouping_expression",
     "property_assignment",
     "empty_parameter_list",
-    "computed_property_name",
+    "computed_member_access",
 
     "contextual_keyword",
 
     "binding_element",
     "binding_pattern",
     "binding_property",
-    "binding_identifier",
     "single_name_binding",
     "binding_element_pattern",
     "binding_property_element",
 
     "super_call",
-    "meta_property",
+    "new_target",
     "arrow_parameters",
     "cover_initialized_name",
+
+    // 12.15.5 - Destructuring assignment
+    // Bindings
+    "assignment_pattern",
+    "object_assignment_pattern",
 
     // 14.2 - Arrow function
     "concise_body",
@@ -64,25 +68,28 @@ module.exports = [
     "arrow_formal_parameters",
 
     "var_statement",
-    "lexical_declaration",
 
     // TODO: Temporary state
     "async_state",
     "function_state",
 
+    // 13.3 - Declarations and the Variable statement
+    // ==============================================
+    //
     // Lexical declaration
     "binding_list",
+
+    // 13.3.1 - Let and Const declaration
     "lexical_binding",
     "lexical_property",
     "lexical_declaration",
 
     // For statement's lexical declarations
     "for_binding",
-    "for_of_header",
     "for_declaration",
-    "binding_list_no_in",
-    "lexical_binding_no_in",
-    "lexical_declaration_no_in",
+    "for_of_statement",
+    "for_in_statement",
+    "for_variable_declaration",
 
     "static_method",
     "class_tail",

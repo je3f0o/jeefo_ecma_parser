@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : regular_expression_literal.js
 * Created at  : 2019-03-26
-* Updated at  : 2019-08-26
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,10 @@
 
 // ignore:end
 
-const delimiters    = require("../token_definitions/delimiters");
-const is_expression = require("../helpers/is_expression");
-const { PRIMITIVE } = require("../enums/precedence_enum");
+const delimiters                  = require("../token_definitions/delimiters");
+const {PRIMITIVE}                 = require("../enums/precedence_enum");
+const {expression}                = require("../enums/states_enum");
+const {get_last_non_comment_node} = require("../../helpers/index");
 
 const REGEX_FLAGS = "gimuy";
 function parse_regular_expression_flags (parser) {
@@ -113,20 +114,17 @@ function parse_regular_expression (parser, start_index) {
 
 module.exports = {
     id         : "Regular expression literal",
-    type       : "Primitive",
+    type       : "Primary expression",
     precedence : PRIMITIVE,
 
-    is : (token, parser) => {
-        if (is_expression(parser) && parser.prev_node === null) {
-            return token.id === "Slash";
-        }
-    },
-    initialize : (node, current_token, parser) => {
-        node.pattern = parse_regular_expression(
-            parser, current_token.start.index
-        );
+    is : ({id}, parser) =>
+        parser.current_state === expression && id === "Slash" &&
+        get_last_non_comment_node(parser) === null,
+
+    initialize : (node, token, parser) => {
+        node.pattern = parse_regular_expression(parser, token.start.index);
         node.flags = parse_regular_expression_flags(parser);
-        node.start = current_token.start;
+        node.start = token.start;
         node.end   = parser.tokenizer.streamer.clone_cursor_position();
     }
 };

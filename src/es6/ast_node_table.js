@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -25,7 +25,10 @@ module.exports = ast_node_table => {
         { expression    : "Formal parameter list",    } ,
         { expression    : "Function call expression", } ,
         { expression    : "Function expression", } ,
+        //{ expression    : "For statement", } ,
+        { reserved_word : "var"                       } ,
         { reserved_word : "let"                       } ,
+        { reserved_word : "for"                       } ,
         { reserved_word : "new",                      } ,
         { reserved_word : "yield",                    } ,
         { reserved_word : "const"                     } ,
@@ -44,8 +47,6 @@ module.exports = ast_node_table => {
 
     // TODO: refactor later
     [
-        "./expressions/contextual_keyword",
-
         // 12.2.5 - Array literal
         "./literals/array_literal",
         // 12.2.6 - Object literal
@@ -59,18 +60,15 @@ module.exports = ast_node_table => {
         "./expressions/property_assignment",
         "./expressions/empty_parameter_list",
         "./expressions/cover_initialized_name",
-        "./expressions/computed_property_name",
+        "./expressions/computed_member_access",
 
         "./part/property_name",
         "./part/identifier_reference",
-        "./expressions/catch_parameter",
 
         "./expressions/generator_body",
         "./expressions/function_expression",
 
-        "./expressions/binding_element",
         "./expressions/binding_identifier",
-        "./expressions/formal_parameter_list",
 
         // Class
         "./common/class_tail",
@@ -78,8 +76,6 @@ module.exports = ast_node_table => {
         "./expressions/static_method",
 
         "./expressions/initializer",
-
-        "./expressions/assignable_left_hand_side_expression",
 
         // Statements
         // Variable declarations
@@ -92,38 +88,50 @@ module.exports = ast_node_table => {
         "./declarations/binding_list",
         "./declarations/lexical_binding",
 
-        // Generic helper node
-        "./declarations/assignable_declaration",
-
-        // For statement expressions
-        "./expressions/for_header",
-        "./expressions/for_in_header",
-        "./expressions/for_of_header",
-        "./expressions/for_iterator_header",
-        "./expressions/for_iterator_condition",
-        "./expressions/for_iterator_initializer",
-
-        // For statements declarations
-        "./declarations/for_binding",
-        "./declarations/for_declaration",
-        "./declarations/variable_declaration_no_in",
-        "./declarations/variable_declaration_list_no_in",
+        // For statement
+        "./statements/for_binding",
+        "./statements/for_declaration",
+        "./statements/for_of_statement",
+        "./statements/for_in_statement",
+        "./statements/for_variable_declaration",
+        "./statements/for_statement",
 
         // 14 - Functions
         "./expressions/concise_body",
         "./expressions/spread_element",
         "./expressions/arrow_parameters",
-        "./expressions/formal_parameters",
         "./expressions/arrow_function_body",
         "./expressions/arrow_formal_parameters",
     ].forEach(path => {
         ast_node_table.register_node_definition(require(path));
     });
 
-    ast_node_table.register_reserved_words(
-        ["let", "const"], require("./declarations/lexical_declaration")
-    );
-    ast_node_table.register_reserved_word(
-        "extends", require("./common/class_heritage")
-    );
+    [
+        {
+            reserved_words : "of",
+            path           : "./statements/for_of_operator",
+        },
+        {
+            reserved_words : "var",
+            path           : "./statements/variable_statement",
+        },
+        {
+            reserved_words : ["let", "const"],
+            path           : "./declarations/lexical_declaration",
+        },
+        {
+            reserved_words : "extends",
+            path           : "./common/class_heritage",
+        },
+        {
+            reserved_words : "for",
+            path           : "./statements/for_header",
+        }
+    ].forEach(({reserved_words: keyword, path}) => {
+        if (Array.isArray(keyword)) {
+            ast_node_table.register_reserved_words(keyword, require(path));
+        } else {
+            ast_node_table.register_reserved_word(keyword, require(path));
+        }
+    });
 };

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_declaration.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-08
+* Updated at  : 2020-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,41 +15,46 @@
 
 // ignore:end
 
-const { DECLARATION }          = require("../enums/precedence_enum");
-const { error_reporter }       = require("../helpers");
-const { is_assign_token }      = require("../../helpers");
-const { variable_declaration } = require("../enums/states_enum");
+const {STATEMENT}            = require("../enums/precedence_enum");
+const {is_operator_token}    = require("../../helpers");
+const {variable_declaration} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Variable declaration",
-    type       : "Declaration",
-    precedence : DECLARATION,
+    type       : "Variable statement",
+    precedence : STATEMENT,
 
-    is         : (_, { current_state : s }) => s === variable_declaration,
-    initialize : (node, token, parser) => {
-        let initializer = null, is_destructuring;
-
-        if (token.id === "Identifier") {
-            parser.change_state("binding_identifier");
-        } else {
-            is_destructuring = true;
-            parser.change_state("binding_pattern");
+    is         : (_, {current_state: s}) => s === variable_declaration,
+    initialize : (node, {id, value}, parser) => {
+        let is_destructuring;
+        switch (id) {
+            case "Identifier" :
+                parser.change_state("binding_identifier");
+                break;
+            case "Delimiter" :
+                // I'm expected BindingPattern but I typed VaraibleDeclaration
+                // here. Because for error message. Only for debugging.
+                parser.expect("VaraibleDeclaration", ['[','{'].includes(value));
+                is_destructuring = true;
+                parser.change_state("binding_pattern");
+                break;
+            default: parser.throw_unexpected_token();
         }
         const binding = parser.generate_next_node();
 
-        parser.set_prev_node(binding);
-        parser.prepare_next_node_definition();
-        if (parser.next_token && is_assign_token(parser.next_token)) {
-            parser.change_state("initializer");
+        let initializer = null;
+        parser.change_state("punctuator");
+        const next_token = parser.look_ahead();
+        if (next_token && is_operator_token(next_token, '=')) {
+            parser.prepare_next_state("initializer");
             initializer = parser.generate_next_node();
-        }
-        if (is_destructuring && ! initializer) {
-            error_reporter.missing_initializer_in_destructuring(parser);
         }
 
         node.binding     = binding;
         node.initializer = initializer;
         node.start       = binding.start;
         node.end         = (initializer || binding).end;
-    }
+
+        parser.end(node);
+    },
 };

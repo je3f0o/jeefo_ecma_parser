@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : generator_body.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-06
+* Updated at  : 2020-08-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,19 +15,17 @@
 
 // ignore:end
 
-const { EXPRESSION }     = require("../enums/precedence_enum");
-const { generator_body } = require("../enums/states_enum");
+const {EXPRESSION}     = require("../enums/precedence_enum");
+const {generator_body} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Generator body",
-    type       : "Expression",
+    type       : "Generator function definitions",
     precedence : EXPRESSION,
-
-    is         : (_, parser) => parser.current_state === generator_body,
+    is         : (_, {current_state: s}) => s === generator_body,
     initialize : (node, token, parser) => {
-        parser.suffixes.push("yield");
+        token.on_looping = () => parser.suffixes.push("yield");
         parser.change_state("function_body");
         parser.next_node_definition.initialize(node, token, parser);
-        parser.suffixes.pop();
     }
 };

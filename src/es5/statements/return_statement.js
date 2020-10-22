@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : return_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-25
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,11 +15,13 @@
 
 // ignore:end
 
-const { statement } = require("../enums/states_enum");
-const { STATEMENT } = require("../enums/precedence_enum");
+const {statement}              = require("../enums/states_enum");
+const {STATEMENT, TERMINATION} = require("../enums/precedence_enum");
 const {
-    is_terminator,
+    is_delimiter_token,
+    is_identifier_token,
     has_no_line_terminator,
+    get_last_non_comment_node,
 } = require("../../helpers");
 
 const valid_return_contexts = [
@@ -35,42 +37,49 @@ module.exports = {
 	id         : "Return statement",
 	type       : "Statement",
 	precedence : STATEMENT,
+	is         : (_, {current_state: s}) => s === statement,
 
-	is (token, parser) {
-        if (parser.current_state === statement) {
-            const { context_stack } = parser;
-            let i = context_stack.length;
-            while (i--) {
-                if (valid_return_contexts.includes(context_stack[i])) {
-                    return true;
-                }
-            }
+    initialize (node, token, parser) {
+        const {context_stack: cs} = parser;
+        let i = cs.length;
+        let is_valid = false;
+        while (i--) if (valid_return_contexts.includes(cs[i])) {
+            is_valid = true;
+            break;
+        }
+        if (! is_valid) {
             parser.throw_unexpected_token("Illegal return statement");
         }
-    },
-    initialize (node, token, parser) {
-        let expression = null, terminator = null;
-
+        parser.expect("return", is_identifier_token(token, "return"));
         parser.change_state("keyword");
-        const keyword  = parser.generate_next_node();
+        const keyword = parser.generate_next_node();
 
-        parser.prepare_next_state("expression_expression", true);
-        if (has_no_line_terminator(keyword, parser.next_token)) {
-            if (! is_terminator(parser)) {
-                expression = parser.generate_next_node();
-            }
-
-            if (is_terminator(parser)) {
-                parser.change_state("punctuator");
+        let expr       = null;
+        let terminator = null;
+        let next_token = parser.look_ahead(true);
+        if (has_no_line_terminator(keyword, next_token)) {
+            if (is_delimiter_token(next_token, ';')) {
+                parser.prepare_next_state("punctuator", true);
                 terminator = parser.generate_next_node();
+            } else {
+                parser.prepare_next_state("expression", true);
+                parser.parse_next_node(TERMINATION);
+                expr = get_last_non_comment_node(parser, true);
+                parser.end(expr);
+
+                next_token = parser.look_ahead(true);
+                if (has_no_line_terminator(expr, next_token)) {
+                    parser.prepare_next_state("punctuator", true);
+                    terminator = parser.generate_next_node();
+                }
             }
         }
 
         node.keyword    = keyword;
-        node.expression = expression;
+        node.expression = expr;
         node.terminator = terminator;
         node.start      = keyword.start;
-        node.end        = (terminator || expression || keyword).end;
+        node.end        = (terminator || expr || keyword).end;
 
         parser.terminate(node);
     }

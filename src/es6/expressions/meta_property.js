@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : meta_property.js
 * Created at  : 2019-08-26
-* Updated at  : 2019-08-26
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,38 +15,39 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { meta_property }       = require("../enums/states_enum");
-const { terminal_definition } = require("../../common");
-
-const is_target = parser => {
-    const { next_token:token } = parser;
-    return token && token.id === "Identifier" && token.value === "target";
-};
+const {MEMBER_EXPRESSION}      = require("../enums/precedence_enum");
+const {expression, new_target} = require("../enums/states_enum");
+const {
+    is_dot,
+    is_identifier_token,
+} = require("../../helpers");
 
 module.exports = {
-    id         : "Meta property",
-	type       : "Expression",
-	precedence : EXPRESSION,
+    id         : "New target",
+	type       : "Member expression",
+	precedence : MEMBER_EXPRESSION,
+    is         : (_, {current_state: s}) => s === new_target,
 
-    is         : (token, parser) => parser.current_state === meta_property,
-	initialize : (node, token, parser) => {
-        const new_node = terminal_definition.generate_new_node(parser);
+	initialize (node, token, parser) {
+        parser.expect("new", is_identifier_token(token, "new"));
+        parser.change_state("keyword");
+        const new_keyword = parser.generate_next_node();
 
-        parser.prepare_next_node_definition(true);
-        const delimiter = terminal_definition.generate_new_node(parser);
+        parser.prepare_next_state("punctuator");
+        parser.expect('.', is_dot);
+        const dot = parser.generate_next_node();
 
-        parser.prepare_next_state("expression", true);
-        parser.expect("target", is_target);
-        const target = terminal_definition.generate_new_node(parser);
+        parser.prepare_next_state("terminal_symbol_keyword", true);
+        const {next_token} = parser;
+        parser.expect("target", is_identifier_token(next_token, "target"));
+        const target_keyword = parser.generate_next_node();
 
-        node.object    = new_node;
-        node.delimiter = delimiter;
-        node.property  = target;
-        node.start     = new_node.start;
-        node.end       = target.end;
+        node.new_keyword = new_keyword;
+        node.dot         = dot;
+        node.target      = target_keyword;
+        node.start       = new_keyword.start;
+        node.end         = target_keyword.end;
 
-        parser.next_token    = token;
-        parser.current_state = parser.prev_state;
+        parser.current_state = expression;
     },
 };

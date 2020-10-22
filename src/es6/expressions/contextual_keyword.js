@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : contextual_keyword.js
 * Created at  : 2019-09-04
-* Updated at  : 2019-09-08
+* Updated at  : 2020-08-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,12 +15,17 @@
 
 // ignore:end
 
-const { TERMINAL_SYMBOL }    = require("../enums/precedence_enum");
-const { get_pre_comment }    = require("../../helpers");
-const { contextual_keyword } = require("../enums/states_enum");
+const {TERMINAL_SYMBOL}    = require("../enums/precedence_enum");
+const {get_pre_comment}    = require("../../helpers");
+const {contextual_keyword} = require("../enums/states_enum");
 
 const keywords = [
-    "of", "let", "get", "set", "async", "static",
+    "of",
+    "let",
+    "get",
+    "set",
+    "async",
+    "static",
 ];
 
 const init = (node, token, comment, parser) => {
@@ -59,6 +64,8 @@ module.exports = {
             default:
                 parser.throw_unexpected_refine(node, expression);
         }
+        console.log(expression);
+        debugger
 
         init(node, expression, expression.pre_comment, parser);
     },

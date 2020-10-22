@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_literal.js
 * Created at  : 2019-08-24
-* Updated at  : 2019-09-05
+* Updated at  : 2020-09-10
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const {EXPRESSION}                     = require("../enums/precedence_enum");
-const {expression, primary_expression} = require("../enums/states_enum");
+const {EXPRESSION} = require("../enums/precedence_enum");
+const {expression} = require("../enums/states_enum");
 const {
     is_comma,
     is_delimiter_token,
@@ -26,15 +26,14 @@ const {
 
 module.exports = {
     id         : "Array literal",
-    type       : "Expression",
+    type       : "Primary expression",
     precedence : EXPRESSION,
 
-    is (token, parser) {
-        if (parser.current_state !== expression) { return; }
-        if (is_delimiter_token(token, '[')) {
-            return get_last_non_comment_node(parser) === null;
-        }
-    },
+    is : (token, parser) => (
+        parser.current_state === expression &&
+        is_delimiter_token(token, '[') &&
+        get_last_non_comment_node(parser) === null
+    ),
 
     initialize (node, token, parser) {
         const delimiters   = [];
@@ -62,7 +61,9 @@ module.exports = {
                 delimiters.push(parser.generate_next_node());
                 parser.prepare_next_state("assignment_expression", true);
             } else {
-                element_list.push(parser.generate_next_node());
+                const expr = parser.generate_next_node();
+                element_list.push(expr);
+                parser.prepare_next_state("assignment_expression", true);
             }
         }
         parser.change_state("punctuator");
@@ -75,10 +76,7 @@ module.exports = {
         node.start                = open.start;
         node.end                  = close.end;
 
-        parser.current_state = primary_expression;
+        parser.end(node);
+        parser.current_state = expression;
     },
-
-    protos : {
-        is_valid_simple_assignment_target () { return false; }
-    }
 };

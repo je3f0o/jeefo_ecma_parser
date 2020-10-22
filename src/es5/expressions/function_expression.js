@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_expression.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-08-29
+* Updated at  : 2020-08-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,9 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { function_expression } = require("../enums/states_enum");
-const { terminal_definition } = require("../../common");
+const {EXPRESSION}          = require("../enums/precedence_enum");
+const {function_expression} = require("../enums/states_enum");
+const {terminal_definition} = require("../../common");
 
 const {
     is_identifier,
@@ -26,7 +26,7 @@ const {
 
 module.exports = {
     id         : "Function expression",
-    type       : "Expression",
+    type       : "Function definition",
     precedence : EXPRESSION,
 
     is : (token, parser) => {

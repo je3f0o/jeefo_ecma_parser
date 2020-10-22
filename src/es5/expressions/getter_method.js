@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : getter_method.js
 * Created at  : 2019-08-25
-* Updated at  : 2019-09-08
+* Updated at  : 2020-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }    = require("../enums/precedence_enum");
-const { getter_method } = require("../enums/states_enum");
+const {EXPRESSION}    = require("../enums/precedence_enum");
+const {getter_method} = require("../enums/states_enum");
 
 const init = (node, keyword, parser) => {
     const property_name = parser.generate_next_node();
@@ -39,7 +39,7 @@ const init = (node, keyword, parser) => {
 
 module.exports = {
     id         : "Getter method",
-    type       : "Expression",
+    type       : "Method definitions",
     precedence : EXPRESSION,
 
     is         : (_, { current_state : s }) => s === getter_method,
@@ -53,6 +53,8 @@ module.exports = {
     },
 
     refine (node, property_name, parser) {
+        console.log(property_name);
+        debugger
         const keyword = parser.refine(
             "contextual_keyword", property_name
         );

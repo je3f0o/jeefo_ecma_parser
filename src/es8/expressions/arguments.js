@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arguments.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-25
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,42 +15,47 @@
 
 // ignore:end
 
-const { EXPRESSION }      = require("../enums/precedence_enum");
-const { arguments_state } = require("../enums/states_enum");
+const {EXPRESSION}      = require("../enums/precedence_enum");
+const {arguments_state} = require("../enums/states_enum");
 const {
-    is_comma,
+    is_rest,
+    is_open_parenthesis,
     is_close_parenthesis,
 } = require("../../helpers");
 
 module.exports = {
     id         : "Arguments",
-	type       : "Expression",
+	type       : "Member expression",
 	precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === arguments_state,
+    is         : (_, {current_state: s}) => s === arguments_state,
 	initialize : (node, token, parser) => {
         const list       = [];
         const delimiters = [];
 
+        parser.expect('(', is_open_parenthesis);
         parser.change_state("punctuator");
         const open = parser.generate_next_node();
 
-        parser.change_state("expression");
         parser.prepare_next_state("assignment_expression", true);
+
+        LOOP:
         while (! is_close_parenthesis(parser)) {
-            if (parser.next_token.id === "Rest") {
-                parser.change_state("spread_element");
-            }
+            if (is_rest(parser)) parser.change_state("spread_element");
             list.push(parser.generate_next_node());
 
-            if (parser.next_token === null) {
-                parser.throw_unexpected_end_of_stream();
+            parser.prepare_next_state("punctuator", true);
+            if (parser.next_token.id !== "Delimiter") {
+                parser.throw_unexpected_token();
             }
-
-            if (is_comma(parser)) {
-                parser.change_state("punctuator");
-                delimiters.push(parser.generate_next_node());
-                parser.prepare_next_state("assignment_expression", true);
+            switch (parser.next_token.value) {
+                case ',' :
+                    parser.change_state("punctuator");
+                    delimiters.push(parser.generate_next_node());
+                    parser.prepare_next_state("assignment_expression", true);
+                    break;
+                case ')' : break LOOP;
+                default: parser.throw_unexpected_token();
             }
         }
         parser.change_state("punctuator");

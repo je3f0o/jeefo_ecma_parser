@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : primary_expression.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-09
+* Updated at  : 2020-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,11 @@
 
 // ignore:end
 
-const { EXPRESSION }                     = require("../enums/precedence_enum");
-const { expression, primary_expression } = require("../enums/states_enum");
+const { EXPRESSION } = require("../enums/precedence_enum");
+const {
+    member_expression,
+    primary_expression,
+} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Primary expression",
@@ -53,8 +56,19 @@ module.exports = {
         node.start      = prev_node.start;
         node.end        = prev_node.end;
 
-        parser.end(node);
-        parser.current_state = expression;
+        parser.ending_index  = null; // hack for member_expression
+        parser.current_state = member_expression;
+    },
+
+    refine (node, expression, parser) {
+        switch (expression.id) {
+            case "Identifier reference" : break;
+            default:
+                parser.throw_unexpected_refine(node, expression);
+        }
+        node.expression = expression;
+        node.start      = expression.start;
+        node.end        = expression.end;
     },
 
     protos : {

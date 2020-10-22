@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_expression.js
 * Created at  : 2019-09-09
-* Updated at  : 2019-09-09
+* Updated at  : 2020-08-25
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,14 +16,15 @@
 // ignore:end
 
 const { expression }                = require("../enums/states_enum");
-const { ASSIGNMENT_OPERATOR }       = require("../enums/precedence_enum");
+const { ASSIGNMENT_EXPRESSION }     = require("../enums/precedence_enum");
 const { get_last_non_comment_node } = require("../../helpers");
 
 module.exports = {
     id         : "Assignment operator",
-    type       : "Binary operator",
-    precedence : ASSIGNMENT_OPERATOR,
-    is         : ({ id, value }, parser) => {
+    type       : "Assignment expression",
+    precedence : ASSIGNMENT_EXPRESSION,
+
+    is ({ id, value }, parser) {
         if (parser.current_state === expression && id === "Operator") {
             switch (value) {
                 case    '=' :

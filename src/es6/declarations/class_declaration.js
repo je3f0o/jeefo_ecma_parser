@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : class_declaration.js
 * Created at  : 2019-08-04
-* Updated at  : 2019-08-29
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,26 +15,30 @@
 
 // ignore:end
 
-const { DECLARATION }                 = require("../enums/precedence_enum");
-const { is_expression }               = require("../../es5/helpers");
-const { terminal_definition }         = require("../../common");
-const { statement, class_expression } = require("../enums/states_enum");
+const {DECLARATION} = require("../enums/precedence_enum");
+const {
+    statement,
+    expression,
+    class_expression,
+} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Class declaration",
-    type       : "Declaration",
+    type       : "Class declarations",
     precedence : DECLARATION,
 
-    is : (token, parser) => {
-        if (parser.current_state === statement) {
-            return true;
-        } else if (is_expression(parser)) {
-            parser.prev_state    = parser.current_state;
-            parser.current_state = class_expression;
+    is (token, parser) {
+        switch (parser.current_state) {
+            case statement  : return true;
+            case expression :
+                parser.current_state = class_expression;
+                break;
         }
     },
-    initialize : (node, token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+
+    initialize (node, token, parser) {
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
 
         parser.prepare_next_state("binding_identifier", true);
         const name = parser.generate_next_node();
@@ -47,5 +51,7 @@ module.exports = {
         node.tail    = tail;
         node.start   = keyword.start;
         node.end     = tail.end;
+
+        parser.terminate(node);
     }
 };

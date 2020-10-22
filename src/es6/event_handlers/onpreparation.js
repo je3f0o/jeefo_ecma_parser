@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : onpreparation.js
 * Created at  : 2019-08-21
-* Updated at  : 2019-08-27
+* Updated at  : 2020-08-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -44,34 +44,44 @@ const is_valid_delimiter = (() => {
     };
 })();
 
-const is_possible_ASI = (() => {
-    const possible_ending_characters = "]})".split('');
+const is_possible_ASI = (prev_node, parser) => {
+    const {next_token} = parser;
+    if (! prev_node || ! next_token) return false;
+    if (prev_node.end.line < parser.next_token.start.line) return true;
 
-    return (prev_node, parser) => {
-        if (prev_node.type === "Primitive") { return true; }
-        const last_char = parser.tokenizer.streamer.at(prev_node.end.index);
-        return possible_ending_characters.includes(last_char);
-    };
-})();
+};
 
 const binary_identifies = [
     "in", "instanceof"
 ];
 
 module.exports = parser => {
+    debugger
     let prev_node = null;
     if (parser.prev_node && parser.prev_node.id !== "Comment") {
-        ({ prev_node } = parser);
+        ({prev_node} = parser);
     }
     ignore_comments(parser);
+    const {next_token} = parser;
+    if (! prev_node || ! next_token) return;
 
-    const is_cancelable = (
-        prev_node         === null ||
-        parser.next_token === null ||
-        parser.is_next_node("Binary operator")
-    );
-    if (is_cancelable || ! is_possible_ASI(prev_node, parser)) { return; }
+    if (prev_node.end.line < next_token.start.line) {
+        parser.terminate(prev_node);
+        console.log(prev_node);
+        console.log("--------------");
+        console.log(next_token);
+        debugger
+    } else {
+        switch (parser.tokenizer.streamer.at(prev_node.end.index)) {
+            case ')' :
+                break;
+            case '}' :
+                break;
+        }
+    }
 
+    /*
+    if (! is_possible_ASI(prev_node, parser)) return;
     switch (parser.next_token.id) {
         case "Number" :
             try_terminate(prev_node, parser);
@@ -99,4 +109,5 @@ module.exports = parser => {
             break;
         // TODO: what else it can be?
     }
+    */
 };

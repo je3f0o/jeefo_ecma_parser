@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : property_set_parameter.js
 * Created at  : 2019-09-06
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }             = require("../enums/precedence_enum");
-const { property_set_parameter } = require("../enums/states_enum");
+const {STRUCTURE}              = require("../enums/precedence_enum");
+const {property_set_parameter} = require("../enums/states_enum");
 const {
     is_open_parenthesis,
     is_close_parenthesis,
@@ -24,10 +24,10 @@ const {
 
 module.exports = {
     id         : "Property set parameter list",
-    type       : "Expression",
-    precedence : EXPRESSION,
+    type       : "Method definitions",
+    precedence : STRUCTURE,
 
-    is         : (_, { current_state : s }) => s === property_set_parameter,
+    is         : (_, {current_state: s}) => s === property_set_parameter,
     initialize : (node, token, parser) => {
         parser.change_state("punctuator");
         parser.expect('(', is_open_parenthesis);
@@ -50,5 +50,7 @@ module.exports = {
         node.close_parenthesis = close;
         node.start             = open.start;
         node.end               = close.end;
+
+        parser.end(node);
     }
 };

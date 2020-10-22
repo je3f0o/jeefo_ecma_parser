@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2019-05-27
-* Updated at  : 2019-12-14
+* Updated at  : 2020-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,38 +26,41 @@ module.exports = ast_node_table => {
     ast_node_table.remove_node_defs([
         { expression : "Identifier"        } ,
         { expression : "Delimiter"        } ,
-        { expression : "Binding element"      } ,
         { expression : "Binding identifier"   } ,
-        { expression : "Array binding pattern"   } ,
-        { expression : "Object binding pattern"      } ,
         { expression : "Member expression" } ,
-        { expression : "Function call expression" } ,
-        { expression : "Formal parameter list" } ,
         { expression : "Identifier reference" } ,
         { expression : "Method definition" } ,
 
         { reserved_word : "null" } ,
         { reserved_word : "true" } ,
         { reserved_word : "false" } ,
+        { reserved_word : "new" } ,
         { expression : "String literal" } ,
         { expression : "Numeric literal" } ,
     ]);
 
     // TODO: refactor later
     [
-        // 11.6.2.1 - Keywords
-        "./terminals/keyword",
+        // 11 - Lexical grammar
+        // ====================
+
+        // 11.6 - Names and Keywords
+        "./identifiers/keyword",
+        "./identifiers/identifier",
+        "./identifiers/reserved_word",
+        "./identifiers/identifier_name",
+        "./identifiers/future_reserved_word",
+
         // 11.7 - Punctuators
         "./terminals/punctuator",
 
         // 12 - ECMAScript Language: Expressions
+        // =====================================
+
         // 12.1 - Identifiers
         "./expressions/label_identifier",
         "./expressions/binding_identifier",
         "./expressions/identifier_reference",
-
-        // 12.2 - Primary expressions
-        "./expressions/primary_expression",
 
         // 12.2.4 - Literals
         "./literals/literal",
@@ -68,14 +71,12 @@ module.exports = ast_node_table => {
         "./expressions/cover_parenthesized_expression_and_arrow_parameters",
 
         // 12.3 - Left hand side expressions
-        "./expressions/new_expression",
-        "./expressions/member_expression",
-        "./binary_operators/member_operator",
-        "./expressions/left_hand_side_expression",
+        //"./expressions/new_expression",
+        "./expressions/new_expression_with_args",
+        "./operators/member_operator",
 
-        // 12.3.4 Function calls
         "./expressions/super_call",
-        "./expressions/call_expression",
+        "./expressions/computed_super_property",
         "./expressions/function_call_expression",
 
         //.....
@@ -83,7 +84,7 @@ module.exports = ast_node_table => {
 
         // 12.15 - Assigment expression
         "./expressions/assignment_expression",
-        "./binary_operators/assignment_operator",
+        "./operators/assignment_operator",
 
         // 12.15.5 - Destructuring assignment
         // array
@@ -107,23 +108,28 @@ module.exports = ast_node_table => {
 
         // 13.4 - Function definitions
         "./expressions/formal_parameter",
-        //"./expressions/formal_parameters",
+        "./expressions/formal_parameters",
 
         "./expressions/function_rest_parameter",
 
         "./expressions/arguments",
         //"./statements/expression_statement",
 
+        // 13.12 The switch statement
+        "./statements/case_block",
+
+        // 13.15 The try statement
+        "./statements/catch_parameter",
+
         // 14.3 - Method definition
         "./expressions/method_definition",
 
         // 14.6 - Async function defenitions
-        "./common/async_function_body",
         "./expressions/async_method",
         "./expressions/async_method_body",
         "./expressions/async_concise_body",
+        "./expressions/async_function_body",
         "./expressions/async_function_expression",
-        "./declarations/async_function_declaration",
 
         // 14.7 - Async arrow function definitions
         "./expressions/async_arrow_function",
@@ -153,12 +159,43 @@ module.exports = ast_node_table => {
             path    : "./expressions/super_property",
             keyword : "super",
         },
+        // 12.3 - New expression
+        {
+            path    : "./expressions/new_expression",
+            keyword : "new",
+        },
         // ...
+        {
+            path    : "./declarations/async_function_declaration",
+            keyword : "async",
+        },
         {
             path    : "./expressions/await_experession",
             keyword : "await",
         },
-    ].forEach(({ path, keyword }) => {
+        // 13.12 The switch statement
+        {
+            path    : "./statements/case_clause",
+            keyword : "case",
+        },
+        {
+            path    : "./statements/default_clause",
+            keyword : "default",
+        },
+        // 13.15 The try statement
+        {
+            path    : "./statements/try",
+            keyword : "try",
+        },
+        {
+            path    : "./statements/catch",
+            keyword : "catch",
+        },
+        {
+            path    : "./statements/finally",
+            keyword : "finally",
+        },
+    ].forEach(({path, keyword}) => {
         ast_node_table.register_reserved_word(keyword, require(path));
     });
 

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : unary_operators.js
 * Created at  : 2019-01-28
-* Updated at  : 2020-02-27
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description : Prefix and postfix unary operator parsers.
@@ -16,148 +16,128 @@
 
 // ignore:end
 
-const capitalize                    = require("@jeefo/utils/string/capitalize");
-const { terminal_definition }       = require("../../common");
-const { get_last_non_comment_node } = require("../../helpers");
+const capitalize   = require("@jeefo/utils/string/capitalize");
+const {expression} = require("../enums/states_enum");
 const {
-    UNARY_PREFIX,
-    UNARY_POSTFIX,
-    NEW_WITH_ARGS,
-    NEW_WITHOUT_ARGS,
+    is_identifier_token,
+    has_no_line_terminator,
+    get_last_non_comment_node,
+} = require("../../helpers");
+const {
+    UNARY_PREFIX_EXPRESSION,
+    UNARY_POSTFIX_EXPRESSION,
 } = require("../enums/precedence_enum");
-const {
-    is_expression,
-    prepare_next_expression,
-    get_current_state_name,
-} = require("../helpers");
 
 module.exports = function register_unary_operators (ast_node_table) {
-    const is_expression_state = (token, parser) => {
-        if (is_expression(parser)) {
-            return get_last_non_comment_node(parser) === null;
-        }
-    };
+    const is_unary_expression = (_, parser) =>
+        parser.current_state              === expression &&
+        get_last_non_comment_node(parser) === null;
 
     const skeleton_def = {
-        type : "Unary operator",
-        is   : is_expression_state,
+        type : "Unary operators",
+        is   : is_unary_expression,
     };
 
-    // New expression (18, 19)
-    ast_node_table.register_reserved_word("new", {
-		id         : "New operator",
-        type       : "Unary operator",
-        precedence : NEW_WITHOUT_ARGS,
-
-        is         : is_expression_state,
-        initialize : (node, current_token, parser) => {
-            const keyword = terminal_definition.generate_new_node(parser);
-            const expression_name = get_current_state_name(parser);
-
-            parser.prepare_next_state(expression_name, true);
-            const expression = parser.parse_next_node(node.precedence);
-            if (expression.id === "Function call expression") {
-                node.precedence = NEW_WITH_ARGS;
-            }
-
-            node.keyword    = keyword;
-            node.expression = expression;
-            node.start      = keyword.start;
-            node.end        = expression.end;
-        }
-    });
-
     // void, typeof, delete expression (16)
-    skeleton_def.precedence = UNARY_PREFIX;
+    skeleton_def.precedence = UNARY_PREFIX_EXPRESSION;
 
     // initialize
-    skeleton_def.initialize = (node, current_token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+    const init = (node, token, parser) => {
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
         parser.prepare_next_state("expression", true);
+        parser.parse_next_node(node.precedence - 1);
+        const expr = get_last_non_comment_node(parser, true);
 
         node.keyword    = keyword;
-        node.expression = parser.parse_next_node(node.precedence - 1);
+        node.expression = expr;
         node.start      = keyword.start;
-        node.end        = node.expression.end;
+        node.end        = expr.end;
     };
 
     ["void", "typeof", "delete"].forEach(keyword => {
-        skeleton_def.id = `${capitalize(keyword)} operator`;
+        skeleton_def.id         = `${capitalize(keyword)} operator`;
+        skeleton_def.initialize = (node, token, parser) => {
+            parser.expect(keyword, is_identifier_token(token, keyword));
+            init(node, token, parser);
+        };
         ast_node_table.register_reserved_word(keyword, skeleton_def);
     });
 
     // Prefix operators (16)
-    skeleton_def.initialize = (node, current_token, parser) => {
-        const operator = terminal_definition.generate_new_node(parser);
+    skeleton_def.initialize = (node, token, parser) => {
+        parser.change_state("punctuator");
+        const operator = parser.generate_next_node();
         parser.prepare_next_state("expression", true);
+        parser.parse_next_node(node.precedence - 1);
+        const expr = get_last_non_comment_node(parser, true);
 
         node.operator   = operator;
-        node.expression = parser.parse_next_node(node.precedence - 1);
+        node.expression = expr;
         node.start      = operator.start;
-        node.end        = node.expression.end;
+        node.end        = expr.end;
     };
 
-    const generate_definition = (id, operator) => {
-        return {
-            id : `${id} operator`,
-            is : (token, parser) => {
-                if (token.value === operator) {
-                    return is_expression_state(null, parser);
-                }
-            }
-        };
-    };
+    const generate_definition = (id, operator) => ({
+        id : `${id} operator`,
+        is : ({id, value}, parser) => (
+            is_unary_expression(null, parser) &&
+            id === "Operator" && value === operator
+        )
+    });
 
-    const unary_prefix_operators = [
-        generate_definition("Logical not"      , '!')  ,
-        generate_definition("Bitwise not"      , '~')  ,
-        generate_definition("Prefix increment" , "++") ,
-        generate_definition("Prefix decrement" , "--") ,
-        generate_definition("Positive plus"    , '+')  ,
-        generate_definition("Negation minus"   , '-')  ,
-    ];
+    [
+        generate_definition("Logical not"   , '!'),
+        generate_definition("Bitwise not"   , '~'),
+        generate_definition("Positive plus" , '+'),
+        generate_definition("Negation minus", '-'),
+    ].forEach(operator => {
+        skeleton_def.id = operator.id;
+        skeleton_def.is = operator.is;
+        ast_node_table.register_node_definition(skeleton_def);
+    });
 
-    unary_prefix_operators.forEach(operator => {
+    skeleton_def.type = "Update expressions";
+    [
+        generate_definition("Prefix increment", "++"),
+        generate_definition("Prefix decrement", "--"),
+    ].forEach(operator => {
         skeleton_def.id = operator.id;
         skeleton_def.is = operator.is;
         ast_node_table.register_node_definition(skeleton_def);
     });
 
     // Postfix operators (17)
-    const has_operand = (parser, line) => {
-        const last_non_comment = get_last_non_comment_node(parser);
-        return last_non_comment && last_non_comment.end.line === line;
-    };
     const postfix_operators = [
         {
             id : "increment",
-            is : (token, parser) => {
-                if (token.value === "++" && is_expression(parser)) {
-                    return has_operand(parser, token.start.line);
-                }
-            }
+            is : value => value === "++",
         },
         {
             id : "decrement",
-            is : (token, parser) => {
-                if (token.value === "--" && is_expression(parser)) {
-                    return has_operand(parser, token.start.line);
-                }
-            }
+            is : value => value === "--",
         }
     ];
 
-    skeleton_def.precedence = UNARY_POSTFIX;
-    skeleton_def.initialize = (node, current_token, parser) => {
-        node.operator   = terminal_definition.generate_new_node(parser);
+    skeleton_def.precedence = UNARY_POSTFIX_EXPRESSION;
+    skeleton_def.initialize = (node, token, parser) => {
+        parser.change_state("punctuator");
+        node.operator   = parser.generate_next_node();
         node.expression = parser.prev_node;
         node.start      = node.expression.start;
-        node.end        = current_token.end;
+        node.end        = token.end;
     };
 
     postfix_operators.forEach(operator => {
-        skeleton_def.id = `Postfix ${ operator.id } operator`;
-        skeleton_def.is = operator.is;
+        skeleton_def.id = `Postfix ${operator.id} operator`;
+        skeleton_def.is = (token, parser) => {
+            if (token.id === "Operator" && parser.current_state === expression) {
+                const last = get_last_non_comment_node(parser);
+                if (last && has_no_line_terminator(last, token)) {
+                    return operator.is(token.value);
+                }
+            }
+        };
         ast_node_table.register_node_definition(skeleton_def);
     });
 };

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : labelled_statement.js
 * Created at  : 2017-08-17
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,11 +15,11 @@
 
 // ignore:end
 
-const { STATEMENT }        = require("../enums/precedence_enum");
-const { statement : stmt } = require("../enums/states_enum");
+const {statement}              = require("../enums/states_enum");
+const {STATEMENT, TERMINATION} = require("../enums/precedence_enum");
 const {
     is_delimiter_token,
-    is_identifier_token,
+    get_last_non_comment_node,
 } = require("../../helpers");
 
 module.exports = {
@@ -27,26 +27,27 @@ module.exports = {
     type       : "Statement",
 	precedence : STATEMENT,
 
-    is : (token, parser) => {
-        if (parser.current_state === stmt && is_identifier_token(token)) {
+    is ({id}, parser) {
+        if (parser.current_state === statement && id === "Identifier") {
             const next_token = parser.look_ahead();
             return next_token && is_delimiter_token(next_token, ':');
         }
     },
-    initialize : (node, token, parser) => {
+    initialize (node, token, parser) {
         parser.change_state("label_identifier");
         const label = parser.generate_next_node();
 
         parser.prepare_next_state("punctuator", true);
-        const delimiter = parser.generate_next_node();
+        const colon = parser.generate_next_node();
 
-        parser.prepare_next_state(null, true);
-        const statement = parser.generate_next_node();
+        parser.prepare_next_state("statement", true);
+        parser.parse_next_node(TERMINATION);
+        const item = get_last_non_comment_node(parser, true);
 
-        node.label_identifier = label;
-        node.delimiter        = delimiter;
-        node.statement        = statement;
-        node.start            = label.start;
-        node.end              = statement.end;
+        node.label  = label;
+        node.colon  = colon;
+        node.item   = item;
+        node.start  = label.start;
+        node.end    = item.end;
     }
 };

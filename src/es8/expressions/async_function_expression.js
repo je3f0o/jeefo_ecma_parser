@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : async_function_expression.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-09-04
+* Updated at  : 2020-09-01
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { is_open_parenthesis } = require("../../helpers");
+const {EXPRESSION}          = require("../enums/precedence_enum");
+const {is_open_parenthesis} = require("../../helpers");
 const {
     primary_expression,
     async_function_expression,
@@ -24,12 +24,10 @@ const {
 
 module.exports = {
     id         : "Async function expression",
-    type       : "Expression",
+    type       : "Async function definitions",
     precedence : EXPRESSION,
+    is         : (_, {current_state: s}) => s === async_function_expression,
 
-    is (token, parser) {
-        return parser.current_state === async_function_expression;
-    },
     initialize (node, token, parser) {
         let name = null;
         parser.change_state("contextual_keyword");
@@ -40,7 +38,7 @@ module.exports = {
         const function_keyword = parser.generate_next_node();
 
         const prev_suffix = parser.suffixes;
-        parser.suffixes = ["await"];
+        parser.suffixes = ["in", "await"];
 
         // Name
         parser.prepare_next_state("binding_identifier", true);
@@ -53,6 +51,8 @@ module.exports = {
 
         // Parameters
         const parameters = parser.generate_next_node();
+        parser.suffixes      = prev_suffix;
+        parser.current_state = primary_expression;
 
         // Body
         parser.prepare_next_state("async_function_body", true);
@@ -65,8 +65,5 @@ module.exports = {
         node.body             = body;
         node.start            = async_keyword.start;
         node.end              = body.end;
-
-        parser.suffixes      = prev_suffix;
-        parser.current_state = primary_expression;
     }
 };

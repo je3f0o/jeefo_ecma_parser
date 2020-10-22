@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-02-10
-* Updated at  : 2019-08-28
+* Updated at  : 2020-08-27
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -23,7 +23,6 @@ module.exports = ast_node_table => {
         "function_body",
         "member_expression",
         "grouping_expression",
-        "sequence_expression",
         "function_expression",
         "formal_parameter_list",
         "parenthesized_expression",

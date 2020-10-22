@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : identifier_reference.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-04
+* Updated at  : 2020-08-31
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,41 +15,45 @@
 
 // ignore:end
 
-const { EXPRESSION } = require("../enums/precedence_enum");
+const {EXPRESSION}                = require("../enums/precedence_enum");
+const {get_last_non_comment_node} = require("../../helpers");
 const {
     expression,
-    primary_expression,
     identifier_reference,
-} = require("../enums/states_enum.js");
+} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Identifier reference",
-    type       : "Expression",
+    type       : "Primary expression",
     precedence : EXPRESSION,
 
-    is (token, parser) {
-        if (parser.current_state === expression) {
-            return token.id === "Identifier";
+    is ({id}, parser) {
+        switch (parser.current_state) {
+            case expression :
+                return id === "Identifier" &&
+                       get_last_non_comment_node(parser) === null;
+            case identifier_reference : return true;
         }
-        return parser.current_state === identifier_reference;
     },
 
     initialize (node, token, parser) {
         const prev_state = parser.current_state;
 
-        parser.change_state("binding_identifier");
-        parser.next_node_definition.initialize(node, token, parser);
+        parser.change_state("identifier");
+        const identifier = parser.generate_next_node();
 
-        if (prev_state === expression) {
-            parser.ending_index -= 1;
-            parser.current_state = primary_expression;
-        }
+        node.identifier = identifier;
+        node.start      = identifier.start;
+        node.end        = identifier.end;
+
+        parser.current_state = prev_state;
     },
 
-    protos : {
-        is_valid_simple_assignment_target () {
-            // 12.1.3 eval or arguments are invalid in strict mode
-            return ! ["eval", "arguments"].includes(this.value);
-        }
-    }
+    refine (node, expr, parser) {
+        // i dont think expr always only IdentifierName
+        const identifier = parser.refine("identifier", expr);
+        node.identifier  = identifier;
+        node.start       = identifier.start;
+        node.end         = identifier.end;
+    },
 };

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-01-29
-* Updated at  : 2019-08-05
+* Updated at  : 2020-09-07
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -42,6 +42,10 @@ module.exports = function register_statements (ast_node_table) {
             value : "while",
         },
         {
+            path  : "./switch_statement",
+            value : "switch",
+        },
+        {
             path  : "./throw_statement",
             value : "throw",
         },
@@ -68,6 +72,4 @@ module.exports = function register_statements (ast_node_table) {
     });
 
     require("./if_statement")(ast_node_table);
-    require("./try_statement")(ast_node_table);
-    require("./switch_statement")(ast_node_table);
 };

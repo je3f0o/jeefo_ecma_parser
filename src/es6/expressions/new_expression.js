@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : new_expression.js
 * Created at  : 2019-08-26
-* Updated at  : 2019-08-30
+* Updated at  : 2020-08-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -43,8 +43,12 @@ module.exports = {
 
     is         : is_new_expression,
     initialize : (node, current_token, parser) => {
-        const keyword = terminal_definition.generate_new_node(parser);
+        parser.change_state("keyword");
+        const keyword = parser.generate_next_node();
         const expression_name = parser.get_current_state_name();
+        console.log(keyword);
+        console.log(expression_name);
+        process.exit();
 
         parser.prepare_next_state(expression_name, true);
         const expression = parser.parse_next_node(node.precedence);

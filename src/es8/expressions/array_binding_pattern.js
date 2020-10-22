@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : array_binding_pattern.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-09
+* Updated at  : 2020-08-26
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,7 +22,7 @@ module.exports = {
     id         : "Array binding pattern",
 	type       : "Expression",
 	precedence : EXPRESSION,
-    is         : (_, { current_state : s }) => s === array_binding_pattern,
+    is         : (_, {current_state: s}) => s === array_binding_pattern,
 
 	initialize (node, token, parser) {
         parser.change_state("expression");
@@ -46,8 +46,10 @@ module.exports = {
         } = expression;
 
         const element_list = list.map(element => {
-            if (element.id === "Assignment rest element") {
-                return parser.refine("binding_rest_element", element);
+            switch (element.id) {
+                case "Assignment rest element" :
+                    return parser.refine("binding_rest_element", element);
+
             }
             return parser.refine("binding_element", element);
         });

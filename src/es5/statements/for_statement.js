@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : for_statement.js
 * Created at  : 2019-08-23
-* Updated at  : 2019-09-07
+* Updated at  : 2020-09-02
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -29,6 +29,7 @@ module.exports = {
 
     is         : (_, { current_state : s }) => s === statement,
     initialize : (node, token, parser) => {
+        debugger
         parser.change_state("keyword");
         const keyword = parser.generate_next_node();
 
@@ -36,7 +37,13 @@ module.exports = {
         parser.expect('(', is_open_parenthesis);
         const open = parser.generate_next_node();
 
-        parser.prepare_next_state("for_header", true);
+        parser.prepare_next_state("whatever", true);
+        switch (parser.next_token.id) {
+            default:
+                console.log(parser.next_token);
+                debugger
+        }
+
         const expression = parser.next_node_definition.parse(parser);
 
         if (! parser.next_token) {

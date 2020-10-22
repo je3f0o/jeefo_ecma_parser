@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : object_assignment_pattern.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-06
+* Updated at  : 2020-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,14 +15,14 @@
 
 // ignore:end
 
-const { EXPRESSION }                = require("../enums/precedence_enum");
-const { object_assignment_pattern } = require("../enums/states_enum");
+const {EXPRESSION}                = require("../enums/precedence_enum");
+const {object_assignment_pattern} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Object assignment pattern",
 	type       : "Expression",
 	precedence : EXPRESSION,
-    is         : (_, { current_state : s }) => s === object_assignment_pattern,
+    is         : (_, {current_state: s}) => s === object_assignment_pattern,
 
 	refine (node, object_literal, parser) {
         const {

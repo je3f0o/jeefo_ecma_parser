@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : single_name_binding.js
 * Created at  : 2019-09-07
-* Updated at  : 2019-09-09
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,29 +15,16 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { is_assign_token }     = require("../../helpers");
-const { single_name_binding } = require("../enums/states_enum");
-
-function refine_left_hand_side_exrepssion (node, expression, parser) {
-    [
-        "Left hand side expression",
-        "New expression",
-        "Member expression",
-        "Primary expression",
-    ].forEach(id => {
-        if (expression.id === id) {
-            expression = expression.expression;
-        } else {
-            parser.throw_unexpected_token(
-                "Illegal property in declaration context", expression
-            );
-        }
-    });
-    return parser.refine("single_name_binding", expression);
-}
+const {EXPRESSION}          = require("../enums/precedence_enum");
+const {single_name_binding} = require("../enums/states_enum");
+const {
+    is_assign,
+    is_assign_token,
+} = require("../../helpers");
 
 const init = (node, identifier, initializer) => {
+    if (identifier.id !== "Binding identifier") throw identifier;
+
     node.binding_identifier = identifier;
     node.initializer        = initializer;
     node.start              = identifier.start;
@@ -49,13 +36,13 @@ module.exports = {
     type       : "Expression",
     precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === single_name_binding,
+    is         : (_, {current_state: s}) => s === single_name_binding,
     initialize : (node, token, parser) => {
         let initializer = null;
         parser.change_state("binding_identifier");
         const identifier = parser.generate_next_node();
 
-        parser.prepare_next_state("initializer");
+        parser.prepare_next_state("initializer", true);
         if (is_assign_token(parser.next_token)) {
             initializer = parser.generate_next_node();
         }
@@ -63,30 +50,46 @@ module.exports = {
         init(node, identifier, initializer);
     },
 
-    refine : (node, input_node, parser) => {
+    refine (node, expr, parser) {
         let initializer = null, identifier;
-        switch (input_node.id) {
+        switch (expr.id) {
+            case "Binding identifier" :
+                identifier = expr;
+                break;
             case "Identifier reference" :
-                identifier = input_node;
+                identifier = parser.refine("binding_identifier", expr);
                 break;
             case "Cover initialized name" :
-                identifier  = input_node.identifier;
-                initializer = input_node.initializer;
+                identifier = parser.refine(
+                    "binding_identifier", expr.identifier
+                );
+                if (expr.initializer) {
+                    initializer = expr.initializer;
+                }
+                break;
+            case "Assignment property identifier" :
+                const {identifier: ref_id} = expr;
+                identifier  = parser.refine("binding_identifier", ref_id);
+                initializer = expr.initializer;
                 break;
             case "Assignment operator" :
-                identifier = refine_left_hand_side_exrepssion(
-                    node, input_node.left, parser
-                );
-                if (input_node.operator.value !== '=') {
-                    parser.throw_unexpected_token(null, input_node);
-                }
-                initializer = parser.refine("initializer", {
-                    operator   : input_node.operator,
-                    expression : input_node.right
-                });
+                const {left} = expr;
+                identifier  = parser.refine("binding_identifier", left);
+                initializer = parser.refine("initializer", expr);
                 break;
-            default:
-                parser.throw_unexpected_refine(node, input_node);
+            case "Assignment element" :
+                const {target} = expr;
+                identifier  = parser.refine("binding_identifier", target);
+                initializer = expr.initializer;
+                break;
+            case "Binding property":
+                identifier = expr.identifier;
+                if (is_assign(parser)) {
+                    parser.change_state("initializer");
+                    initializer = parser.generate_next_node();
+                }
+                break;
+            default: parser.throw_unexpected_refine(node, expr);
         }
 
         init(node, identifier, initializer);

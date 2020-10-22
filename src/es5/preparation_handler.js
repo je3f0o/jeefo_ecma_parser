@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : preparation_handler.js
 * Created at  : 2019-06-28
-* Updated at  : 2019-09-08
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -16,48 +16,42 @@
 // ignore:end
 
 const ignore_comments = require("./helpers/ignore_comments");
-
-const operators = "++,--".split(',');
-
-function try_terminate (prev_node, parser) {
-    if (prev_node.end.line < parser.next_token.start.line) {
-        parser.terminate(prev_node);
-    } else {
-        parser.throw_unexpected_token();
-    }
-}
-
-const is_valid_delimiter = (() => {
-    return parser => {
-        if (parser.next_token.value === '{') {
-            return parser.context_stack.includes("Class heritage");
-        }
-
-        return true;
-    };
-})();
-
-const is_possible_ASI = (() => {
-    const possible_ending_characters = "]})".split('');
-
-    return (prev_node, parser) => {
-        switch (prev_node.id) {
-            case "Binding identifier" :
-            case "Primary expression" :
-                return true;
-        }
-        const last_char = parser.tokenizer.streamer.at(prev_node.end.index);
-        return possible_ending_characters.includes(last_char);
-    };
-})();
+const {
+    is_close_curly,
+    is_operator_token,
+    is_delimiter_token,
+} = require("../helpers");
 
 module.exports = parser => {
-    let prev_node = null;
+    if (is_close_curly(parser)) return parser.terminate(parser.next_token);
+
+    let prev_node = null, prev_token;
     if (parser.prev_node && parser.prev_node.id !== "Comment") {
-        ({ prev_node } = parser);
+        ({prev_node, prev_token} = parser);
     }
     ignore_comments(parser);
+    const {next_token} = parser;
+    if (! prev_node || ! next_token) return;
 
+    // ASI
+    // Ignored 'Do-while' loop statement here.
+    // Because 'Do-while' loop handle ASI itself.
+    let is_terminated;
+    if (parser.ASI && prev_node.end.line < next_token.start.line) {
+        const ctx = parser.context_stack[parser.context_stack.length - 1] || {};
+        if (ctx.id === "Expression statement") {
+            is_terminated = true;
+        } else if (! parser.next_node_definition) {
+            is_terminated = true;
+        } else if (! parser.next_node_definition.id.includes(" operator")) {
+            is_terminated = true;
+        }
+    } else if (parser.new_operator && is_delimiter_token(next_token, '(')) {
+        is_terminated = true;
+    }
+    if (is_terminated) parser.terminate(prev_node);
+
+    /*
     const is_cancelable = (
         prev_node         === null ||
         parser.next_token === null ||
@@ -102,4 +96,5 @@ module.exports = parser => {
             break;
         // TODO: what else it can be?
     }
+    */
 };

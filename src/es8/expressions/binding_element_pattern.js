@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_element_pattern.js
 * Created at  : 2019-09-09
-* Updated at  : 2019-09-09
+* Updated at  : 2020-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,9 +15,9 @@
 
 // ignore:end
 
-const { EXPRESSION }              = require("../enums/precedence_enum");
-const { is_assign_token }         = require("../../helpers");
-const { binding_element_pattern } = require("../enums/states_enum");
+const {EXPRESSION}              = require("../enums/precedence_enum");
+const {is_assign_token}         = require("../../helpers");
+const {binding_element_pattern} = require("../enums/states_enum");
 
 const init = (node, pattern, initializer) => {
     node.binding_pattern = pattern;
@@ -26,12 +26,28 @@ const init = (node, pattern, initializer) => {
     node.end             = (initializer || pattern).end;
 };
 
+const refine_pattern_from_assignment_pattern = (expression, parser) => {
+    switch (expression.id) {
+        case "Array assignment pattern" :
+            return parser.refine("array_binding_pattern", expression);
+        case "Object assignment pattern" :
+            return parser.refine("object_binding_pattern", expression);
+        default:
+            debugger
+            throw expression;
+    }
+};
+
+const assert = (condition, error_node) => {
+    if (! condition) throw error_node;
+};
+
 module.exports = {
     id         : "Binding element pattern",
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === binding_element_pattern,
+    is         : (_, {current_state: s}) => s === binding_element_pattern,
 	initialize : (node, token, parser) => {
         let initializer = null;
         parser.change_state("binding_pattern");
@@ -45,30 +61,43 @@ module.exports = {
         init(node, pattern, initializer);
     },
 
-    refine (node, input_node, parser) {
+    refine (node, expr, parser) {
         let initializer = null, pattern;
-        switch (input_node.id) {
-            case "Array literal" :
-                pattern = parser.refine("array_binding_pattern", input_node);
-                break;
-            case "Object literal" :
-                pattern = parser.refine("object_binding_pattern", input_node);
-                break;
-            case "Assignment operator" :
-                pattern = parser.refine("binding_pattern", input_node.left);
-                if (input_node.operator.value !== '=') {
-                    parser.throw_unexpected_token(null, input_node);
-                }
-                initializer = parser.refine("initializer", {
-                    operator   : input_node.operator,
-                    expression : input_node.right
-                });
-                break;
-            case "Assignment pattern" :
-                pattern = parser.refine("binding_pattern", input_node);
-                break;
-            default:
-                parser.throw_unexpected_refine(node, input_node);
+
+        try {
+            switch (expr.id) {
+                case "Assignment operator" :
+                    const {left} = expr;
+                    switch (left.id) {
+                        case "Assignment pattern":
+                            pattern = refine_pattern_from_assignment_pattern(
+                                left.pattern, parser
+                            );
+                            initializer = parser.refine("initializer", expr);
+                            break;
+                        default: throw left;
+                    }
+                    break;
+                case "Array literal":
+                    pattern = parser.refine("array_binding_pattern", expr);
+                    break;
+                case "Object literal":
+                    pattern = parser.refine("object_binding_pattern", expr);
+                    break;
+                case "Assignment element":
+                    const {target} = expr;
+                    assert(target.id === "Assignment pattern", target);
+                    pattern = refine_pattern_from_assignment_pattern(
+                        target.pattern, parser
+                    );
+                    ({initializer} = expr);
+                    break;
+                default: throw expr;
+            }
+        } catch (error_node) {
+            console.log(error_node);
+            debugger
+            parser.throw_unexpected_refine(node, error_node);
         }
 
         init(node, pattern, initializer);

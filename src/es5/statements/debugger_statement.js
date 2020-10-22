@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : debugger_statement.js
 * Created at  : 2019-03-01
-* Updated at  : 2019-08-28
+* Updated at  : 2020-06-11
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -25,7 +25,7 @@ module.exports = {
 	type       : "Statement",
 	precedence : STATEMENT,
 
-	is         : (token, parser) => parser.current_state === statement,
+    is         : (_, { current_state: s }) => s === statement,
     initialize : (node, current_token, parser) => {
         const keyword = terminal_definition.generate_new_node(parser);
 

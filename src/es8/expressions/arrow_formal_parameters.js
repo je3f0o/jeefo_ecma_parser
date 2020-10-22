@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : arrow_formal_parameters.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-12-13
+* Updated at  : 2020-08-22
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -33,6 +33,8 @@ module.exports = {
             open_parenthesis,
             close_parenthesis,
         } = parser.prev_node;
+        console.log(parser.prev_node);
+        process.exit();
 
         const list = input_list.map(element => {
             parser.prev_node = element.expression;

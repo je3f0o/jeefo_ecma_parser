@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : states_enum.js
 * Created at  : 2019-08-27
-* Updated at  : 2019-12-14
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -30,27 +30,62 @@ const next_state_value = (() => {
 
 module.exports = [
     // 11.6.2.1 - Keywords
-    "keyword",
     "context_keyword",
 
-    // 11.7 - Punctuators
-    "punctuator",
-
     // 12 - Expressions
-    // 12.1 - Identifiers
-    "label_identifier",
-    "identifier_reference",
-
-    // 12.2.4 - Literals
-    "literal",
 
     // 12.3 - Left hand side expressions
     "new_expression",
     "member_operator",
-    "left_hand_side_expression",
+    "new_member_expression",
+    "computed_super_property",
+
+    // 12.4 - Update expression
+    // ----------------------------
+    "update_expression",
+
+    // 12.5 - Unary expression
+    // ----------------------------
+    "unary_expression",
+
+    // 12.6 - Exponentiation expressions
+    // ----------------------------
+    "exponentiation_expression",
+
+    // 12.7 - Multiplicative expressions
+    // ----------------------------
+    "multiplicative_expression",
+
+    // 12.8 - Additive expressions
+    // ----------------------------
+    "additive_expression",
+
+    // 12.9 - Shift expressions
+    // ----------------------------
+    "shift_expression",
+
+    // 12.10 - Relational expressions
+    // ----------------------------
+    "relational_expression",
+
+    // 12.11 - Equality expressions
+    // ----------------------------
+    "equality_expression",
+
+    // 12.12 - Binary bitwise expressions
+    // ----------------------------
+    "bitwise_or_expression",
+    "bitwise_xor_expression",
+    "bitwise_and_expression",
+
+    // 12.13 - Binary logical expressions
+    // ----------------------------
+    "logical_or_expression",
+    "logical_and_expression",
 
     // 12.15 - Assigment expression
     // ----------------------------
+    "conditional_expression",
 
     // 12.15.5 - Destructuring assignment
     "assignment_element",
@@ -61,7 +96,6 @@ module.exports = [
     "assignment_property",
     "assignment_property_element",
     "assignment_property_identifier",
-    "object_assignment_pattern",
 
     // 12.3.4 Function calls
     "call_expression",
@@ -84,7 +118,6 @@ module.exports = [
     // 14.7 - Async arrow function definitions
     "async_arrow_function",
     "async_arrow_function_body",
-    "async_arrow_function_with_id",
     "async_arrow_binding_identifier",
 
     // ...
@@ -92,10 +125,12 @@ module.exports = [
     "formal_parameter",
     "cover_parenthesized_expression",
 
-    "assignment_expression",
+    // Methods
+    "method_definition_async",
+    "method_definition_getter",
+    "method_definition_setter",
+    "method_definition_generator",
 
-    // Bindings
-    "assignment_pattern",
 ].reduce((states, key, index) => {
     if (states[key]) {
         console.log("Duplicated state:", key);

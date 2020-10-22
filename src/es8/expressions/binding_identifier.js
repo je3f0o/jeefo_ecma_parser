@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : binding_identifier.js
 * Created at  : 2019-09-02
-* Updated at  : 2019-09-05
+* Updated at  : 2020-08-30
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,45 +15,38 @@
 
 // ignore:end
 
-const { EXPRESSION }         = require("../enums/precedence_enum");
-const { binding_identifier } = require("../enums/states_enum");
-const { is_identifier_name } = require("../../helpers");
+const {IDENTIFIER}         = require("../enums/precedence_enum");
+const {binding_identifier} = require("../enums/states_enum");
 
-const valid_terminal_values = ["yield", "await"];
+const init = (node, identifier, parser) => {
+    const is_disallowed_let = (
+        identifier.identifier_name.value === "let" &&
+        parser.context_stack.includes("Lexical declaration")
+    );
+    if (is_disallowed_let) {
+        parser.throw_unexpected_token(
+            "let is disallowed as a lexically bound name"
+        );
+    }
+
+    node.identifier = identifier;
+    node.start      = identifier.start;
+    node.end        = identifier.end;
+};
 
 module.exports = {
     id         : "Binding identifier",
-    type       : "Expression",
-    precedence : EXPRESSION,
+    type       : "ES6+ Identifiers",
+    precedence : IDENTIFIER,
+    is         : (_, {current_state: s}) => s === binding_identifier,
 
-    is (token, parser) {
-        return parser.current_state === binding_identifier;
+    initialize (node, {value}, parser) {
+        parser.change_state("identifier");
+        init(node, parser.generate_next_node(), parser);
     },
 
-    initialize (node, token, parser) {
-        parser.expect("identifier", is_identifier_name);
-
-        if (parser.suffixes.includes(token.value)) {
-            parser.throw_unexpected_token("Unexpected keyword");
-        } else if (! valid_terminal_values.includes(token.value)) {
-            parser.change_state("keyword");
-            if (parser.next_node_definition) {
-                parser.throw_unexpected_token("Unexpected identifier");
-            }
-        }
-
-        parser.change_state("identifier_name");
-        parser.next_node_definition.initialize(node, token, parser);
-    },
-
-    refine (node, identifier, parser) {
-        if (identifier.id !== "Identifier reference") {
-            parser.throw_unexpected_refine(node, identifier);
-        }
-
-        node.pre_comment = identifier.pre_comment;
-        node.value       = identifier.value;
-        node.start       = identifier.start;
-        node.end         = identifier.end;
+    refine (node, {id, identifier}, parser) {
+        parser.expect("IdentifierReference", id === "Identifier reference");
+        init(node, identifier, parser);
     }
 };

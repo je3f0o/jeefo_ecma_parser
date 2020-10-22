@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_property.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-16
+* Updated at  : 2020-08-28
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,43 +15,36 @@
 
 // ignore:end
 
-const { EXPRESSION }          = require("../enums/precedence_enum");
-const { assignment_property } = require("../enums/states_enum");
+const {EXPRESSION}          = require("../enums/precedence_enum");
+const {assignment_property} = require("../enums/states_enum");
 
 module.exports = {
     id         : "Assignment property",
 	type       : "Expression",
 	precedence : EXPRESSION,
-    is         : (_, { current_state : s }) => s === assignment_property,
+    is         : (_, {current_state: s}) => s === assignment_property,
 
-	refine (node, property, parser) {
-        if (property.id !== "Property definition") {
-            parser.throw_unexpected_refine(node, property);
+	refine (node, expression, parser) {
+        if (expression.id !== "Property definition") {
+            parser.throw_unexpected_refine(node, expression);
         }
+        let {expression: expr} = expression;
 
-        let expression;
-        switch (property.expression.id) {
-            case "Identifier reference" :
-                expression = property.expression;
-                break;
+        switch (expr.id) {
+            case "Identifier reference" : break;
             case "Cover initialized name" :
-                expression = parser.refine(
-                    "assignment_property_identifier",
-                    property.expression
-                );
+                expr = parser.refine("assignment_property_identifier", expr);
                 break;
             case "Property assignment":
-                expression = parser.refine(
-                    "assignment_property_element",
-                    property.expression
-                );
-                return;
+                expr = parser.refine("assignment_property_element", expr);
+                break;
             default:
-                parser.throw_unexpected_refine(node, property.expression);
+                debugger
+                parser.throw_unexpected_refine(node, expr);
         }
 
-        node.expression = expression;
-        node.start      = expression.start;
-        node.end        = expression.end;
+        node.expression = expr;
+        node.start      = expr.start;
+        node.end        = expr.end;
     },
 };

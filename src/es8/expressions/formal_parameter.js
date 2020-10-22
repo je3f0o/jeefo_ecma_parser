@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : formal_parameter.js
 * Created at  : 2019-09-03
-* Updated at  : 2019-09-06
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,8 +15,8 @@
 
 // ignore:end
 
-const { EXPRESSION }       = require("../enums/precedence_enum");
-const { formal_parameter } = require("../enums/states_enum");
+const {EXPRESSION}       = require("../enums/precedence_enum");
+const {formal_parameter} = require("../enums/states_enum");
 
 const init = (node, element) => {
     node.binding_element = element;
@@ -29,10 +29,11 @@ module.exports = {
 	type       : "Expression",
 	precedence : EXPRESSION,
 
-    is         : (_, { current_state : s }) => s === formal_parameter,
+    is         : (_, {current_state: s}) => s === formal_parameter,
 	initialize : (node, token, parser) => {
         parser.change_state("binding_element");
         init(node, parser.generate_next_node());
+        parser.end(node);
     },
 
     refine (node, expression, parser) {

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-19
-* Updated at  : 2019-09-07
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,20 +15,33 @@
 
 // ignore:end
 
-const is_delimiter = value => {
-    return ({ next_token : token }) => {
-        return token && token.id === "Delimiter" && token.value === value;
-    };
-};
+// Factory methods
+// ===============
 
-const is_property_name = (() => {
-    const literal_property_names = ["Number", "String", "Identifier"];
-    return token => {
-        return (
-            literal_property_names.includes(token.id) || token.value === '['
-        );
-    };
-})();
+// Bind for token
+//const bind_token = (binding_id, binding_value) => ({id, value}) =>
+    //id === binding_id && value === binding_value;
+
+const compare_token_id = binding_id => ({id}) => id === binding_id;
+
+const bind_token_id = binding_id => ({id, value}, input_value) =>
+    id === binding_id && value === input_value;
+const bind_operator_token   = bind_token_id("Operator");
+const bind_delimiter_token  = bind_token_id("Delimiter");
+const bind_identifier_token = bind_token_id("Identifier");
+
+// Bind for parser
+//const bind_parser = (binding_id, binding_value) => parser =>
+    //bind_token(binding_id, binding_value)(parser.next_token || {});
+
+const compare_parser_id = binding_id => ({next_token}) =>
+    next_token && next_token.id === binding_id;
+
+const bind_parser_id = binding_id => binding_value => parser =>
+    bind_token_id(binding_id)(parser.next_token || {}, binding_value);
+
+const bind_parser_operator  = bind_parser_id("Operator");
+const bind_parser_delimiter = bind_parser_id("Delimiter");
 
 // Destructuring binding patterns
 const destructuring_binding_patterns = [
@@ -36,54 +49,86 @@ const destructuring_binding_patterns = [
     "Object binding pattern",
 ];
 
+let validate_object_literal, validate_object_literals;
+
+validate_object_literal = (properties, parser) => {
+    for (const {expression: property} of properties) {
+        switch (property.id) {
+            case "Cover initialized name":
+                parser.throw_unexpected_token(
+                    "Invalid shorthand property initializer",
+                    property
+                );
+                break;
+            case "Method definition":
+            case "Identifier reference":
+                break;
+            case "Property assignment":
+                validate_object_literals(property.expression, parser);
+                break;
+            default:
+                parser.throw_unexpected_token(
+                    `Invalid '${property.constructor.name}'`, property
+                );
+        }
+    }
+};
+
+validate_object_literals = (expr, parser) => {
+    switch (expr.id) {
+        case "Object literal" :
+            validate_object_literal(expr.property_definition_list, parser);
+            break;
+        case "Assignment expression" :
+            validate_object_literals(expr.expression, parser);
+            break;
+        case "Expression" :
+        case "Assignment operator" :
+            validate_object_literals(expr.right, parser);
+            validate_object_literals(expr.left, parser);
+            break;
+        default:
+            // Silently ignored
+            //console.log(expr);
+            //debugger
+    }
+};
+
 module.exports = {
-    is_delimiter,
-    is_property_name,
-    is_comma                : is_delimiter(','),
-    is_colon                : is_delimiter(':'),
-    is_terminator           : is_delimiter(';'),
-    is_open_curly           : is_delimiter('{'),
-    is_close_curly          : is_delimiter('}'),
-    is_open_parenthesis     : is_delimiter('('),
-    is_close_parenthesis    : is_delimiter(')'),
-    is_open_square_bracket  : is_delimiter('['),
-    is_close_square_bracket : is_delimiter(']'),
-
-    is_arrow_token (token) {
-        return token.id === "Arrow";
+    assert (condition, error_node) {
+        if (! condition) throw error_node;
     },
 
-    is_assign_token (token) {
-        return token.id === "Operator" && token.value === '=';
-    },
+    // Token methods
+    is_arrow_token      : compare_token_id("Arrow"),
+    is_assign_token     : token => bind_operator_token(token, '='),
+    is_asterisk_token   : token => bind_operator_token(token, '*'),
+    is_terminator_token : token => bind_delimiter_token(token, ';'),
 
-    is_identifier_token (token) {
-        return token.id === "Identifier";
-    },
+    is_operator_token  : bind_operator_token,
+    is_delimiter_token : bind_delimiter_token,
+    is_identifier_token: bind_identifier_token,
 
-    is_asterisk_token (token) {
-        return token.id === "Operator" && token.value === '*';
-    },
+    // Parser methods
+    is_dot                  : bind_parser_operator('.'),
+    is_rest                 : compare_parser_id("Rest"),
+    is_comma                : bind_parser_delimiter(','),
+    is_colon                : bind_parser_delimiter(':'),
+    is_arrow                : compare_parser_id("Arrow"),
+    is_assign               : bind_parser_operator('='),
+    is_delimiter            : compare_parser_id("Delimiter"),
+    is_identifier           : compare_parser_id("Identifier"),
+    is_terminator           : bind_parser_delimiter(';'),
+    is_open_curly           : bind_parser_delimiter('{'),
+    is_close_curly          : bind_parser_delimiter('}'),
+    is_open_parenthesis     : bind_parser_delimiter('('),
+    is_close_parenthesis    : bind_parser_delimiter(')'),
+    is_open_square_bracket  : bind_parser_delimiter('['),
+    is_close_square_bracket : bind_parser_delimiter(']'),
 
-    is_reference_operator (token) {
-        return token.id === "Operator" && token.value === '.';
-    },
-
-    is_operator_token (token, value) {
-        return token.id === "Operator" && token.value === value;
-    },
-
-    is_delimiter_token (token, value) {
-        return token.id === "Delimiter" && token.value === value;
-    },
-
-    is_identifier_name ({ next_token : token }) {
-        return token && token.id === "Identifier";
-    },
-
-    is_identifier_value (token, value) {
-        return token.id === "Identifier" && token.value === value;
-    },
+    is_labelled_function: ({id, item}) =>
+        id      === "Labelled statement" &&
+        item.id === "Function declaration",
 
     is_destructuring_binding_pattern (node) {
         return destructuring_binding_patterns.includes(node.id);
@@ -104,16 +149,16 @@ module.exports = {
     get_last_non_comment_node (parser, throw_if_not_found) {
         let i = parser.previous_nodes.length;
         while (i--) {
-            if (parser.previous_nodes[i].id === "Comment") {
-                continue;
-            }
+            if (parser.previous_nodes[i].id === "Comment") continue;
             return parser.previous_nodes[i];
         }
 
         if (throw_if_not_found) {
-            parser.throw_unexpected_token("Only comments");
+            const exception = parser.next_token ? "token" : "end_of_stream";
+            parser[`throw_unexpected_${exception}`]();
         }
-
         return null;
     },
+
+    validate_object_literals,
 };

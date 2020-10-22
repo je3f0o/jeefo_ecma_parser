@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : function_call_expression.js
 * Created at  : 2019-09-06
-* Updated at  : 2019-12-14
+* Updated at  : 2020-09-08
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,30 +15,33 @@
 
 // ignore:end
 
-const { CALL_EXPRESSION } = require("../enums/precedence_enum");
+const {CALL_EXPRESSION} = require("../enums/precedence_enum");
 const {
     expression,
-    call_expression,
-    async_arrow_function,
+    async_arrow_function: async_arrow_fn,
 } = require("../enums/states_enum");
 const {
     is_arrow_token,
-    is_delimiter_token,
+    is_open_parenthesis,
+    has_no_line_terminator,
     get_last_non_comment_node,
 } = require("../../helpers");
 
+const is_not_new_expression = stack => stack.length
+    ? stack[stack.length - 1] !== "New operator without arguments"
+    : true;
+
 module.exports = {
     id         : "Function call expression",
-	type       : "Expression",
+	type       : "Call expression",
 	precedence : CALL_EXPRESSION,
 
-    is (token, parser) {
-        if (parser.current_state !== expression) { return; }
-
-        if (is_delimiter_token(token, '(')) {
-            return get_last_non_comment_node(parser) !== null;
-        }
-    },
+    is: (token, parser) => (
+        parser.current_state === expression &&
+        is_open_parenthesis(parser) &&
+        is_not_new_expression(parser.context_stack) &&
+        get_last_non_comment_node(parser) !== null
+    ),
 
 	initialize (node, token, parser) {
         const callee = get_last_non_comment_node(parser);
@@ -46,29 +49,18 @@ module.exports = {
         parser.change_state("arguments_state");
         const args = parser.generate_next_node();
 
+        node.callee    = callee;
+        node.arguments = args;
+        node.start     = callee.start;
+        node.end       = args.end;
+
         const next_token = parser.look_ahead();
-        const is_async_function = (
-            callee.id               === "Primary expression" &&
-            callee.expression.id    === "Identifier reference" &&
-            callee.expression.value === "async" &&
+        const is_async_arrow_fn = (
+            callee.id === "Identifier reference" &&
+            callee.identifier.identifier_name.value === "async" &&
             next_token && is_arrow_token(next_token) &&
-            next_token.start.line === args.end.line
+            has_no_line_terminator(args, next_token)
         );
-
-        if (is_async_function) {
-            node.args    = args;
-            node.keyword = parser.refine(
-                "contextual_keyword", callee.expression
-            );
-
-            parser.current_state = async_arrow_function;
-        } else {
-            node.callee    = callee;
-            node.arguments = args;
-            node.start     = callee.start;
-            node.end       = args.end;
-
-            parser.current_state = call_expression;
-        }
+        parser.current_state = is_async_arrow_fn ? async_arrow_fn : expression;
     },
 };

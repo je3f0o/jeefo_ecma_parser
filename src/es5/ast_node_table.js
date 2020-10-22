@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2017-08-16
-* Updated at  : 2019-09-08
+* Updated at  : 2020-09-10
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,6 +18,7 @@ const { AST_Node_Table } = require("@jeefo/parser");
 
 const ast_node_table = new AST_Node_Table();
 
+/*
 const future_reserved_words = [
     "let",
     "enum",
@@ -47,6 +48,7 @@ ast_node_table.register_reserved_words(future_reserved_words, {
         parser.throw_unexpected_token("Found a future reserved word");
     }
 });
+*/
 ast_node_table.register_node_definition(require("./delimiters"));
 
 require("./operators")(ast_node_table);
@@ -61,7 +63,6 @@ require("./statements")(ast_node_table);
     "./literals/object_literal",
     "./expressions/elision",
     "./expressions/expression",
-    "./expressions/identifier_name",
     "./expressions/property_set_parameter",
 ].forEach(path => {
     ast_node_table.register_node_definition(require(path));

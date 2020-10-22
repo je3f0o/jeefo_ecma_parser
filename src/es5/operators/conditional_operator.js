@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : conditional_operator.js
 * Created at  : 2019-03-28
-* Updated at  : 2019-08-27
+* Updated at  : 2020-09-09
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,14 +15,8 @@
 
 // ignore:end
 
-const { TERNARY } = require("../enums/precedence_enum");
-const {
-    terminal_definition : terminal
-} = require("../../common");
-const {
-    is_expression,
-    prepare_next_expression,
-} = require("../helpers");
+const {expression}             = require("../enums/states_enum");
+const {CONDITIONAL_EXPRESSION} = require("../enums/precedence_enum");
 const {
     is_colon,
     is_operator_token,
@@ -31,45 +25,41 @@ const {
 
 module.exports = {
     id         : "Conditional operator",
-    type       : "Ternary operator",
-    precedence : TERNARY,
+    type       : "Conditional expression",
+    precedence : CONDITIONAL_EXPRESSION,
 
-    is : (token, parser) => {
-        if (is_expression(parser) && is_operator_token(token, '?')) {
-            return get_last_non_comment_node(parser) !== null;
-        }
-    },
-    initialize : (node, current_token, parser) => {
-        const condition         = get_last_non_comment_node(parser);
-        const question_operator = terminal.generate_new_node(parser);
-        const { current_state } = parser;
+    is: (token, parser) => (
+        parser.current_state === expression &&
+        is_operator_token(token, '?') &&
+        get_last_non_comment_node(parser) !== null
+    ),
 
-        prepare_next_expression(parser, true);
-        let expression = parser.parse_next_node(TERNARY);
-        if (expression === null) {
-            parser.throw_unexpected_token();
-        }
-        const truthy_expression = get_last_non_comment_node(parser);
+    initialize (node, token, parser) {
+        const condition = get_last_non_comment_node(parser, true);
 
+        parser.expect('?', is_operator_token(token, '?'));
+        parser.change_state("punctuator");
+        const question_mark = parser.generate_next_node();
+
+        parser.prepare_next_state("assignment_expression", true);
+        const truthy_expr = parser.generate_next_node();
+
+        parser.prepare_next_state("punctuator", true);
         parser.expect(':', is_colon);
-        const colon_operator = terminal.generate_new_node(parser);
+        const colon = parser.generate_next_node();
 
-        prepare_next_expression(parser, true);
-        expression = parser.parse_next_node(TERNARY);
-        if (expression === null) {
-            parser.throw_unexpected_token();
-        }
-        const falsy_expression = get_last_non_comment_node(parser);
+        parser.prepare_next_state("assignment_expression", true);
+        const falsy_expr = parser.generate_next_node();
 
         node.condition         = condition;
-        node.question_operator = question_operator;
-        node.truthy_expression = truthy_expression;
-        node.colon_operator    = colon_operator;
-        node.falsy_expression  = falsy_expression;
+        node.question_mark     = question_mark;
+        node.truthy_expression = truthy_expr;
+        node.colon             = colon;
+        node.falsy_expression  = falsy_expr;
         node.start             = condition.start;
-        node.end               = falsy_expression.end;
+        node.end               = falsy_expr.end;
 
-        parser.ending_index  = node.end.index;
-        parser.current_state = current_state;
+        parser.end(node);
+        parser.current_state = expression;
     }
 };

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : assignment_rest_element.js
 * Created at  : 2019-09-05
-* Updated at  : 2019-09-05
+* Updated at  : 2020-08-26
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,28 +15,32 @@
 
 // ignore:end
 
-const { EXPRESSION }              = require("../enums/precedence_enum");
-const { assignment_rest_element } = require("../enums/states_enum");
+const {EXPRESSION}              = require("../enums/precedence_enum");
+const {assignment_rest_element} = require("../enums/states_enum");
+
+const is_valid = ({id}) => id === "Spread element";
 
 module.exports = {
     id         : "Assignment rest element",
-	type       : "Expression",
+	type       : "Destructuring assignment",
 	precedence : EXPRESSION,
 
-    is     : (_, { current_state : s }) => s === assignment_rest_element,
-	refine : (node, expression, parser) => {
-        if (expression.id !== "Spread element") {
-            parser.throw_unexpected_refine(node, expression);
+    is     : (_, {current_state: s}) => s === assignment_rest_element,
+	refine : (node, expr, parser) => {
+        if (! is_valid(expr)) parser.throw_unexpected_refine(node, expr);
+
+        const {expression: {expression}} = expr;
+        switch (expression.id) {
+            case "Array literal"        :
+            case "Object literal"       :
+            case "Identifier reference" :
+                break;
+            default:
+                parser.throw_unexpected_refine(node, expression);
         }
-
-        const target = parser.refine(
-            "destructuring_assignment_target",
-            expression.expression.expression
-        );
-
-        node.ellipsis = expression.ellipsis;
-        node.target   = target;
-        node.start    = node.ellipsis.start;
-        node.end      = target.end;
+        node.ellipsis = expr.ellipsis;
+        node.target   = expression;
+        node.start    = expr.start;
+        node.end      = expr.end;
     },
 };

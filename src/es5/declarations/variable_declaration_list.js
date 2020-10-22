@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : variable_declaration_list.js
 * Created at  : 2019-09-01
-* Updated at  : 2019-09-08
+* Updated at  : 2020-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -26,6 +26,7 @@ module.exports = {
 
     is         : (_, { current_state : s }) => s === variable_declaration_list,
     initialize : (node, token, parser) => {
+        debugger
         const list       = [];
         const delimiters = [];
 

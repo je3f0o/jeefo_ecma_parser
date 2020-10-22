@@ -1,7 +1,7 @@
 {
     "name": "@jeefo/ecma_parser",
-    "version": "0.0.6",
-    "description": "Part of jeefo framework.",
+    "version": "0.0.8",
+    "description": "Another ECMA parser. (under developing...)",
     "author": {
         "name": "je3f0o",
         "email": "je3f0o@gmail.com"
@@ -17,22 +17,18 @@
     },
     "repository": {
         "type": "git",
-        "url": "git@github.com:je3f0o/jeefo_javascript_parser.git"
+        "url": "git@github.com:je3f0o/jeefo_ecma_parser.git"
     },
     "keywords": [
         "jeefo",
         "je3f0o",
-        "token",
-        "parser",
-        "tokenizer",
         "ECMA Parser"
     ],
     "devDependencies": {
+        "@jeefo/parser": "0.0.25",
         "@jeefo/publish": "0.0.31",
         "expect.js": "^0.3.1",
         "mocha": "^6.0.2"
     },
-    "dependencies": {
-        "@jeefo/parser": "0.0.25"
-    }
+    "dependencies": {}
 }

@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-22
-* Updated at  : 2019-08-28
+* Updated at  : 2020-09-06
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -22,14 +22,10 @@ module.exports = ast_node_table => {
         "generator_method",
         "method_definition",
 
-        "function_call_expression",
-
         "arrow_function",
         "class_expression",
         "grouping_expression",
         "generator_expression",
-        "array_binding_pattern",
-        "object_binding_pattern",
     ].forEach(path => {
         const node_def = require(`./${ path }`);
         ast_node_table.register_node_definition(node_def);
