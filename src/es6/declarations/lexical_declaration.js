@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : lexical_declaration.js
 * Created at  : 2019-08-24
-* Updated at  : 2020-09-09
+* Updated at  : 2020-10-23
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -18,7 +18,6 @@
 const {DECLARATION}                    = require("../enums/precedence_enum");
 const {statement, lexical_declaration} = require("../enums/states_enum");
 const {
-    is_terminator,
     is_assign_token,
     is_delimiter_token,
     has_no_line_terminator,
@@ -61,7 +60,11 @@ module.exports = {
 
     initialize (node, token, parser) {
         parser.expect("LetOrConst", is_let_or_const(parser.next_token));
-        parser.change_state("keyword");
+        if (token.value === "let") {
+            parser.change_state("contextual_keyword");
+        } else {
+            parser.change_state("keyword");
+        }
         const keyword = parser.generate_next_node();
 
         const list       = [];
@@ -106,7 +109,11 @@ module.exports = {
 
     refine (node, whatever, parser) {
         parser.expect("LetOrConst", is_let_or_const(parser.next_token));
-        parser.change_state("keyword");
+        if (parser.next_token.value === "let") {
+            parser.change_state("contextual_keyword");
+        } else {
+            parser.change_state("keyword");
+        }
 
         const list       = [];
         const keyword    = parser.generate_next_node();
