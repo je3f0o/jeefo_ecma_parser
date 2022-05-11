@@ -6,4 +6,5 @@ Javascript I found a video Douglas crockford talking about how to create a
 Javascript Linter and another video Douglas crockford talking about Syntaxation 
 in GOTO Conferences. So that motivated me to create my own Javascript parser. 
 Then I read ECMAScript specs and created this parser in 2-3 months in 1 summer.
-Since then I understood javascript very deeply...
+Since then I understood javascript very deeply... Later I use this parser in my 
+Web application framework called jeefo framework.
