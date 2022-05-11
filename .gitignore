@@ -6,3 +6,7 @@ node_modules
 
 # Caches
 build/.caches
+
+# Vim swap files
+*.swp
+*.swo

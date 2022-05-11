@@ -8,3 +8,9 @@ in GOTO Conferences. So that motivated me to create my own Javascript parser.
 Then I read ECMAScript specs and created this parser in 2-3 months in 1 summer.
 Since then I understood javascript very deeply... Later I use this parser in my 
 Web application framework called jeefo framework.
+
+## Install
+`npm i @jeefo/ecma_parser`
+
+## Demo
+You can try this in [astexplorer.net](https://astexplorer.net)
