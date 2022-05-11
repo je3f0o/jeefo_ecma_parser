@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-02-10
-* Updated at  : 2020-08-27
+* Updated at  : 2022-05-12
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,20 +15,22 @@
 
 // ignore:end
 
+const expressions = [
+  require("./property_name"),
+  require("./getter_method"),
+  require("./setter_method"),
+  require("./function_body"),
+  require("./member_expression"),
+  require("./grouping_expression"),
+  require("./function_expression"),
+  require("./formal_parameter_list"),
+  require("./parenthesized_expression"),
+  require("./function_call_expression"),
+  require("./computed_member_expression"),
+];
+
 module.exports = ast_node_table => {
-    [
-        "property_name",
-        "getter_method",
-        "setter_method",
-        "function_body",
-        "member_expression",
-        "grouping_expression",
-        "function_expression",
-        "formal_parameter_list",
-        "parenthesized_expression",
-        "function_call_expression",
-        "computed_member_expression",
-    ].forEach(path => {
-        ast_node_table.register_node_definition(require(`./${ path }`));
-    });
+  for (const expr of expressions) {
+    ast_node_table.register_node_definition(expr);
+  }
 };

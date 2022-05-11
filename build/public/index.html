@@ -1,0 +1,8 @@
+<script src="jeefo_core.js"></script>
+<script>
+(async () => {
+  await jeefo.require("./es8/parser");
+  const res = await fetch("/bundle", {method: "POST"});
+  if (res.status === 200) console.log("done");
+})();
+</script>

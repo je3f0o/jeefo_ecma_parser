@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : ast_node_table.js
 * Created at  : 2017-08-16
-* Updated at  : 2020-09-10
+* Updated at  : 2022-05-12
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,9 +14,8 @@
 
 // ignore:end
 
-const { AST_Node_Table } = require("@jeefo/parser");
-
-const ast_node_table = new AST_Node_Table();
+const {AST_Node_Table} = require("@jeefo/parser");
+const ast_node_table   = new AST_Node_Table();
 
 /*
 const future_reserved_words = [
@@ -57,15 +56,16 @@ require("./declarations")(ast_node_table);
 require("./expressions")(ast_node_table);
 require("./statements")(ast_node_table);
 
-[
-    "./common/method_definition",
-    "./literals/array_literal",
-    "./literals/object_literal",
-    "./expressions/elision",
-    "./expressions/expression",
-    "./expressions/property_set_parameter",
-].forEach(path => {
-    ast_node_table.register_node_definition(require(path));
-});
+const paths = [
+  "./common/method_definition",
+  "./literals/array_literal",
+  "./literals/object_literal",
+  "./expressions/elision",
+  "./expressions/expression",
+  "./expressions/property_set_parameter",
+];
+for (const path of paths) {
+  ast_node_table.register_node_definition(require(path));
+}
 
 module.exports = ast_node_table;

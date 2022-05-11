@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-01-29
-* Updated at  : 2020-09-07
+* Updated at  : 2022-05-12
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,62 +14,69 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-module.exports = function register_statements (ast_node_table) {
-    ast_node_table.register_node_definition(require("./empty_statement"));
-    ast_node_table.register_node_definition(require("./block_statement"));
-    ast_node_table.register_node_definition(require("./labelled_statement"));
-    ast_node_table.register_node_definition(require("./expression_statement"));
+const if_stmt = require("./if_statement");
 
-    const keywords = [
-        {
-            path  : "./do_while_statement",
-            value : "do",
-        },
-        {
-            path  : "./variable_statement",
-            value : "var",
-        },
-        {
-            path  : "./for_statement",
-            value : "for",
-        },
-        {
-            path  : "./with_statement",
-            value : "with",
-        },
-        {
-            path  : "./while_statement",
-            value : "while",
-        },
-        {
-            path  : "./switch_statement",
-            value : "switch",
-        },
-        {
-            path  : "./throw_statement",
-            value : "throw",
-        },
-        {
-            path  : "./break_statement",
-            value : "break",
-        },
-        {
-            path  : "./return_statement",
-            value : "return",
-        },
-        {
-            path  : "./continue_statement",
-            value : "continue",
-        },
-        {
-            path  : "./debugger_statement",
-            value : "debugger",
-        },
-    ];
-    keywords.forEach(keyword => {
-        const content = require(keyword.path);
-        ast_node_table.register_reserved_word(keyword.value, content);
-    });
+const stmts = [
+  require("./empty_statement"),
+  require("./block_statement"),
+  require("./labelled_statement"),
+  require("./expression_statement"),
+];
 
-    require("./if_statement")(ast_node_table);
+const keywords = [
+  {
+    keyword    : "do",
+    definition : require("./do_while_statement"),
+  },
+  {
+    keyword    : "var",
+    definition : require("./variable_statement"),
+  },
+  {
+    keyword    : "for",
+    definition : require("./for_statement"),
+  },
+  {
+    keyword    : "with",
+    definition : require("./with_statement"),
+  },
+  {
+    keyword    : "while",
+    definition : require("./while_statement"),
+  },
+  {
+    keyword    : "switch",
+    definition : require("./switch_statement"),
+  },
+  {
+    keyword    : "throw",
+    definition : require("./throw_statement"),
+  },
+  {
+    keyword    : "break",
+    definition : require("./break_statement"),
+  },
+  {
+    keyword    : "return",
+    definition : require("./return_statement"),
+  },
+  {
+    keyword    : "continue",
+    definition : require("./continue_statement"),
+  },
+  {
+    keyword    : "debugger",
+    definition : require("./debugger_statement"),
+  },
+];
+
+module.exports = ast_node_table => {
+  for (const stmt of stmts) {
+    ast_node_table.register_node_definition(stmt);
+  }
+  for (const {keyword, definition} of keywords) {
+    ast_node_table.register_reserved_word(keyword, definition);
+  }
+
+  if_stmt(ast_node_table);
 };

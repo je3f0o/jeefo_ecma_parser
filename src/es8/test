@@ -1,4 +1,6 @@
 
+f.validate(form.models[f.name])
+
 object
 .
 // comment

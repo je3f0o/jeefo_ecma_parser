@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "dependencies": {
+    "@jeefo/utils": "^0.0.16",
+    "jeefo": "^0.2.11"
+  }
+}

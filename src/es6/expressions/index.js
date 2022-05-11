@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-08-22
-* Updated at  : 2020-09-06
+* Updated at  : 2022-05-12
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -15,24 +15,30 @@
 
 // ignore:end
 
+const exprs = [
+  require("./meta_property"),
+
+  require("./generator_method"),
+  require("./method_definition"),
+
+  require("./arrow_function"),
+  require("./class_expression"),
+  require("./grouping_expression"),
+  require("./generator_expression"),
+];
+
+const keywords = [];
+for (const keyword of ["new", "yield"]) {
+  const definition = require(`./${keyword}_expression`);
+  keywords.push({keyword, definition});
+}
+
 module.exports = ast_node_table => {
-    [
-        "meta_property",
+  for (const expr of exprs) {
+    ast_node_table.register_node_definition(expr);
+  }
 
-        "generator_method",
-        "method_definition",
-
-        "arrow_function",
-        "class_expression",
-        "grouping_expression",
-        "generator_expression",
-    ].forEach(path => {
-        const node_def = require(`./${ path }`);
-        ast_node_table.register_node_definition(node_def);
-    });
-
-    ["new", "yield"].forEach(reserved_word => {
-        const node_def = require(`./${ reserved_word }_expression`);
-        ast_node_table.register_reserved_word(reserved_word, node_def);
-    });
+  for (const {keyword, definition} of keywords) {
+    ast_node_table.register_reserved_word(keyword, definition);
+  }
 };

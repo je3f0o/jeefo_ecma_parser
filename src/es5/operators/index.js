@@ -1,7 +1,7 @@
 /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 * File Name   : index.js
 * Created at  : 2019-01-28
-* Updated at  : 2019-08-05
+* Updated at  : 2022-05-12
 * Author      : jeefo
 * Purpose     :
 * Description :
@@ -14,10 +14,13 @@ _._._._._._._._._._._._._._._._._._._._._.*/
 
 // ignore:end
 
-module.exports = function register_operators (ast_node_table) {
-    require("./unary_operators")(ast_node_table);
-    require("./binary_operators")(ast_node_table);
-    ast_node_table.register_node_definition(
-        require("./conditional_operator")
-    );
+const ternary = require("./conditional_operator");
+const ops = [
+  require("./unary_operators"),
+  require("./binary_operators"),
+];
+
+module.exports = ast_node_table => {
+  ops.forEach(op => op(ast_node_table));
+  ast_node_table.register_node_definition(ternary);
 };
